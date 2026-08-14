@@ -1,5 +1,5 @@
 import { ReactLenis, useLenis } from 'lenis/react'
-import type { LenisOptions, Lenis } from 'lenis'
+import type { LenisOptions } from 'lenis'
 import { useEffect, type ReactNode } from 'react'
 
 /** Cap a single wheel tick so fast flicks can't jump past scroll-driven sections. */
@@ -117,7 +117,7 @@ export default function SmoothScroll({
 
 /** Optional helper for modals that need to pause smooth scroll. */
 export function useLenisLock(locked: boolean) {
-  const lenis = useLenis() as Lenis | undefined
+  const lenis = useLenis()
   useEffect(() => {
     if (!lenis) {
       if (locked) document.body.style.overflow = 'hidden'
