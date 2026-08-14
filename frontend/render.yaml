@@ -1,0 +1,12 @@
+# Render Static Site — Tasneem Mukhwas frontend (client demo)
+services:
+  - type: web
+    name: tasneem-mukhwas
+    runtime: static
+    rootDir: .
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

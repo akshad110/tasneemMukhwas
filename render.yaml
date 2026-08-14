@@ -1,0 +1,13 @@
+# Render Static Site — Tasneem Mukhwas frontend
+# On Render set Root Directory to `frontend`
+services:
+  - type: web
+    name: tasneem-mukhwas
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

@@ -1,0 +1,47 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Segoe UI', system-ui, sans-serif;
+  --font-marker: 'Permanent Marker', cursive;
+  --color-cream: #f3e6c8;
+  --color-heading-white: #ffffff;
+  --color-ink: #0a2e22;
+  --color-gold: #b8860b;
+
+  /* shadcn semantic tokens (brand-aligned) */
+  --color-background: #ffffff;
+  --color-foreground: #0a2e22;
+  --color-card: #ffffff;
+  --color-card-foreground: #0a2e22;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #0a2e22;
+  --color-primary: #0a2e22;
+  --color-primary-foreground: #f3e6c8;
+  --color-secondary: #f3e6c8;
+  --color-secondary-foreground: #0a2e22;
+  --color-muted: #f5efe3;
+  --color-muted-foreground: #4a6358;
+  --color-accent: #f3e6c8;
+  --color-accent-foreground: #0a2e22;
+  --color-destructive: #b91c1c;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #d9d0bc;
+  --color-input: #d9d0bc;
+  --color-ring: #b8860b;
+}
+
+.permanent-marker-regular {
+  font-family: 'Permanent Marker', cursive;
+  font-weight: 400;
+  font-style: normal;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+}

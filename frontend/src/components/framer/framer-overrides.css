@@ -1,0 +1,27 @@
+/**
+ * Framer variant style overrides (#9) — keep for when SVXObxb6u is mounted directly.
+ * Exit / progress bar widths are also expressed in the bundle CSS; these reinforce them.
+ */
+.framer-uHW7v.framer-v-1ebr45x .framer-pctpqr,
+.framer-uHW7v.framer-v-tb0r4e .framer-pctpqr {
+  width: 100% !important;
+}
+
+.framer-uHW7v.framer-v-tb0r4e .framer-10uenv7 {
+  flex: none !important;
+  height: 2px !important;
+}
+
+.framer-uHW7v.framer-v-tb0r4e .framer-12lsdtj {
+  bottom: 10px !important;
+  border-radius: 50% !important;
+}
+
+/* TOy3kXD4p / Team Showcase — product info readable on light fill plates (#9) */
+.framer-u8KXU [data-framer-component-type='RichTextContainer'],
+.framer-u8KXU [data-framer-component-type='RichTextContainer'] p,
+.framer-u8KXU [data-framer-component-type='RichTextContainer'] span {
+  color: #111111 !important;
+  --framer-text-color: #111111 !important;
+  --extracted-r6o4lv: #111111 !important;
+}
