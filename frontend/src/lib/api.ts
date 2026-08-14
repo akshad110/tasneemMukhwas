@@ -35,7 +35,15 @@ export function setToken(token: string | null) {
 }
 
 function apiBase() {
-  return (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') || '/api'
+  const raw = (import.meta.env.VITE_API_URL as string | undefined)?.trim()
+  if (!raw) return '/api'
+
+  let base = raw.replace(/\/+$/, '')
+  // Ensure absolute API hosts always include the /api prefix used by Express
+  if (/^https?:\/\//i.test(base) && !/\/api$/i.test(base)) {
+    base = `${base}/api`
+  }
+  return base
 }
 
 type RequestOptions = {
