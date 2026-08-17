@@ -9,9 +9,11 @@ import {
 import OrbitDotGlobe from '../framer/OrbitDotGlobe.js'
 
 const CREAM = '#f3e6c8'
+const PAGE = '#f7f1e4'
 const INK = '#0a2e22'
 const GOLD = '#b8860b'
 const GOLD_SHINE = '#f5d76e'
+const MUTED = 'rgba(10,46,34,0.68)'
 const SECTION_TEXTURE = '/image.png_2K_202608092240.jpeg'
 const GLOBE_OCEAN = '#0a100e'
 const GLOBE_LAND = '#e2c878'
@@ -103,7 +105,7 @@ export default function ContactSection() {
     <section
       id="contact"
       className="relative w-full overflow-x-clip px-4 py-14 sm:px-8 md:py-20 lg:px-10"
-      style={{ backgroundColor: INK }}
+      style={{ backgroundColor: PAGE }}
       aria-label="Contact"
     >
       <div className="pointer-events-none absolute inset-0 z-0">
@@ -111,14 +113,20 @@ export default function ContactSection() {
           src={SECTION_TEXTURE}
           alt=""
           aria-hidden
-          className="absolute inset-0 h-full w-full object-cover brightness-[0.9] saturate-[0.95]"
+          className="absolute inset-0 h-full w-full object-cover"
+          style={{
+            filter: 'brightness(1.55) saturate(0.35) contrast(0.88)',
+            opacity: 0.42,
+          }}
         />
         <div
           aria-hidden
           className="absolute inset-0"
           style={{
-            background:
-              'radial-gradient(ellipse 55% 50% at 50% 50%, rgba(8,16,12,0.08) 0%, rgba(6,12,10,0.28) 55%, rgba(4,10,8,0.4) 100%)',
+            background: `
+              linear-gradient(180deg, rgba(247,241,228,0.82) 0%, rgba(243,230,200,0.55) 45%, rgba(247,241,228,0.88) 100%),
+              radial-gradient(ellipse 60% 50% at 50% 40%, rgba(255,252,245,0.5) 0%, transparent 70%)
+            `,
           }}
         />
       </div>
@@ -127,7 +135,7 @@ export default function ContactSection() {
         <h2
           className="m-0 uppercase"
           style={{
-            color: CREAM,
+            color: INK,
             fontFamily: 'Anton, Impact, sans-serif',
             fontSize: 'clamp(2.75rem, 9vw, 7rem)',
             fontWeight: 400,
@@ -138,8 +146,8 @@ export default function ContactSection() {
           Contact
         </h2>
         <p
-          className="mx-auto mt-3 max-w-lg text-[0.85rem] leading-relaxed opacity-85"
-          style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+          className="mx-auto mt-3 max-w-lg text-[0.85rem] leading-relaxed"
+          style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
         >
           Reach Tasneem Mukhwas and our sister brands from one Chhapi address.
         </p>
@@ -168,8 +176,9 @@ export default function ContactSection() {
                   style={{
                     fontFamily: 'Inter, sans-serif',
                     backgroundColor: selected ? GOLD : 'transparent',
-                    color: selected ? INK : CREAM,
-                    border: `1px solid ${selected ? GOLD : 'rgba(243,230,200,0.28)'}`,
+                    color: selected ? INK : INK,
+                    border: `1px solid ${selected ? GOLD : 'rgba(10,46,34,0.22)'}`,
+                    opacity: selected ? 1 : 0.78,
                   }}
                 >
                   {brand.name}
@@ -181,9 +190,10 @@ export default function ContactSection() {
           <article
             className="rounded-2xl px-5 py-5 sm:px-6 sm:py-6"
             style={{
-              backgroundColor: 'rgba(243,230,200,0.08)',
-              border: '1px solid rgba(243,230,200,0.16)',
+              backgroundColor: 'rgba(255,252,247,0.72)',
+              border: '1px solid rgba(10,46,34,0.1)',
               backdropFilter: 'blur(6px)',
+              boxShadow: '0 12px 40px -28px rgba(10,46,34,0.35)',
             }}
           >
             <p
@@ -194,38 +204,41 @@ export default function ContactSection() {
             </p>
             <h3
               className="m-0 mt-1.5 text-[1.15rem] font-bold leading-tight tracking-wide uppercase sm:text-[1.35rem]"
-              style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+              style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
             >
               {active.name}
             </h3>
             <p
-              className="m-0 mt-2 text-[0.8rem] leading-relaxed opacity-85"
-              style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+              className="m-0 mt-2 text-[0.8rem] leading-relaxed"
+              style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
             >
               {CONTACT_ADDRESS}
             </p>
             <p
               className="m-0 mt-3 text-[0.88rem] leading-relaxed"
-              style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+              style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
             >
               {active.description}
             </p>
             <p
-              className="m-0 mt-2.5 text-[0.8rem] leading-relaxed opacity-75"
-              style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+              className="m-0 mt-2.5 text-[0.8rem] leading-relaxed"
+              style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
             >
               {active.about}
             </p>
 
-            <dl className="mt-5 grid gap-3 border-t border-[rgba(243,230,200,0.18)] pt-4 text-[0.8rem] sm:grid-cols-2">
+            <dl
+              className="mt-5 grid gap-3 border-t pt-4 text-[0.8rem] sm:grid-cols-2"
+              style={{ borderColor: 'rgba(10,46,34,0.12)' }}
+            >
               <div>
                 <dt
-                  className="m-0 text-[0.62rem] font-semibold tracking-[0.12em] uppercase opacity-60"
-                  style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+                  className="m-0 text-[0.62rem] font-semibold tracking-[0.12em] uppercase"
+                  style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}
                 >
                   Phone
                 </dt>
-                <dd className="m-0 mt-1" style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}>
+                <dd className="m-0 mt-1" style={{ color: INK, fontFamily: 'Inter, sans-serif' }}>
                   <a href={`tel:${CONTACT_PHONE_TEL}`} className="cursor-pointer hover:underline">
                     {CONTACT_PHONE_DISPLAY}
                   </a>
@@ -233,12 +246,12 @@ export default function ContactSection() {
               </div>
               <div>
                 <dt
-                  className="m-0 text-[0.62rem] font-semibold tracking-[0.12em] uppercase opacity-60"
-                  style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+                  className="m-0 text-[0.62rem] font-semibold tracking-[0.12em] uppercase"
+                  style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}
                 >
                   Email
                 </dt>
-                <dd className="m-0 mt-1" style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}>
+                <dd className="m-0 mt-1" style={{ color: INK, fontFamily: 'Inter, sans-serif' }}>
                   <a
                     href={`mailto:${CONTACT_EMAIL}`}
                     className="cursor-pointer break-all hover:underline"

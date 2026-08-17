@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema(
     notifyOrders: { type: Boolean, default: true },
     notifyLowStock: { type: Boolean, default: true },
     notifyReviews: { type: Boolean, default: false },
+    wishlist: { type: mongoose.Schema.Types.ObjectId, ref: 'Wishlist', default: null },
     isActive: { type: Boolean, default: true },
   },
   { timestamps: true },

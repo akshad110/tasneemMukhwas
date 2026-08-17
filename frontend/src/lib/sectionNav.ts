@@ -75,11 +75,11 @@ export function getActiveSectionId(): SectionId {
   if (window.scrollY < 80) return 'home'
 
   const marker = window.scrollY + Math.min(140, window.innerHeight * 0.22)
-  // Page order (not nav order): wholesale sits above about
+  // Page order (not nav order): about → range → wholesale → contact
   const order: Exclude<SectionId, 'home'>[] = [
-    'wholesale',
     'about',
     'products',
+    'wholesale',
     'contact',
   ]
 

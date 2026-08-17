@@ -1,6 +1,8 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useMemo, useState } from 'react'
 import { useCart } from '../../context/CartContext'
+import { useAuth } from '../../context/AuthContext'
+import { useWishlist } from '../../context/WishlistContext'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 import {
   getComparePrice,
@@ -12,15 +14,17 @@ import {
 const INK = '#0a2e22'
 const CREAM = '#f3e6c8'
 const GOLD = '#b8860b'
-const CARD_BG = '#071a14'
-const CARD_PANEL = '#0d2820'
+const CARD_BG = '#fffcf7'
+const CARD_PANEL = '#f3ebe0'
+const MUTED = 'rgba(10,46,34,0.58)'
+const BORDER = 'rgba(10,46,34,0.1)'
 
 function Stars({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'md' }) {
   const cls = size === 'md' ? 'text-[0.85rem]' : 'text-[0.72rem]'
   return (
     <span className={`inline-flex gap-0.5 ${cls}`} aria-label={`${rating} out of 5 stars`}>
       {Array.from({ length: 5 }, (_, i) => (
-        <span key={i} style={{ color: i < rating ? GOLD : 'rgba(243,230,200,0.25)' }}>
+        <span key={i} style={{ color: i < rating ? GOLD : 'rgba(10,46,34,0.18)' }}>
           ★
         </span>
       ))}
@@ -32,11 +36,14 @@ type ShopProductCardProps = {
   product: ShopProduct
 }
 
-/** Dark commerce card — image, wishlist, gallery, price, qty (brand palette). */
+/** Light commerce card — image, wishlist, gallery, price, qty. */
 export default function ShopProductCard({ product }: ShopProductCardProps) {
   const images = useMemo(() => getProductImages(product), [product])
   const [imageIndex, setImageIndex] = useState(0)
-  const [liked, setLiked] = useState(false)
+  const { user } = useAuth()
+  const { isWishlisted, toggle } = useWishlist()
+  const liked = isWishlisted(product.id)
+  const [wishBusy, setWishBusy] = useState(false)
   const { getQty, setQty, addItem } = useCart()
 
   const activeImage = images[Math.min(imageIndex, Math.max(0, images.length - 1))] ?? product.image
@@ -58,19 +65,33 @@ export default function ShopProductCard({ product }: ShopProductCardProps) {
     setQty(product.id, variantId, qty + 1)
   }
 
+  const toggleWishlist = async () => {
+    if (!user) {
+      navigateApp(APP_ROUTES.login)
+      return
+    }
+    if (wishBusy) return
+    setWishBusy(true)
+    try {
+      await toggle(product.id)
+    } finally {
+      setWishBusy(false)
+    }
+  }
+
   return (
     <motion.article
       layout
-      className="flex flex-col overflow-hidden rounded-2xl border border-white/8 p-4"
+      className="flex flex-col overflow-hidden rounded-2xl border p-4"
       style={{
         backgroundColor: CARD_BG,
-        boxShadow: '0 24px 48px -28px rgba(0,0,0,0.65)',
+        borderColor: BORDER,
+        boxShadow: '0 18px 40px -28px rgba(10,46,34,0.35)',
       }}
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
     >
-      {/* Image stage */}
       <div
         className="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-xl"
         style={{ backgroundColor: CARD_PANEL }}
@@ -82,7 +103,7 @@ export default function ShopProductCard({ product }: ShopProductCardProps) {
             alt={product.name}
             loading="lazy"
             decoding="async"
-            className="relative z-[1] h-[78%] w-auto max-w-[85%] object-contain drop-shadow-[0_20px_28px_rgba(0,0,0,0.45)]"
+            className="relative z-[1] h-[78%] w-auto max-w-[85%] object-contain drop-shadow-[0_14px_22px_rgba(10,46,34,0.18)]"
             draggable={false}
             initial={{ opacity: 0, scale: 0.94 }}
             animate={{ opacity: outOfStock ? 0.45 : 1, scale: 1 }}
@@ -102,11 +123,13 @@ export default function ShopProductCard({ product }: ShopProductCardProps) {
 
         <button
           type="button"
-          onClick={() => setLiked((v) => !v)}
-          className="absolute top-2.5 right-2.5 z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-0 transition hover:scale-105"
+          onClick={() => void toggleWishlist()}
+          disabled={wishBusy}
+          className="absolute top-2.5 right-2.5 z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-0 transition hover:scale-105 disabled:opacity-70"
           style={{
-            backgroundColor: liked ? GOLD : 'rgba(243,230,200,0.12)',
-            color: liked ? INK : CREAM,
+            backgroundColor: liked ? GOLD : 'rgba(255,255,255,0.85)',
+            color: liked ? INK : INK,
+            boxShadow: '0 4px 12px -6px rgba(10,46,34,0.35)',
           }}
           aria-label={liked ? 'Remove from wishlist' : 'Add to wishlist'}
           aria-pressed={liked}
@@ -117,7 +140,6 @@ export default function ShopProductCard({ product }: ShopProductCardProps) {
         </button>
       </div>
 
-      {/* Image 1–3 thumbnails */}
       {images.length > 1 && (
         <div className="mt-3 flex flex-wrap gap-2">
           {images.map((src, i) => {
@@ -129,7 +151,7 @@ export default function ShopProductCard({ product }: ShopProductCardProps) {
                 onClick={() => setImageIndex(i)}
                 className="h-10 w-10 cursor-pointer overflow-hidden rounded-lg border-2 p-0.5 transition"
                 style={{
-                  borderColor: selected ? GOLD : 'transparent',
+                  borderColor: selected ? GOLD : 'rgba(10,46,34,0.12)',
                   backgroundColor: CARD_PANEL,
                 }}
                 aria-label={`Image ${i + 1}`}
@@ -146,7 +168,7 @@ export default function ShopProductCard({ product }: ShopProductCardProps) {
 
       <h3
         className="mt-3 m-0 text-[1.05rem] font-semibold tracking-tight"
-        style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+        style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
       >
         {product.name}
       </h3>
@@ -165,7 +187,7 @@ export default function ShopProductCard({ product }: ShopProductCardProps) {
 
       <div className="mt-2 flex items-center gap-2">
         <Stars rating={product.rating} />
-        <span className="text-[0.72rem] opacity-50" style={{ color: CREAM }}>
+        <span className="text-[0.72rem]" style={{ color: MUTED }}>
           ({product.reviews})
         </span>
       </div>
@@ -173,14 +195,14 @@ export default function ShopProductCard({ product }: ShopProductCardProps) {
       <div className="mt-2.5 flex items-baseline gap-2">
         <span
           className="text-[1.2rem] font-bold"
-          style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+          style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
         >
           ₹{sellPrice}
         </span>
         {comparePrice != null && comparePrice > sellPrice && (
           <span
-            className="text-[0.85rem] line-through opacity-40"
-            style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+            className="text-[0.85rem] line-through"
+            style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
           >
             ₹{comparePrice}
           </span>
@@ -192,10 +214,10 @@ export default function ShopProductCard({ product }: ShopProductCardProps) {
           <button
             type="button"
             disabled
-            className="w-full cursor-not-allowed rounded-lg border-0 py-2.5 text-[0.75rem] font-semibold tracking-wide uppercase opacity-60"
+            className="w-full cursor-not-allowed rounded-lg border-0 py-2.5 text-[0.75rem] font-semibold tracking-wide uppercase opacity-70"
             style={{
-              backgroundColor: 'rgba(243,230,200,0.2)',
-              color: CREAM,
+              backgroundColor: 'rgba(10,46,34,0.12)',
+              color: INK,
               fontFamily: 'Inter, sans-serif',
             }}
           >
@@ -207,8 +229,8 @@ export default function ShopProductCard({ product }: ShopProductCardProps) {
             onClick={addToCart}
             className="w-full cursor-pointer rounded-lg border-0 py-2.5 text-[0.75rem] font-semibold tracking-wide uppercase transition hover:brightness-110"
             style={{
-              backgroundColor: CREAM,
-              color: INK,
+              backgroundColor: INK,
+              color: CREAM,
               fontFamily: 'Inter, sans-serif',
             }}
           >
@@ -221,14 +243,14 @@ export default function ShopProductCard({ product }: ShopProductCardProps) {
                 type="button"
                 onClick={dec}
                 className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border-0 text-lg font-semibold transition hover:brightness-110"
-                style={{ backgroundColor: CREAM, color: INK }}
+                style={{ backgroundColor: INK, color: CREAM }}
                 aria-label="Decrease quantity"
               >
                 −
               </button>
               <span
                 className="min-w-[1.5rem] text-center text-[0.95rem] font-semibold"
-                style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+                style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
               >
                 {qty}
               </span>
@@ -236,7 +258,7 @@ export default function ShopProductCard({ product }: ShopProductCardProps) {
                 type="button"
                 onClick={inc}
                 className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border-0 text-lg font-semibold transition hover:brightness-110"
-                style={{ backgroundColor: CREAM, color: INK }}
+                style={{ backgroundColor: INK, color: CREAM }}
                 aria-label="Increase quantity"
               >
                 +
@@ -248,7 +270,7 @@ export default function ShopProductCard({ product }: ShopProductCardProps) {
                 onClick={() => navigateApp(APP_ROUTES.cart)}
                 className="cursor-pointer border-0 bg-transparent p-0 text-[0.7rem] font-semibold tracking-wide uppercase underline-offset-2 transition hover:underline"
                 style={{
-                  color: CREAM,
+                  color: INK,
                   fontFamily: 'Inter, sans-serif',
                 }}
               >

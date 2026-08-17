@@ -6,6 +6,7 @@ import Hero from '../components/hero/Hero'
 import Navbar from '../components/nav/Navbar'
 import OrbitShowcase from '../components/orbit/OrbitShowcase'
 import ContactSection from '../components/contact/ContactSection'
+import HomeTestimonials from '../components/testimonials/HomeTestimonials'
 import PopularProducts from '../components/products/PopularProducts'
 import B2BBanner from '../components/shared/B2BBanner'
 import FloatingActions from '../components/shared/FloatingActions'
@@ -36,14 +37,15 @@ export default function Home({ ready }: HomeProps) {
       <Navbar />
       <Hero active={ready} />
       <TrustBadges />
-      <B2BBanner />
       <OrbitShowcase />
       <div id="about">
         <AboutZoom />
         <AboutJourneyFlow />
       </div>
       <PopularProducts />
+      <B2BBanner />
       <ContactSection />
+      <HomeTestimonials />
       <SiteFooter />
 
       <FloatingActions />

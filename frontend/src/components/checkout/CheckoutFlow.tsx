@@ -4,8 +4,10 @@ import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 const INK = '#0a2e22'
 const CREAM = '#f3e6c8'
 const GOLD = '#b8860b'
+const PAGE = '#f7f1e4'
 const TEXTURE = '/image.png_2K_202608092240.jpeg'
-const MUTED = 'rgba(243,230,200,0.62)'
+const MUTED = 'rgba(10,46,34,0.58)'
+const LINE = 'rgba(10,46,34,0.12)'
 
 function CheckIcon({ className = '' }: { className?: string }) {
   return (
@@ -36,7 +38,7 @@ export function CheckoutFlowStepper({ step }: { step: CheckoutFlowStep }) {
             {i > 0 && (
               <span
                 className="hidden h-px w-6 sm:block sm:w-10"
-                style={{ backgroundColor: step > s.n - 1 ? GOLD : 'rgba(243,230,200,0.25)' }}
+                style={{ backgroundColor: step > s.n - 1 ? GOLD : 'rgba(10,46,34,0.18)' }}
                 aria-hidden
               />
             )}
@@ -50,10 +52,10 @@ export function CheckoutFlowStepper({ step }: { step: CheckoutFlowStep }) {
                 className="flex h-7 w-7 items-center justify-center text-[0.72rem] font-bold"
                 style={{
                   borderRadius: 0,
-                  backgroundColor: done || active ? CREAM : 'transparent',
-                  color: done || active ? INK : MUTED,
-                  border: done || active ? 'none' : `1.5px solid rgba(243,230,200,0.3)`,
-                  boxShadow: active ? `0 0 0 2px rgba(184,134,11,0.4)` : undefined,
+                  backgroundColor: done || active ? INK : 'transparent',
+                  color: done || active ? CREAM : MUTED,
+                  border: done || active ? 'none' : `1.5px solid ${LINE}`,
+                  boxShadow: active ? `0 0 0 2px rgba(184,134,11,0.45)` : undefined,
                 }}
               >
                 {done ? <CheckIcon className="h-3.5 w-3.5" /> : s.n}
@@ -61,7 +63,7 @@ export function CheckoutFlowStepper({ step }: { step: CheckoutFlowStep }) {
               <span
                 className="text-[0.78rem] font-semibold"
                 style={{
-                  color: active || done ? CREAM : MUTED,
+                  color: active || done ? INK : MUTED,
                   fontFamily: 'Inter, sans-serif',
                 }}
               >
@@ -80,8 +82,8 @@ export function CheckoutFlowStepperBar({ step }: { step: CheckoutFlowStep }) {
     <div
       className="border-b"
       style={{
-        borderColor: 'rgba(243,230,200,0.14)',
-        backgroundColor: 'rgba(4,17,12,0.55)',
+        borderColor: LINE,
+        backgroundColor: 'rgba(255,252,247,0.72)',
       }}
     >
       <div className="mx-auto flex max-w-6xl justify-center px-4 py-3.5 sm:px-6 lg:px-8">
@@ -91,10 +93,10 @@ export function CheckoutFlowStepperBar({ step }: { step: CheckoutFlowStep }) {
   )
 }
 
-/** Shared dark textured shell used by cart + checkout. */
+/** Shared light creamy textured shell used by cart + checkout. */
 export function CheckoutFlowShell({ children }: { children: ReactNode }) {
   return (
-    <div className="relative min-h-screen overflow-x-hidden" style={{ backgroundColor: INK }}>
+    <div className="relative min-h-screen overflow-x-hidden" style={{ backgroundColor: PAGE }}>
       <div
         className="pointer-events-none absolute inset-0"
         style={{
@@ -102,14 +104,18 @@ export function CheckoutFlowShell({ children }: { children: ReactNode }) {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundAttachment: 'fixed',
+          filter: 'brightness(1.55) saturate(0.35) contrast(0.88)',
+          opacity: 0.4,
         }}
         aria-hidden
       />
       <div
         className="pointer-events-none absolute inset-0"
         style={{
-          background:
-            'linear-gradient(180deg, rgba(4,17,12,0.58) 0%, rgba(4,17,12,0.48) 45%, rgba(4,17,12,0.68) 100%)',
+          background: `
+            linear-gradient(180deg, rgba(247,241,228,0.88) 0%, rgba(243,230,200,0.55) 48%, rgba(247,241,228,0.92) 100%),
+            radial-gradient(ellipse 70% 45% at 80% 0%, rgba(255,252,245,0.65) 0%, transparent 60%)
+          `,
         }}
         aria-hidden
       />

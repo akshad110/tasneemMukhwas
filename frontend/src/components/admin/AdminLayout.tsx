@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { APP_ROUTES, navigateApp, type AdminSection } from '../../lib/appRoutes'
+import BrandLogo from '../shared/BrandLogo'
+import BrandNameLockup from '../shared/BrandNameLockup'
 
 const INK = '#0a2e22'
 const CREAM = '#f3e6c8'
@@ -67,6 +69,15 @@ const NAV: { id: AdminSection; label: string; icon: ReactNode }[] = [
     ),
   },
   {
+    id: 'reviews',
+    label: 'Reviews',
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
+        <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.6L5.7 21l2.3-7-6-4.6h7.6L12 2Z" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
+  {
     id: 'settings',
     label: 'Account & Settings',
     icon: (
@@ -101,15 +112,15 @@ export default function AdminLayout({
         <button
           type="button"
           onClick={() => navigateApp(APP_ROUTES.home)}
-          className="mb-6 cursor-pointer border-0 bg-transparent px-2 text-left"
+          className="mb-6 flex cursor-pointer items-center gap-2.5 border-0 bg-transparent px-2 text-left"
           aria-label="Tasneem Mukhwas home"
         >
-          <span className="permanent-marker-regular text-[1.05rem] leading-none">
-            <span style={{ color: INK }}>Tasneem</span>{' '}
-            <span style={{ color: GOLD }}>Admin</span>
-          </span>
-          <span className="mt-1 block text-[0.68rem]" style={{ color: MUTED }}>
-            Control panel
+          <BrandLogo className="h-11 w-9 shrink-0 object-contain" />
+          <span>
+            <BrandNameLockup size="sm" />
+            <span className="mt-1 block text-[0.68rem]" style={{ color: MUTED }}>
+              Admin panel
+            </span>
           </span>
         </button>
 

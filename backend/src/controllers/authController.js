@@ -25,12 +25,22 @@ const profileSchema = z.object({
   notifyReviews: z.boolean().optional(),
 })
 
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(6).max(128),
+})
+
 function authPayload(user) {
   const token = signToken({ sub: user._id.toString(), role: user.role })
   return { token, user: user.toSafeJSON() }
 }
 
-export const registerSchemas = { registerSchema, loginSchema, profileSchema }
+export const registerSchemas = {
+  registerSchema,
+  loginSchema,
+  profileSchema,
+  changePasswordSchema,
+}
 
 export const register = asyncHandler(async (req, res) => {
   const { name, email, password, phone } = req.body
@@ -77,5 +87,22 @@ export const updateProfile = asyncHandler(async (req, res) => {
   return sendSuccess(res, {
     message: 'Profile updated',
     data: req.user.toSafeJSON(),
+  })
+})
+
+export const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body
+  const user = await User.findById(req.user._id).select('+password')
+  if (!user) throw new ApiError(404, 'User not found')
+
+  const ok = await user.comparePassword(currentPassword)
+  if (!ok) throw new ApiError(401, 'Current password is incorrect')
+
+  user.password = newPassword
+  await user.save()
+
+  return sendSuccess(res, {
+    message: 'Password updated successfully',
+    data: null,
   })
 })

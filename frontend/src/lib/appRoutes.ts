@@ -7,6 +7,12 @@ export const APP_ROUTES = {
   cart: '/cart',
   checkout: '/checkout',
   admin: '/admin',
+  profile: '/profile',
+  myOrders: '/my-orders',
+  /** Alias requested for the same page */
+  myOrderPage: '/myorderpage',
+  knowMore: '/know-more',
+  wishlist: '/wishlist',
 } as const
 
 export type AppRoute = (typeof APP_ROUTES)[keyof typeof APP_ROUTES]
@@ -17,6 +23,7 @@ export type AdminSection =
   | 'products'
   | 'transactions'
   | 'orders'
+  | 'reviews'
   | 'settings'
 
 export function isAuthPath(pathname: string) {
@@ -35,6 +42,22 @@ export function isCheckoutPath(pathname: string) {
   return pathname === APP_ROUTES.checkout
 }
 
+export function isProfilePath(pathname: string) {
+  return pathname === APP_ROUTES.profile
+}
+
+export function isMyOrdersPath(pathname: string) {
+  return pathname === APP_ROUTES.myOrders || pathname === APP_ROUTES.myOrderPage
+}
+
+export function isKnowMorePath(pathname: string) {
+  return pathname === APP_ROUTES.knowMore
+}
+
+export function isWishlistPath(pathname: string) {
+  return pathname === APP_ROUTES.wishlist
+}
+
 export function isAdminPath(pathname: string) {
   return pathname === APP_ROUTES.admin || pathname.startsWith(`${APP_ROUTES.admin}/`)
 }
@@ -49,6 +72,7 @@ export function adminSectionFromPath(pathname: string): AdminSection {
     'products',
     'transactions',
     'orders',
+    'reviews',
     'settings',
   ]
   return (allowed.includes(seg as AdminSection) ? seg : 'dashboard') as AdminSection
@@ -61,6 +85,10 @@ export function isAppPagePath(pathname: string) {
     isShopPath(pathname) ||
     isCartPath(pathname) ||
     isCheckoutPath(pathname) ||
+    isProfilePath(pathname) ||
+    isMyOrdersPath(pathname) ||
+    isWishlistPath(pathname) ||
+    isKnowMorePath(pathname) ||
     isAdminPath(pathname)
   )
 }
@@ -69,8 +97,14 @@ export function isAppPagePath(pathname: string) {
 export function navigateApp(path: string) {
   if (window.location.pathname === path && !window.location.hash) {
     window.dispatchEvent(new PopStateEvent('popstate'))
+    window.scrollTo(0, 0)
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
     return
   }
   window.history.pushState(null, '', path)
   window.dispatchEvent(new PopStateEvent('popstate'))
+  window.scrollTo(0, 0)
+  document.documentElement.scrollTop = 0
+  document.body.scrollTop = 0
 }

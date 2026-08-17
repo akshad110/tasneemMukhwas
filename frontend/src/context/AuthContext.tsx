@@ -24,6 +24,10 @@ type AuthContextValue = {
   logout: () => void
   refresh: () => Promise<void>
   updateProfile: (payload: Partial<AuthUser>) => Promise<AuthUser>
+  changePassword: (payload: {
+    currentPassword: string
+    newPassword: string
+  }) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -82,6 +86,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return next
   }, [])
 
+  const changePassword = useCallback(
+    async (payload: { currentPassword: string; newPassword: string }) => {
+      await authApi.changePassword(payload)
+    },
+    [],
+  )
+
   const value = useMemo(
     () => ({
       user,
@@ -92,8 +103,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       refresh,
       updateProfile,
+      changePassword,
     }),
-    [user, loading, login, register, logout, refresh, updateProfile],
+    [user, loading, login, register, logout, refresh, updateProfile, changePassword],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

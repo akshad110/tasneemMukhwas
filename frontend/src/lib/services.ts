@@ -26,7 +26,19 @@ export type AdminOrder = {
   date: string
   city: string
   tracking?: string
-  lineItems?: unknown[]
+  subtotal?: number
+  deliveryFee?: number
+  lineItems?: {
+    productId: string
+    name: string
+    variantId?: string
+    variantLabel?: string
+    image?: string
+    qty: number
+    unitPrice: number
+    lineTotal: number
+    reviewed?: boolean
+  }[]
 }
 
 export type AdminCustomer = {
@@ -85,6 +97,8 @@ export const authApi = {
   me: () => apiRequest<AuthUser>('/auth/me'),
   updateProfile: (payload: Partial<AuthUser>) =>
     apiRequest<AuthUser>('/auth/profile', { method: 'PATCH', body: payload }),
+  changePassword: (payload: { currentPassword: string; newPassword: string }) =>
+    apiRequest<null>('/auth/change-password', { method: 'POST', body: payload }),
 }
 
 export const productsApi = {
@@ -116,10 +130,86 @@ export const ordersApi = {
     apiRequest<{ order: AdminOrder; transaction: AdminTransaction }>('/orders', {
       method: 'POST',
       body,
-      auth: false,
     }),
+  mine: () =>
+    apiRequest<{ items: AdminOrder[]; reviews: ProductReview[] }>('/orders/mine'),
   advance: (id: string) =>
     apiRequest<AdminOrder>(`/orders/${id}/advance`, { method: 'PATCH' }),
+}
+
+export type ProductReview = {
+  id: string
+  productId: string
+  productName: string
+  orderNumber: string
+  rating: number
+  comment: string
+  status?: 'pending' | 'approved' | 'ignored'
+  createdAt?: string
+}
+
+export type AdminReview = ProductReview & {
+  customerName: string
+  customerEmail: string
+  authorAvatar: string
+}
+
+export type TestimonialItem = {
+  id: string
+  text: string
+  rating: number
+  productName: string
+  author: {
+    name: string
+    handle: string
+    avatar: string
+  }
+}
+
+export const reviewsApi = {
+  create: (body: { orderId: string; productId: string; rating: number; comment?: string }) =>
+    apiRequest<{
+      review: ProductReview
+      productRating: number
+      productReviews: number
+    }>('/reviews', { method: 'POST', body }),
+  mine: () => apiRequest<{ items: ProductReview[] }>('/reviews/mine'),
+  forProduct: (productId: string) =>
+    apiRequest<{ items: ProductReview[] }>(`/reviews/product/${productId}`, { auth: false }),
+  testimonials: (limit = 24) =>
+    apiRequest<{ items: TestimonialItem[] }>(`/reviews/testimonials?limit=${limit}`, {
+      auth: false,
+    }),
+  adminList: (status: 'all' | 'pending' | 'approved' | 'ignored' = 'all') =>
+    apiRequest<{
+      items: AdminReview[]
+      counts: { pending: number; approved: number; ignored: number; total: number }
+    }>(`/reviews/admin?status=${encodeURIComponent(status)}`),
+  setStatus: (id: string, status: 'approved' | 'ignored' | 'pending') =>
+    apiRequest<{ review: AdminReview }>(`/reviews/${id}/status`, {
+      method: 'PATCH',
+      body: { status },
+    }),
+}
+
+export const wishlistApi = {
+  get: () =>
+    apiRequest<{
+      wishlist: { id: string; productIds: string[] }
+      items: ShopProduct[]
+    }>('/wishlist'),
+  add: (productId: string) =>
+    apiRequest<{
+      wishlist: { id: string; productIds: string[] }
+      items: ShopProduct[]
+      added: boolean
+    }>('/wishlist', { method: 'POST', body: { productId } }),
+  remove: (productId: string) =>
+    apiRequest<{
+      wishlist: { id: string; productIds: string[] }
+      items: ShopProduct[]
+      removed: boolean
+    }>(`/wishlist/${encodeURIComponent(productId)}`, { method: 'DELETE' }),
 }
 
 export const customersApi = {

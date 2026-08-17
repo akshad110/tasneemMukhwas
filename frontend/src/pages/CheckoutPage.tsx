@@ -15,9 +15,10 @@ const CREAM = '#f3e6c8'
 const GOLD = '#b8860b'
 const DELIVERY_FEE = 49
 
-const LINE = 'rgba(243,230,200,0.35)'
-const MUTED = 'rgba(243,230,200,0.62)'
-const CARD_BG = 'rgba(7,26,20,0.92)'
+const LINE = 'rgba(10,46,34,0.12)'
+const MUTED = 'rgba(10,46,34,0.58)'
+const CARD_BG = 'rgba(255,252,247,0.92)'
+const PANEL = '#f3ebe0'
 
 type PaymentMethod = 'cod' | 'razorpay'
 type PayStep = 'form' | 'pay' | 'done'
@@ -77,7 +78,7 @@ function UnderlineField({
     <label className={`block ${className}`}>
       <span
         className="mb-2 block text-[0.72rem] font-medium tracking-wide"
-        style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+        style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
       >
         {label}
       </span>
@@ -87,10 +88,10 @@ function UnderlineField({
 }
 
 const underlineInput =
-  'w-full border-0 border-b bg-transparent px-0 pb-2.5 pt-0.5 text-[0.95rem] outline-none transition placeholder:text-[rgba(243,230,200,0.28)] focus:border-[rgba(184,134,11,0.85)]'
+  'w-full border-0 border-b bg-transparent px-0 pb-2.5 pt-0.5 text-[0.95rem] outline-none transition placeholder:text-[rgba(10,46,34,0.32)] focus:border-[rgba(184,134,11,0.85)]'
 const underlineStyle = {
   borderBottomColor: LINE,
-  color: CREAM,
+  color: INK,
   fontFamily: 'Inter, sans-serif',
   borderRadius: 0,
 } as const
@@ -200,22 +201,22 @@ export default function CheckoutPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="w-full border px-8 py-12"
+            className="w-full rounded-2xl border px-8 py-12"
             style={{
-              borderRadius: 0,
               borderColor: LINE,
               backgroundColor: CARD_BG,
+              boxShadow: '0 14px 36px -28px rgba(10,46,34,0.35)',
             }}
           >
             <div
-              className="mx-auto flex h-14 w-14 items-center justify-center"
-              style={{ borderRadius: 0, backgroundColor: GOLD, color: INK }}
+              className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl"
+              style={{ backgroundColor: GOLD, color: INK }}
             >
               <CheckIcon className="h-6 w-6" />
             </div>
             <h1
               className="mt-5 m-0 text-[1.75rem] font-bold"
-              style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+              style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
             >
               Order placed
             </h1>
@@ -237,12 +238,12 @@ export default function CheckoutPage() {
               <button
                 type="button"
                 onClick={() => navigateApp(APP_ROUTES.home)}
-                className="cursor-pointer border px-6 py-3 text-[0.8rem] font-semibold uppercase transition hover:bg-white/5"
+                className="cursor-pointer rounded-xl border px-6 py-3 text-[0.8rem] font-semibold uppercase transition hover:bg-black/5"
                 style={{
-                  borderRadius: 0,
+                  borderRadius: 12,
                   borderColor: LINE,
                   backgroundColor: 'transparent',
-                  color: CREAM,
+                  color: INK,
                   fontFamily: 'Inter, sans-serif',
                 }}
               >
@@ -281,7 +282,7 @@ export default function CheckoutPage() {
               className="flex h-8 w-8 items-center justify-center border transition group-hover:border-[rgba(184,134,11,0.9)]"
               style={{
                 borderRadius: 0,
-                borderColor: 'rgba(243,230,200,0.35)',
+                borderColor: LINE,
                 backgroundColor: CREAM,
                 color: INK,
               }}
@@ -298,7 +299,7 @@ export default function CheckoutPage() {
               >
                 Return
               </span>
-              <span className="text-[0.88rem] font-semibold" style={{ color: CREAM }}>
+              <span className="text-[0.88rem] font-semibold" style={{ color: INK }}>
                 Back to cart
               </span>
             </span>
@@ -306,7 +307,7 @@ export default function CheckoutPage() {
 
           <h1
             className="m-0 text-[2.25rem] font-bold tracking-tight sm:text-[2.6rem]"
-            style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+            style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
           >
             Checkout
           </h1>
@@ -377,11 +378,11 @@ export default function CheckoutPage() {
                   value={form.country}
                   onChange={(e) => set('country')(e.target.value)}
                 >
-                  <option style={{ backgroundColor: INK, color: CREAM }}>India</option>
-                  <option style={{ backgroundColor: INK, color: CREAM }}>United Arab Emirates</option>
-                  <option style={{ backgroundColor: INK, color: CREAM }}>United States</option>
-                  <option style={{ backgroundColor: INK, color: CREAM }}>United Kingdom</option>
-                  <option style={{ backgroundColor: INK, color: CREAM }}>Other</option>
+                  <option style={{ backgroundColor: '#fffcf7', color: INK }}>India</option>
+                  <option style={{ backgroundColor: '#fffcf7', color: INK }}>United Arab Emirates</option>
+                  <option style={{ backgroundColor: '#fffcf7', color: INK }}>United States</option>
+                  <option style={{ backgroundColor: '#fffcf7', color: INK }}>United Kingdom</option>
+                  <option style={{ backgroundColor: '#fffcf7', color: INK }}>Other</option>
                 </select>
               </UnderlineField>
             </div>
@@ -442,7 +443,7 @@ export default function CheckoutPage() {
             {step === 'pay' && (
               <motion.div
                 className="mt-8 border p-5 sm:p-6 lg:hidden"
-                style={{ borderRadius: 0, borderColor: LINE, backgroundColor: CARD_BG }}
+                style={{ borderRadius: 16, borderColor: LINE, backgroundColor: CARD_BG, boxShadow: '0 14px 36px -28px rgba(10,46,34,0.35)' }}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 8 }}
@@ -468,15 +469,16 @@ export default function CheckoutPage() {
           <div
             className="border p-5 sm:p-6"
             style={{
-              borderRadius: 0,
-              borderColor: CREAM,
-              borderWidth: 1.5,
+              borderRadius: 16,
+              borderColor: LINE,
+              borderWidth: 1,
               backgroundColor: CARD_BG,
+              boxShadow: '0 14px 36px -28px rgba(10,46,34,0.35)',
             }}
           >
             <h2
               className="m-0 text-[1.15rem] font-bold"
-              style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+              style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
             >
               Review your cart
             </h2>
@@ -489,7 +491,7 @@ export default function CheckoutPage() {
                 <li key={`${item.productId}-${item.variantId}`} className="flex gap-3">
                   <div
                     className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden border"
-                    style={{ borderRadius: 0, borderColor: LINE, backgroundColor: 'rgba(243,230,200,0.06)' }}
+                    style={{ borderRadius: 8, borderColor: LINE, backgroundColor: PANEL }}
                   >
                     <img
                       src={item.variant.image}
@@ -501,7 +503,7 @@ export default function CheckoutPage() {
                   <div className="min-w-0 flex-1">
                     <p
                       className="m-0 truncate text-[0.88rem] font-semibold"
-                      style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+                      style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
                     >
                       {item.product.name}
                     </p>
@@ -511,7 +513,7 @@ export default function CheckoutPage() {
                   </div>
                   <p
                     className="m-0 shrink-0 text-[0.88rem] font-semibold"
-                    style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+                    style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
                   >
                     ₹{item.lineTotal}
                   </p>
@@ -522,18 +524,18 @@ export default function CheckoutPage() {
             <dl className="mt-6 space-y-2.5 border-t pt-5" style={{ borderColor: LINE }}>
               <div className="flex justify-between text-[0.88rem]" style={{ fontFamily: 'Inter, sans-serif' }}>
                 <dt style={{ color: MUTED }}>Subtotal</dt>
-                <dd className="m-0 font-medium" style={{ color: CREAM }}>
+                <dd className="m-0 font-medium" style={{ color: INK }}>
                   ₹{subtotal}
                 </dd>
               </div>
               <div className="flex justify-between text-[0.88rem]" style={{ fontFamily: 'Inter, sans-serif' }}>
                 <dt style={{ color: MUTED }}>Shipping</dt>
-                <dd className="m-0 font-medium" style={{ color: CREAM }}>
+                <dd className="m-0 font-medium" style={{ color: INK }}>
                   ₹{shipping}
                 </dd>
               </div>
               <div className="flex justify-between pt-2 text-[1.05rem]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                <dt className="font-bold" style={{ color: CREAM }}>
+                <dt className="font-bold" style={{ color: INK }}>
                   Total
                 </dt>
                 <dd className="m-0 font-bold" style={{ color: GOLD }}>
@@ -580,7 +582,7 @@ export default function CheckoutPage() {
             <div className="mt-4 flex items-start gap-2.5" style={{ color: MUTED }}>
               <LockIcon className="mt-0.5 h-4 w-4 shrink-0" />
               <p className="m-0 text-[0.72rem] leading-relaxed" style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}>
-                <span className="font-semibold" style={{ color: CREAM }}>
+                <span className="font-semibold" style={{ color: INK }}>
                   Secure checkout
                 </span>
                 {' — '}
@@ -647,7 +649,7 @@ function PaymentChooser({
               <span>
                 <span
                   className="block text-[0.9rem] font-semibold"
-                  style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+                  style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
                 >
                   {opt.title}
                 </span>

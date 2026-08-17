@@ -28,6 +28,9 @@
   --color-border: #d9d0bc;
   --color-input: #d9d0bc;
   --color-ring: #b8860b;
+
+  --max-width-container: 80rem;
+  --animate-marquee: marquee var(--duration, 40s) linear infinite;
 }
 
 .permanent-marker-regular {
@@ -44,4 +47,13 @@ body,
 
 body {
   margin: 0;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-50% - var(--gap, 0.5rem)));
+  }
 }

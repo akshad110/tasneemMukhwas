@@ -4,6 +4,7 @@ import AdminDashboard from '../components/admin/AdminDashboard'
 import AdminLayout from '../components/admin/AdminLayout'
 import AdminOrders from '../components/admin/AdminOrders'
 import AdminProducts from '../components/admin/AdminProducts'
+import AdminReviews from '../components/admin/AdminReviews'
 import AdminSettings from '../components/admin/AdminSettings'
 import AdminTransactions from '../components/admin/AdminTransactions'
 import { useAuth } from '../context/AuthContext'
@@ -19,6 +20,8 @@ function SectionView({ section }: { section: AdminSection }) {
       return <AdminTransactions />
     case 'orders':
       return <AdminOrders />
+    case 'reviews':
+      return <AdminReviews />
     case 'settings':
       return <AdminSettings />
     default:

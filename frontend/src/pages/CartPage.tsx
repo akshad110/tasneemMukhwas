@@ -14,9 +14,10 @@ import { getSellPrice, type ShopProduct } from '../lib/shopCatalog'
 const INK = '#0a2e22'
 const CREAM = '#f3e6c8'
 const GOLD = '#b8860b'
-const SURFACE = 'rgba(7,26,20,0.92)'
-const MUTED = 'rgba(243,230,200,0.62)'
-const LINE = 'rgba(243,230,200,0.28)'
+const SURFACE = 'rgba(255,252,247,0.9)'
+const MUTED = 'rgba(10,46,34,0.58)'
+const LINE = 'rgba(10,46,34,0.12)'
+const PANEL = '#f3ebe0'
 const DELIVERY_FEE = 49
 const SUGGEST_VISIBLE = 4
 
@@ -45,8 +46,8 @@ function CartLineRow({ item }: { item: CartResolvedItem }) {
       transition={{ duration: 0.28 }}
     >
       <div
-        className="flex h-[100px] w-[100px] shrink-0 items-center justify-center overflow-hidden border sm:h-[124px] sm:w-[124px]"
-        style={{ borderRadius: 0, borderColor: LINE, backgroundColor: 'rgba(243,230,200,0.06)' }}
+        className="flex h-[100px] w-[100px] shrink-0 items-center justify-center overflow-hidden rounded-xl border sm:h-[124px] sm:w-[124px]"
+        style={{ borderColor: LINE, backgroundColor: PANEL }}
       >
         <img
           src={item.variant.image}
@@ -61,15 +62,15 @@ function CartLineRow({ item }: { item: CartResolvedItem }) {
           <div className="min-w-0">
             <h2
               className="m-0 truncate text-[0.98rem] font-bold sm:text-[1.05rem]"
-              style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+              style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
             >
               {item.product.name}
             </h2>
             <p className="mt-1.5 m-0 text-[0.78rem]" style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}>
-              Variant: <span style={{ color: CREAM }}>{item.variant.label}</span>
+              Variant: <span style={{ color: INK }}>{item.variant.label}</span>
             </p>
             <p className="mt-0.5 m-0 text-[0.78rem]" style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}>
-              Category: <span style={{ color: CREAM }}>{item.product.category}</span>
+              Category: <span style={{ color: INK }}>{item.product.category}</span>
             </p>
             <p
               className="mt-3 m-0 text-[1.15rem] font-bold"
@@ -82,8 +83,8 @@ function CartLineRow({ item }: { item: CartResolvedItem }) {
           <button
             type="button"
             onClick={() => removeItem(item.productId, item.variantId)}
-            className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center border-0 transition hover:bg-white/5"
-            style={{ borderRadius: 0, color: '#f0a8a0', backgroundColor: 'transparent' }}
+            className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border-0 transition hover:bg-black/5"
+            style={{ color: '#a32020', backgroundColor: 'transparent' }}
             aria-label={`Remove ${item.product.name}`}
           >
             <TrashIcon className="h-4.5 w-4.5" />
@@ -92,29 +93,29 @@ function CartLineRow({ item }: { item: CartResolvedItem }) {
 
         <div className="mt-auto flex justify-end pt-3">
           <div
-            className="inline-flex items-center gap-3 border px-3 py-1.5"
-            style={{ borderRadius: 0, borderColor: LINE, backgroundColor: 'rgba(243,230,200,0.06)' }}
+            className="inline-flex items-center gap-3 rounded-xl border px-3 py-1.5"
+            style={{ borderColor: LINE, backgroundColor: PANEL }}
           >
             <button
               type="button"
               onClick={() => setQty(item.productId, item.variantId, item.qty - 1)}
-              className="flex h-7 w-7 cursor-pointer items-center justify-center border-0 text-lg leading-none transition hover:bg-white/5"
-              style={{ backgroundColor: 'transparent', color: CREAM }}
+              className="flex h-7 w-7 cursor-pointer items-center justify-center border-0 text-lg leading-none transition hover:bg-black/5"
+              style={{ backgroundColor: 'transparent', color: INK }}
               aria-label="Decrease quantity"
             >
               −
             </button>
             <span
               className="min-w-[1.25rem] text-center text-[0.9rem] font-semibold"
-              style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+              style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
             >
               {item.qty}
             </span>
             <button
               type="button"
               onClick={() => setQty(item.productId, item.variantId, item.qty + 1)}
-              className="flex h-7 w-7 cursor-pointer items-center justify-center border-0 text-lg leading-none transition hover:bg-white/5"
-              style={{ backgroundColor: 'transparent', color: CREAM }}
+              className="flex h-7 w-7 cursor-pointer items-center justify-center border-0 text-lg leading-none transition hover:bg-black/5"
+              style={{ backgroundColor: 'transparent', color: INK }}
               aria-label="Increase quantity"
             >
               +
@@ -171,7 +172,7 @@ function SuggestedForYou() {
         <h2
           id="suggested-heading"
           className="mt-1.5 m-0 text-[1.55rem] font-bold tracking-tight sm:text-[1.85rem]"
-          style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+          style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
         >
           Suggested for you
         </h2>
@@ -197,7 +198,7 @@ function SuggestedForYou() {
   )
 }
 
-/** Cart — same textured flow shell + stepper as checkout. */
+/** Cart — light cream theme matching shop. */
 export default function CartPage() {
   const { items, itemCount, subtotal } = useCart()
 
@@ -228,24 +229,28 @@ export default function CartPage() {
             Home
           </button>
           <span className="mx-1.5">/</span>
-          <span style={{ color: CREAM }}>Cart</span>
+          <span style={{ color: INK }}>Cart</span>
         </nav>
 
         <h1
           className="m-0 text-[2rem] font-bold tracking-tight uppercase sm:text-[2.5rem]"
-          style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+          style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
         >
           Your Cart
         </h1>
 
         {items.length === 0 ? (
           <motion.div
-            className="mt-8 border px-6 py-16 text-center"
-            style={{ borderRadius: 0, borderColor: LINE, backgroundColor: SURFACE }}
+            className="mt-8 rounded-2xl border px-6 py-16 text-center"
+            style={{
+              borderColor: LINE,
+              backgroundColor: SURFACE,
+              boxShadow: '0 14px 36px -28px rgba(10,46,34,0.35)',
+            }}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <p className="m-0 text-[1.05rem]" style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}>
+            <p className="m-0 text-[1.05rem]" style={{ color: INK, fontFamily: 'Inter, sans-serif' }}>
               Your cart is empty.
             </p>
             <p className="mt-2 m-0 text-[0.9rem]" style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}>
@@ -254,8 +259,8 @@ export default function CartPage() {
             <button
               type="button"
               onClick={() => navigateApp(APP_ROUTES.shop)}
-              className="mt-8 cursor-pointer border-0 px-8 py-3 text-[0.8rem] font-semibold uppercase transition hover:brightness-110"
-              style={{ borderRadius: 0, backgroundColor: GOLD, color: INK, fontFamily: 'Inter, sans-serif' }}
+              className="mt-8 cursor-pointer rounded-xl border-0 px-8 py-3 text-[0.8rem] font-semibold uppercase transition hover:brightness-110"
+              style={{ backgroundColor: INK, color: CREAM, fontFamily: 'Inter, sans-serif' }}
             >
               Browse Shop
             </button>
@@ -263,8 +268,12 @@ export default function CartPage() {
         ) : (
           <div className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,1.55fr)_minmax(280px,0.9fr)] lg:items-start lg:gap-6">
             <div
-              className="border px-4 sm:px-6"
-              style={{ borderRadius: 0, borderColor: CREAM, borderWidth: 1.5, backgroundColor: SURFACE }}
+              className="rounded-2xl border px-4 sm:px-6"
+              style={{
+                borderColor: LINE,
+                backgroundColor: SURFACE,
+                boxShadow: '0 14px 36px -28px rgba(10,46,34,0.35)',
+              }}
             >
               <AnimatePresence initial={false}>
                 {items.map((item) => (
@@ -274,12 +283,16 @@ export default function CartPage() {
             </div>
 
             <aside
-              className="border p-5 sm:p-6 lg:sticky lg:top-24"
-              style={{ borderRadius: 0, borderColor: CREAM, borderWidth: 1.5, backgroundColor: SURFACE }}
+              className="rounded-2xl border p-5 sm:p-6 lg:sticky lg:top-24"
+              style={{
+                borderColor: LINE,
+                backgroundColor: SURFACE,
+                boxShadow: '0 14px 36px -28px rgba(10,46,34,0.35)',
+              }}
             >
               <h2
                 className="m-0 text-[1.2rem] font-bold"
-                style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+                style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
               >
                 Order Summary
               </h2>
@@ -287,20 +300,20 @@ export default function CartPage() {
               <dl className="mt-5 space-y-3.5">
                 <div className="flex justify-between gap-3 text-[0.92rem]" style={{ fontFamily: 'Inter, sans-serif' }}>
                   <dt style={{ color: MUTED }}>Subtotal ({itemCount})</dt>
-                  <dd className="m-0 font-semibold" style={{ color: CREAM }}>
+                  <dd className="m-0 font-semibold" style={{ color: INK }}>
                     ₹{subtotal}
                   </dd>
                 </div>
                 <div className="flex justify-between gap-3 text-[0.92rem]" style={{ fontFamily: 'Inter, sans-serif' }}>
                   <dt style={{ color: MUTED }}>Delivery Fee</dt>
-                  <dd className="m-0 font-semibold" style={{ color: CREAM }}>
+                  <dd className="m-0 font-semibold" style={{ color: INK }}>
                     ₹{delivery}
                   </dd>
                 </div>
               </dl>
 
               <div className="mt-4 flex justify-between gap-3 border-t pt-4" style={{ borderColor: LINE }}>
-                <span className="text-[0.95rem] font-semibold" style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}>
+                <span className="text-[0.95rem] font-semibold" style={{ color: INK, fontFamily: 'Inter, sans-serif' }}>
                   Total
                 </span>
                 <span className="text-[1.2rem] font-bold" style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}>
@@ -311,8 +324,8 @@ export default function CartPage() {
               <button
                 type="button"
                 onClick={() => navigateApp(APP_ROUTES.checkout)}
-                className="mt-5 flex w-full cursor-pointer items-center justify-center gap-2 border-0 py-3.5 text-[0.9rem] font-semibold transition hover:brightness-110"
-                style={{ borderRadius: 0, backgroundColor: GOLD, color: INK, fontFamily: 'Inter, sans-serif' }}
+                className="mt-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-0 py-3.5 text-[0.9rem] font-semibold transition hover:brightness-110"
+                style={{ backgroundColor: INK, color: CREAM, fontFamily: 'Inter, sans-serif' }}
               >
                 Go to Checkout
                 <span aria-hidden>→</span>

@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import {
+  changePassword,
   login,
   me,
   register,
@@ -15,6 +16,12 @@ router.post('/register', validate(registerSchemas.registerSchema), register)
 router.post('/login', validate(registerSchemas.loginSchema), login)
 router.get('/me', authenticate, me)
 router.patch('/profile', authenticate, validate(registerSchemas.profileSchema), updateProfile)
+router.post(
+  '/change-password',
+  authenticate,
+  validate(registerSchemas.changePasswordSchema),
+  changePassword,
+)
 router.get('/admin/me', authenticate, requireAdmin, me)
 
 export default router

@@ -3,6 +3,8 @@ import { useEffect, useId, useState, type FormEvent } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { ApiRequestError } from '../lib/api'
 import { APP_ROUTES, navigateApp } from '../lib/appRoutes'
+import BrandLogo from '../components/shared/BrandLogo'
+import BrandNameLockup from '../components/shared/BrandNameLockup'
 
 const INK = '#0a2e22'
 const CREAM = '#f3e6c8'
@@ -193,6 +195,11 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
           ))}
         </div>
 
+        <div className="absolute inset-x-0 top-0 z-10 flex items-center gap-3 p-8 xl:p-10">
+          <BrandLogo className="h-16 w-12 object-contain drop-shadow-lg" alt="Tasneem Mukhwas" />
+          <BrandNameLockup size="md" />
+        </div>
+
         <div className="absolute inset-x-0 bottom-0 z-10 p-8 xl:p-10">
           <p
             className="m-0 text-[0.65rem] font-semibold tracking-[0.2em] uppercase"
@@ -245,16 +252,9 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
           }`}
         >
           <div className="flex w-full max-w-[340px] flex-col items-stretch">
-          <div className={`mb-4 flex items-center justify-center gap-2 lg:hidden ${compact ? 'mb-3' : ''}`}>
-            <span
-              className="inline-flex h-8 w-8 items-center justify-center rounded-none text-[0.65rem] font-bold"
-              style={{ backgroundColor: INK, color: CREAM }}
-            >
-              TM
-            </span>
-            <span className="permanent-marker-regular text-[0.9rem]" style={{ color: INK }}>
-              Tasneem <span style={{ color: GOLD }}>Mukhwas</span>
-            </span>
+          <div className={`mb-4 flex items-center justify-center gap-2.5 lg:hidden ${compact ? 'mb-3' : ''}`}>
+            <BrandLogo className="h-11 w-9 object-contain" alt="Tasneem Mukhwas" />
+            <BrandNameLockup size="sm" />
           </div>
 
           {/* Segmented toggle — sliding ink block */}

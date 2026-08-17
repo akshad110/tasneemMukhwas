@@ -3,7 +3,7 @@
  * Import this file once at the root of your app so the
  * --token-<uuid> CSS variables referenced by exported components resolve.
  */
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=Kavoon:wght@300;400;500;600;700;800&family=Permanent+Marker&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Kavoon:wght@300;400;500;600;700;800&family=Montserrat:ital,wght@0,400..800;1,400..700&family=Permanent+Marker&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
 
 @font-face {
   font-family: 'Poppins';

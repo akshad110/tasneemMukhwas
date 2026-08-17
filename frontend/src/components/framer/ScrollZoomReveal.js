@@ -179,6 +179,7 @@ function AnimatedScrollZoom(props) {
   const [screen, setScreen] = useState('desktop')
   const hasStory = Boolean(children)
   const [storyTravel, setStoryTravel] = useState(0)
+  const [storyHold, setStoryHold] = useState(0)
   const [zoomEnd, setZoomEnd] = useState(hasStory ? 0.32 : 1)
 
   useEffect(() => {
@@ -198,6 +199,7 @@ function AnimatedScrollZoom(props) {
   useEffect(() => {
     if (!hasStory || !storyInnerRef.current || !__dai_window) {
       setStoryTravel(0)
+      setStoryHold(0)
       setZoomEnd(1)
       return
     }
@@ -205,11 +207,14 @@ function AnimatedScrollZoom(props) {
       const el = storyInnerRef.current
       if (!el) return
       const view = __dai_window.innerHeight
-      const travel = Math.max(0, el.scrollHeight - view + 32)
+      // Extra dwell after zoom lands so "About Us" stays readable longer
+      const hold = Math.round(view * 0.7)
+      const travel = Math.max(0, el.scrollHeight - view + 48)
+      setStoryHold(hold)
       setStoryTravel(travel)
-      const zoomScroll = view * 1.2
-      const total = zoomScroll + travel
-      setZoomEnd(total > 0 ? Math.min(0.5, Math.max(0.2, zoomScroll / total)) : 1)
+      const zoomScroll = view * 1.25
+      const total = zoomScroll + hold + travel
+      setZoomEnd(total > 0 ? Math.min(0.42, Math.max(0.16, zoomScroll / total)) : 1)
     }
     measure()
     const ro = new ResizeObserver(measure)
@@ -236,6 +241,9 @@ function AnimatedScrollZoom(props) {
   })
 
   const z = hasStory ? zoomEnd : 1
+  const holdSpan = storyHold + storyTravel
+  const zHold =
+    hasStory && holdSpan > 0 ? z + (1 - z) * (storyHold / holdSpan) : z
 
   const width = useTransform(
     smoothProgress,
@@ -276,13 +284,17 @@ function AnimatedScrollZoom(props) {
   )
   const centerTextY = useTransform(smoothProgress, [z * 0.25, z * 0.4], [60, 0])
 
-  // Story fades in as zoom lands, then translates with page scroll (not overflow:auto)
+  // Story fades in as zoom lands, holds, then translates with page scroll
   const storyOpacity = useTransform(
     smoothProgress,
-    [z * 0.5, z * 0.78, 1],
+    [z * 0.45, z * 0.72, 1],
     [0, 1, 1],
   )
-  const storyY = useTransform(smoothProgress, [z, 1], [0, -storyTravel])
+  const storyY = useTransform(
+    smoothProgress,
+    [z, zHold, 1],
+    [0, 0, -storyTravel],
+  )
 
   const handlePlayClick = (e) => {
     if (videoUrl) {
@@ -300,7 +312,7 @@ function AnimatedScrollZoom(props) {
   const stickyBg = style?.backgroundColor || '#0a2e22'
 
   const sectionHeight = hasStory
-    ? `calc(120vh + ${storyTravel}px)`
+    ? `calc(125vh + ${storyHold}px + ${storyTravel}px)`
     : '105vh'
 
   return /* @__PURE__ */ _jsx('section', {
@@ -400,9 +412,9 @@ function AnimatedScrollZoom(props) {
                     style: {
                       y: storyY,
                       width: '100%',
-                      // Start from top of the white zoom panel (navbar clearance only)
-                      paddingTop: 'max(3.75rem, 5vh)',
-                      paddingBottom: '2.5rem',
+                      // Extra top space so About Us title sits clearly under the navbar
+                      paddingTop: 'max(7rem, 14vh)',
+                      paddingBottom: '3rem',
                       willChange: 'transform',
                     },
                     children,

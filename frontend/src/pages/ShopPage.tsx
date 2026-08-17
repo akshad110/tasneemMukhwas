@@ -7,9 +7,11 @@ import { CATEGORIES, getSellPrice } from '../lib/shopCatalog'
 const INK = '#0a2e22'
 const CREAM = '#f3e6c8'
 const GOLD = '#b8860b'
+const PAGE = '#f7f1e4'
+const MUTED = 'rgba(10,46,34,0.62)'
+const PANEL = 'rgba(255,252,247,0.78)'
+const BORDER = 'rgba(10,46,34,0.12)'
 const TEXTURE = '/image.png_2K_202608092240.jpeg'
-const PANEL = 'rgba(243,230,200,0.06)'
-const BORDER = 'rgba(243,230,200,0.14)'
 
 function FilterBox({
   title,
@@ -19,10 +21,17 @@ function FilterBox({
   children: ReactNode
 }) {
   return (
-    <div className="border px-3.5 py-3.5" style={{ borderColor: BORDER, backgroundColor: PANEL }}>
+    <div
+      className="rounded-2xl border px-3.5 py-3.5"
+      style={{
+        borderColor: BORDER,
+        backgroundColor: PANEL,
+        boxShadow: '0 10px 28px -22px rgba(10,46,34,0.35)',
+      }}
+    >
       <p
         className="m-0 mb-3 text-[0.72rem] font-semibold tracking-[0.14em] uppercase"
-        style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+        style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}
       >
         {title}
       </p>
@@ -32,7 +41,7 @@ function FilterBox({
 }
 
 /**
- * Shop — navbar + filter sidebar + search + dark product cards.
+ * Shop — light cream theme + filter sidebar + product grid.
  */
 export default function ShopPage() {
   const { products, loading, error } = useCatalog()
@@ -92,7 +101,7 @@ export default function ShopPage() {
             <li key={cat}>
               <label
                 className="flex cursor-pointer items-center gap-2.5 text-[0.82rem]"
-                style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+                style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
               >
                 <input
                   type="checkbox"
@@ -100,7 +109,7 @@ export default function ShopPage() {
                   onChange={() => toggle(categories, cat, setCategories)}
                   className="h-3.5 w-3.5 cursor-pointer accent-[#b8860b]"
                 />
-                <span className="opacity-85">{cat}</span>
+                <span style={{ color: MUTED }}>{cat}</span>
               </label>
             </li>
           ))}
@@ -119,8 +128,8 @@ export default function ShopPage() {
           aria-label="Maximum price"
         />
         <p
-          className="mt-2 m-0 text-[0.8rem] opacity-70"
-          style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+          className="mt-2 m-0 text-[0.8rem]"
+          style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
         >
           ₹0 – ₹{maxPrice}
         </p>
@@ -137,14 +146,14 @@ export default function ShopPage() {
                   onClick={() => setMinRating((prev) => (prev === r ? 0 : r))}
                   className="flex w-full cursor-pointer items-center gap-2 border-0 bg-transparent px-0 text-left text-[0.8rem]"
                   style={{
-                    color: CREAM,
+                    color: INK,
                     fontFamily: 'Inter, sans-serif',
-                    opacity: minRating === r ? 1 : 0.7,
+                    opacity: minRating === r ? 1 : 0.72,
                   }}
                 >
                   <span style={{ color: GOLD }}>{'★'.repeat(r)}</span>
-                  <span className="opacity-40">{'★'.repeat(5 - r)}</span>
-                  <span className="opacity-50">({count})</span>
+                  <span style={{ color: 'rgba(10,46,34,0.22)' }}>{'★'.repeat(5 - r)}</span>
+                  <span style={{ color: MUTED }}>({count})</span>
                 </button>
               </li>
             )
@@ -155,11 +164,11 @@ export default function ShopPage() {
       <button
         type="button"
         onClick={clearFilters}
-        className="cursor-pointer border px-3 py-2 text-[0.72rem] font-semibold tracking-[0.12em] uppercase transition hover:bg-white/5"
+        className="cursor-pointer rounded-xl border px-3 py-2.5 text-[0.72rem] font-semibold tracking-[0.12em] uppercase transition hover:bg-white/60"
         style={{
-          color: CREAM,
+          color: INK,
           borderColor: BORDER,
-          backgroundColor: 'transparent',
+          backgroundColor: PANEL,
           fontFamily: 'Inter, sans-serif',
         }}
       >
@@ -169,20 +178,26 @@ export default function ShopPage() {
   )
 
   return (
-    <div className="relative min-h-svh w-full" style={{ backgroundColor: INK }}>
+    <div className="relative min-h-svh w-full" style={{ backgroundColor: PAGE }}>
       <div className="pointer-events-none absolute inset-0 z-0">
         <img
           src={TEXTURE}
           alt=""
           aria-hidden
-          className="absolute inset-0 h-full w-full object-cover brightness-[0.88] saturate-[0.92]"
+          className="absolute inset-0 h-full w-full object-cover"
+          style={{
+            filter: 'brightness(1.55) saturate(0.35) contrast(0.88)',
+            opacity: 0.4,
+          }}
         />
         <div
           aria-hidden
           className="absolute inset-0"
           style={{
-            background:
-              'linear-gradient(180deg, rgba(10,46,34,0.72) 0%, rgba(6,22,16,0.88) 100%)',
+            background: `
+              linear-gradient(180deg, rgba(247,241,228,0.88) 0%, rgba(243,230,200,0.55) 48%, rgba(247,241,228,0.92) 100%),
+              radial-gradient(ellipse 70% 45% at 80% 0%, rgba(255,252,245,0.65) 0%, transparent 60%)
+            `,
           }}
         />
       </div>
@@ -202,7 +217,7 @@ export default function ShopPage() {
               <h1
                 className="mt-1 m-0 uppercase"
                 style={{
-                  color: CREAM,
+                  color: INK,
                   fontFamily: 'Anton, Impact, sans-serif',
                   fontSize: 'clamp(2.2rem, 6vw, 3.6rem)',
                   letterSpacing: '0.04em',
@@ -218,8 +233,8 @@ export default function ShopPage() {
                 Search products
               </label>
               <span
-                className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 opacity-55"
-                style={{ color: CREAM }}
+                className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2"
+                style={{ color: MUTED }}
                 aria-hidden
               >
                 <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
@@ -233,14 +248,13 @@ export default function ShopPage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search mukhwas, paan, seeds…"
-                className="w-full border py-3 pr-4 pl-10 text-[0.9rem] outline-none transition placeholder:opacity-40 focus:border-[#b8860b]/55"
+                className="w-full rounded-xl border py-3 pr-4 pl-10 text-[0.9rem] outline-none transition placeholder:opacity-45 focus:border-[#b8860b]/70"
                 style={{
-                  color: CREAM,
-                  backgroundColor: 'rgba(243,230,200,0.08)',
+                  color: INK,
+                  backgroundColor: 'rgba(255,252,247,0.9)',
                   borderColor: BORDER,
                   fontFamily: 'Inter, sans-serif',
-                  borderRadius: 0,
-                  backdropFilter: 'blur(10px)',
+                  boxShadow: '0 10px 28px -22px rgba(10,46,34,0.3)',
                 }}
               />
             </div>
@@ -250,9 +264,9 @@ export default function ShopPage() {
             <button
               type="button"
               onClick={() => setFiltersOpen((v) => !v)}
-              className="cursor-pointer border px-4 py-2 text-[0.75rem] font-semibold tracking-[0.12em] uppercase"
+              className="cursor-pointer rounded-xl border px-4 py-2 text-[0.75rem] font-semibold tracking-[0.12em] uppercase"
               style={{
-                color: CREAM,
+                color: INK,
                 borderColor: BORDER,
                 backgroundColor: PANEL,
                 fontFamily: 'Inter, sans-serif',
@@ -260,7 +274,7 @@ export default function ShopPage() {
             >
               {filtersOpen ? 'Hide filters' : 'Filters'}
             </button>
-            <p className="m-0 text-[0.78rem] opacity-55" style={{ color: CREAM }}>
+            <p className="m-0 text-[0.78rem]" style={{ color: MUTED }}>
               {filtered.length} products
             </p>
           </div>
@@ -270,33 +284,34 @@ export default function ShopPage() {
 
             <section className="min-w-0 flex-1">
               <div className="mb-4 hidden items-center justify-between lg:flex">
-                <p className="m-0 text-[0.8rem] opacity-55" style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}>
-                  Showing <span style={{ color: GOLD }}>{filtered.length}</span> of {products.length} products
+                <p className="m-0 text-[0.8rem]" style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}>
+                  Showing <span style={{ color: GOLD, fontWeight: 600 }}>{filtered.length}</span> of{' '}
+                  {products.length} products
                 </p>
               </div>
 
               {loading ? (
-                <p className="m-0 py-16 text-center text-[0.95rem]" style={{ color: CREAM }}>
+                <p className="m-0 py-16 text-center text-[0.95rem]" style={{ color: MUTED }}>
                   Loading products…
                 </p>
               ) : error ? (
                 <div
-                  className="border px-6 py-16 text-center"
+                  className="rounded-2xl border px-6 py-16 text-center"
                   style={{ borderColor: BORDER, backgroundColor: PANEL }}
                 >
-                  <p className="m-0 text-[1rem]" style={{ color: CREAM }}>
+                  <p className="m-0 text-[1rem]" style={{ color: INK }}>
                     {error}
                   </p>
-                  <p className="mt-2 m-0 text-[0.8rem] opacity-60" style={{ color: CREAM }}>
+                  <p className="mt-2 m-0 text-[0.8rem]" style={{ color: MUTED }}>
                     Make sure the API is running and MongoDB is connected.
                   </p>
                 </div>
               ) : filtered.length === 0 ? (
                 <div
-                  className="border px-6 py-16 text-center"
+                  className="rounded-2xl border px-6 py-16 text-center"
                   style={{ borderColor: BORDER, backgroundColor: PANEL }}
                 >
-                  <p className="m-0 text-[1rem]" style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}>
+                  <p className="m-0 text-[1rem]" style={{ color: INK, fontFamily: 'Inter, sans-serif' }}>
                     No products match your search.
                   </p>
                   <button

@@ -73,6 +73,45 @@ export const listOrders = asyncHandler(async (req, res) => {
   })
 })
 
+/** GET /orders/mine — orders for the logged-in customer */
+export const listMyOrders = asyncHandler(async (req, res) => {
+  const email = String(req.user.email || '').toLowerCase()
+  const customer = await Customer.findOne({
+    $or: [{ email }, { user: req.user._id }],
+  })
+
+  const filter = customer
+    ? { $or: [{ customerEmail: email }, { customer: customer._id }] }
+    : { customerEmail: email }
+
+  const orders = await Order.find(filter).sort({ createdAt: -1 }).limit(100)
+
+  const { Review } = await import('../models/Review.js')
+  const orderIds = orders.map((o) => o._id)
+  const myReviews = await Review.find({
+    user: req.user._id,
+    order: { $in: orderIds },
+  })
+  const reviewedKey = new Set(myReviews.map((r) => `${r.orderNumber}::${r.productId}`))
+
+  return sendSuccess(res, {
+    data: {
+      items: orders.map((o) => {
+        const json = o.toPublicJSON()
+        const lineItems = (o.items || []).map((item) => {
+          const plain = typeof item.toObject === 'function' ? item.toObject() : { ...item }
+          return {
+            ...plain,
+            reviewed: reviewedKey.has(`${o.orderNumber}::${item.productId}`),
+          }
+        })
+        return { ...json, lineItems }
+      }),
+      reviews: myReviews.map((r) => r.toPublicJSON()),
+    },
+  })
+})
+
 export const getOrder = asyncHandler(async (req, res) => {
   const order =
     (await Order.findOne({ orderNumber: req.params.id })) ||
@@ -143,6 +182,7 @@ export const createOrder = asyncHandler(async (req, res) => {
       lastActive: today,
       status: 'active',
       interactions: [],
+      user: req.user?._id,
     })
   }
 
@@ -151,6 +191,7 @@ export const createOrder = asyncHandler(async (req, res) => {
   customer.city = body.city
   customer.lastActive = today
   customer.status = 'active'
+  if (req.user?._id && !customer.user) customer.user = req.user._id
   customer.orders += 1
   customer.spent += total
   customer.interactions.unshift({

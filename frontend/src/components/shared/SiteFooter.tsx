@@ -7,7 +7,9 @@ import {
   CONTACT_PHONE_TEL,
   WHATSAPP_URL,
 } from '../../lib/contact'
+import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 import { scrollToSection, type SectionId } from '../../lib/sectionNav'
+import BrandLogo from './BrandLogo'
 
 const INK = '#0a2e22'
 const CREAM = '#f3e6c8'
@@ -26,7 +28,7 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
     links: [
       { label: 'Home', href: '/', section: 'home' },
       { label: 'Our Range', href: '/products', section: 'products' },
-      { label: 'About Us', href: '/about', section: 'about' },
+      { label: 'About Us', href: APP_ROUTES.knowMore },
       { label: 'Journey', href: '/about', section: 'about' },
     ],
   },
@@ -169,6 +171,10 @@ export default function SiteFooter() {
   ) => {
     if (href.startsWith('http')) return
     e.preventDefault()
+    if (href === APP_ROUTES.knowMore) {
+      navigateApp(APP_ROUTES.knowMore)
+      return
+    }
     if (section) scrollToSection(section, lenis)
   }
 
@@ -250,12 +256,15 @@ export default function SiteFooter() {
             viewport={{ once: false, amount: 0.35 }}
             transition={{ duration: 0.55, ease }}
           >
-            <p
-              className="m-0 text-[0.62rem] font-semibold tracking-[0.18em] uppercase opacity-60"
-              style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
-            >
-              Tasneem Mukhwas — Est. Tradition
-            </p>
+            <div className="mb-4 flex items-center gap-3">
+              <BrandLogo className="h-14 w-11 object-contain drop-shadow-md" alt="Tasneem Mukhwas" />
+              <p
+                className="m-0 text-[0.62rem] font-semibold tracking-[0.18em] uppercase opacity-60"
+                style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+              >
+                Tasneem Mukhwas — Est. Tradition
+              </p>
+            </div>
             <h2
               className="mt-3 m-0 text-[clamp(3.4rem,12vw,7.5rem)] leading-[0.82] tracking-tight uppercase"
               style={{

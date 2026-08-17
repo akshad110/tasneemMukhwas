@@ -6,7 +6,11 @@ import {
   isAuthPath,
   isCartPath,
   isCheckoutPath,
+  isKnowMorePath,
+  isMyOrdersPath,
+  isProfilePath,
   isShopPath,
+  isWishlistPath,
 } from './lib/appRoutes'
 import { resetPathToHome } from './lib/sectionNav'
 import AdminPage from './pages/AdminPage'
@@ -14,8 +18,12 @@ import AuthPage from './pages/AuthPage'
 import CartPage from './pages/CartPage'
 import CheckoutPage from './pages/CheckoutPage'
 import Home from './pages/Home'
+import KnowMorePage from './pages/KnowMorePage'
 import Loader from './pages/Loader'
+import MyOrdersPage from './pages/MyOrdersPage'
+import ProfilePage from './pages/ProfilePage'
 import ShopPage from './pages/ShopPage'
+import WishlistPage from './pages/WishlistPage'
 
 function scrollToTop() {
   window.scrollTo(0, 0)
@@ -41,6 +49,13 @@ function App() {
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
+
+  // Always start each route at the top (Lenis / prior scroll must not carry over)
+  useEffect(() => {
+    scrollToTop()
+    const id = window.requestAnimationFrame(scrollToTop)
+    return () => window.cancelAnimationFrame(id)
+  }, [path])
 
   // Refresh: keep standalone app pages; section URLs reset to /
   useEffect(() => {
@@ -81,6 +96,10 @@ function App() {
   const shop = isShopPath(path)
   const cart = isCartPath(path)
   const checkout = isCheckoutPath(path)
+  const profile = isProfilePath(path)
+  const myOrders = isMyOrdersPath(path)
+  const wishlist = isWishlistPath(path)
+  const knowMore = isKnowMorePath(path)
   const admin = isAdminPath(path)
   const authMode = path === '/signup' ? 'signup' : 'login'
 
@@ -102,6 +121,22 @@ function App() {
       ) : checkout ? (
         <div style={{ visibility: loading ? 'hidden' : 'visible' }}>
           <CheckoutPage />
+        </div>
+      ) : profile ? (
+        <div style={{ visibility: loading ? 'hidden' : 'visible' }}>
+          <ProfilePage />
+        </div>
+      ) : myOrders ? (
+        <div style={{ visibility: loading ? 'hidden' : 'visible' }}>
+          <MyOrdersPage />
+        </div>
+      ) : wishlist ? (
+        <div style={{ visibility: loading ? 'hidden' : 'visible' }}>
+          <WishlistPage />
+        </div>
+      ) : knowMore ? (
+        <div style={{ visibility: loading ? 'hidden' : 'visible' }}>
+          <KnowMorePage />
         </div>
       ) : admin ? (
         <div style={{ visibility: loading ? 'hidden' : 'visible' }}>

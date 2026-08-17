@@ -35,6 +35,7 @@ const STEPS = [
     text: 'Honoured at Khadhya Khurak 2025 — the International Exhibition on Food Processing & Packaging in Gandhinagar, Gujarat.',
     image: '/license-khadhya-khurak-2025.png',
     alt: 'Award of Excellence plaque from Khadhya Khurak 2025 Gandhinagar',
+    rotateLeft: true,
   },
   {
     number: 4,
@@ -248,18 +249,42 @@ function JourneyStep({
     </motion.div>
   )
 
+  const rotateLeft = 'rotateLeft' in step && step.rotateLeft
+
   const media = (
     <motion.div
-      className="w-full overflow-hidden rounded-[20px]"
+      className="flex w-full items-center justify-center bg-transparent"
       style={{ opacity: reveal, y: rise }}
     >
-      <img
-        src={step.image}
-        alt={step.alt}
-        loading="lazy"
-        className="block w-full object-contain bg-[#f7f1e4]"
-        style={{ height: 'clamp(180px, 26vw, 240px)' }}
-      />
+      <div
+        className="relative flex items-center justify-center"
+        style={{
+          width: 'clamp(120px, 18vw, 180px)',
+          height: 'clamp(110px, 16vw, 150px)',
+        }}
+      >
+        <img
+          src={step.image}
+          alt={step.alt}
+          loading="lazy"
+          className="block object-contain"
+          style={{
+            // After -90° rotate, width↔height swap visually — keep same footprint as other steps
+            maxWidth: rotateLeft
+              ? 'clamp(110px, 16vw, 150px)'
+              : 'clamp(120px, 18vw, 180px)',
+            maxHeight: rotateLeft
+              ? 'clamp(120px, 18vw, 180px)'
+              : 'clamp(110px, 16vw, 150px)',
+            width: 'auto',
+            height: 'auto',
+            mixBlendMode: 'multiply',
+            backgroundColor: 'transparent',
+            transform: rotateLeft ? 'rotate(-90deg)' : undefined,
+            transformOrigin: 'center center',
+          }}
+        />
+      </div>
     </motion.div>
   )
 
