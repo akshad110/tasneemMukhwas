@@ -5,7 +5,6 @@ import { useCatalog } from '../context/CatalogContext'
 import { CATEGORIES, getSellPrice } from '../lib/shopCatalog'
 
 const INK = '#0a2e22'
-const CREAM = '#f3e6c8'
 const GOLD = '#b8860b'
 const PAGE = '#f7f1e4'
 const MUTED = 'rgba(10,46,34,0.62)'

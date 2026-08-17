@@ -8,7 +8,6 @@ import {
 } from '../../lib/contact'
 import OrbitDotGlobe from '../framer/OrbitDotGlobe.js'
 
-const CREAM = '#f3e6c8'
 const PAGE = '#f7f1e4'
 const INK = '#0a2e22'
 const GOLD = '#b8860b'
