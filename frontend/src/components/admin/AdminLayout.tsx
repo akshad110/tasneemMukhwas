@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { APP_ROUTES, navigateApp, type AdminSection } from '../../lib/appRoutes'
 import BrandLogo from '../shared/BrandLogo'
@@ -108,6 +108,106 @@ const NAV: { id: AdminSection; label: string; icon: ReactNode }[] = [
   },
 ]
 
+function AdminAvatarMenu() {
+  const { user, logout } = useAuth()
+  const [open, setOpen] = useState(false)
+  const wrapRef = useRef<HTMLDivElement>(null)
+
+  const initials = (user?.name || 'AT')
+    .split(/\s+/)
+    .map((p) => p[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+
+  useEffect(() => {
+    if (!open) return
+    const onDoc = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [open])
+
+  const goSettings = () => {
+    setOpen(false)
+    navigateApp(`${APP_ROUTES.admin}/settings`)
+  }
+
+  const handleLogout = () => {
+    setOpen(false)
+    logout()
+    navigateApp(APP_ROUTES.login)
+  }
+
+  const menuBtn =
+    'flex w-full cursor-pointer items-center gap-2.5 border-0 bg-transparent px-3.5 py-2.5 text-left text-[0.82rem] font-semibold transition hover:bg-[rgba(10,46,34,0.06)]'
+  const menuVisible =
+    open ? 'visible translate-y-0 opacity-100' : 'invisible translate-y-1 opacity-0'
+
+  return (
+    <div
+      ref={wrapRef}
+      className="group relative"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border-0 text-[0.75rem] font-bold transition hover:brightness-95"
+        style={{ backgroundColor: GOLD, color: INK }}
+        title={user?.email || 'Admin'}
+        aria-label={user?.name ? `Account menu for ${user.name}` : 'Admin account menu'}
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        {initials}
+      </button>
+
+      <div className="absolute right-0 top-full z-50 min-w-[190px] pt-2">
+        <div
+          className={`rounded-xl border py-1.5 shadow-lg transition duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 ${menuVisible}`}
+          style={{
+            backgroundColor: '#ffffff',
+            borderColor: 'rgba(10,46,34,0.1)',
+            boxShadow: '0 16px 36px -18px rgba(10,46,34,0.35)',
+          }}
+          role="menu"
+        >
+        <button
+          type="button"
+          role="menuitem"
+          onClick={goSettings}
+          className={menuBtn}
+          style={{ color: INK }}
+        >
+          <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
+            <circle cx="12" cy="8" r="3.2" />
+            <path d="M5 19c1.2-3.2 3.6-5 7-5s5.8 1.8 7 5" strokeLinecap="round" />
+          </svg>
+          Profile
+        </button>
+        <div className="my-1 border-t" style={{ borderColor: 'rgba(10,46,34,0.08)' }} role="separator" />
+        <button
+          type="button"
+          role="menuitem"
+          onClick={handleLogout}
+          className={`${menuBtn} hover:bg-[rgba(163,32,32,0.08)]`}
+          style={{ color: '#a32020' }}
+        >
+          <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" strokeLinecap="round" />
+            <path d="M16 17l5-5-5-5M21 12H9" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Logout
+        </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function AdminLayout({
   section,
   children,
@@ -115,13 +215,8 @@ export default function AdminLayout({
   section: AdminSection
   children: ReactNode
 }) {
-  const { user, logout } = useAuth()
-  const initials = (user?.name || 'AT')
-    .split(/\s+/)
-    .map((p) => p[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
+  const { logout } = useAuth()
+
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: PAGE_BG, fontFamily: 'Inter, sans-serif' }}>
       <aside
@@ -210,14 +305,7 @@ export default function AdminLayout({
           <p className="m-0 text-[0.78rem]" style={{ color: MUTED }}>
             Admin / <span style={{ color: INK }}>{NAV.find((n) => n.id === section)?.label}</span>
           </p>
-          <div
-            className="flex h-9 w-9 items-center justify-center rounded-full text-[0.75rem] font-bold"
-            style={{ backgroundColor: GOLD, color: INK }}
-            title={user?.email || 'Admin'}
-            aria-label={user?.name ? `Signed in as ${user.name}` : 'Admin account'}
-          >
-            {initials}
-          </div>
+          <AdminAvatarMenu />
         </header>
         <div className="px-6 py-6">{children}</div>
       </div>

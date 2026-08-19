@@ -16,4 +16,8 @@ export const BRAND_TEXTURE = '/image.png_2K_202608092240.jpeg'
 export const BRAND_GOLD_GRADIENT =
   'linear-gradient(105deg, #5C4A28 0%, #7A6228 14%, #9A7B2E 28%, #B8860B 42%, #C9A04A 52%, #A67C00 66%, #8B6914 82%, #5C4A28 100%)'
 
+/** Brighter metallic gold for dark hero / overlay backgrounds */
+export const BRAND_GOLD_GRADIENT_BRIGHT =
+  'linear-gradient(108deg, #B8860B 0%, #D4AF37 12%, #F0D060 26%, #FFE58A 38%, #FFF0A8 48%, #FFD966 58%, #E8C547 72%, #C9A227 86%, #A67C00 100%)'
+
 export const BRAND_SERIF = '"Playfair Display", Georgia, "Times New Roman", serif'

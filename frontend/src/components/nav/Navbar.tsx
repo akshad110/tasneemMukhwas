@@ -40,7 +40,7 @@ const NAV_LINK_DARK = 'rgba(242,244,245,0.68)'
 const NAV_LINK_LIGHT = 'rgba(10,46,34,0.62)'
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
 /** Hysteresis avoids flicker when navbar height change shifts scroll position near the threshold */
-const SCROLL_COMPACT_AT = 72
+const SCROLL_COMPACT_AT = 96
 const SCROLL_EXPAND_AT = 8
 
 function CartIcon({ className = '' }: { className?: string }) {
@@ -182,7 +182,7 @@ function NavLinks({
       className={
         stacked
           ? 'flex flex-col items-center gap-1'
-          : 'flex flex-wrap items-center justify-center gap-x-5 gap-y-1 lg:gap-x-8'
+          : 'flex flex-wrap items-center justify-center gap-x-6 gap-y-1.5 lg:gap-x-9'
       }
     >
       {NAV_LINKS.map((link) => {
@@ -201,7 +201,7 @@ function NavLinks({
                 e.preventDefault()
                 onNavigate?.(link.id)
               }}
-              className={`cursor-pointer text-[0.78rem] font-medium tracking-wide no-underline transition-opacity hover:opacity-80 ${
+              className={`cursor-pointer text-[0.82rem] font-medium tracking-wide no-underline transition-opacity hover:opacity-80 ${
                 isActive ? 'border-b-2 pb-0.5' : 'border-b-2 border-transparent pb-0.5'
               }`}
               style={{
@@ -492,9 +492,9 @@ export default function Navbar() {
       <nav
         className="relative hidden w-full items-center px-3 sm:px-4 md:flex"
         style={{
-          paddingTop: scrolled ? 6 : 10,
-          paddingBottom: scrolled ? 6 : 18,
-          minHeight: scrolled ? 52 : 96,
+          paddingTop: scrolled ? 6 : 14,
+          paddingBottom: scrolled ? 6 : 22,
+          minHeight: scrolled ? 52 : 118,
           transition: `padding 450ms ${EASE}, min-height 450ms ${EASE}`,
         }}
         aria-label="Primary"
@@ -533,7 +533,7 @@ export default function Navbar() {
         <div
           className="pointer-events-none absolute top-1/2 left-1/2 z-0 flex w-max -translate-x-1/2 -translate-y-1/2 flex-col items-center"
           style={{
-            gap: scrolled ? 0 : 14,
+            gap: scrolled ? 0 : 22,
             transition: `gap 450ms ${EASE}`,
           }}
         >
@@ -546,16 +546,16 @@ export default function Navbar() {
             tabIndex={scrolled ? -1 : 0}
             style={{
               lineHeight: 1,
-              maxHeight: scrolled ? 0 : 52,
+              maxHeight: scrolled ? 0 : 84,
               opacity: scrolled ? 0 : 1,
               overflow: 'hidden',
               transform: scrolled ? 'translateY(-6px)' : 'translateY(0)',
               transition: `max-height 450ms ${EASE}, opacity 350ms ${EASE}, transform 450ms ${EASE}`,
             }}
           >
-            <BrandNameLockup layout="stacked" stackedPreset="hero" />
+            <BrandNameLockup layout="stacked" stackedPreset="hero" tone={isDarkNav ? 'bright' : 'default'} />
           </a>
-          <div className="pointer-events-auto" style={{ paddingBottom: scrolled ? 0 : 6 }}>
+          <div className="pointer-events-auto" style={{ paddingBottom: scrolled ? 0 : 4, paddingTop: scrolled ? 0 : 2 }}>
             <NavLinks activeId={activeId} onNavigate={goTo} onDark={isDarkNav} />
           </div>
         </div>
@@ -637,7 +637,12 @@ export default function Navbar() {
           aria-label="Tasneem Mukhwas home"
         >
           <BrandLogo className="h-11 w-9 object-contain object-center" />
-          <BrandNameLockup layout="stacked" stackedPreset="nav" className="!items-start" />
+          <BrandNameLockup
+            layout="stacked"
+            stackedPreset="nav"
+            className="!items-start"
+            tone={isDarkNav ? 'bright' : 'default'}
+          />
         </a>
 
         <div className="ml-auto flex items-center gap-0.5">
