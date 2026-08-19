@@ -77,6 +77,20 @@ export const markAllNotificationsRead = asyncHandler(async (req, res) => {
   return sendSuccess(res, { message: 'All notifications marked read' })
 })
 
+export const deleteNotification = asyncHandler(async (req, res) => {
+  const note = await Notification.findOneAndDelete({ _id: req.params.id, user: req.user._id })
+  if (!note) throw new ApiError(404, 'Notification not found')
+  return sendSuccess(res, { message: 'Notification deleted' })
+})
+
+export const deleteAllMyNotifications = asyncHandler(async (req, res) => {
+  const result = await Notification.deleteMany({ user: req.user._id })
+  return sendSuccess(res, {
+    message: 'All notifications deleted',
+    data: { deleted: result.deletedCount ?? 0 },
+  })
+})
+
 const readSchema = z.object({
   ids: z.array(z.string()).optional(),
 })

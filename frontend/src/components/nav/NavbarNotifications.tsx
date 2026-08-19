@@ -71,6 +71,18 @@ export default function NavbarNotifications({ ink }: { ink: string }) {
     load()
   }
 
+  const deleteOne = async (id: string) => {
+    await notificationsApi.remove(id).catch(() => {})
+    load()
+  }
+
+  const deleteAll = async () => {
+    if (!items.length) return
+    if (!window.confirm('Delete all notifications?')) return
+    await notificationsApi.deleteAll().catch(() => {})
+    load()
+  }
+
   return (
     <div ref={ref} className="relative">
       <button
@@ -101,22 +113,34 @@ export default function NavbarNotifications({ ink }: { ink: string }) {
           style={{ backgroundColor: CREAM, borderColor: 'rgba(10,46,34,0.12)' }}
         >
           <div
-            className="flex items-center justify-between border-b px-3 py-2.5"
+            className="flex items-center justify-between gap-2 border-b px-3 py-2.5"
             style={{ borderColor: 'rgba(10,46,34,0.08)' }}
           >
             <p className="m-0 text-[0.78rem] font-bold" style={{ color: INK }}>
               Notifications
             </p>
-            {unread > 0 && (
-              <button
-                type="button"
-                onClick={() => void markAll()}
-                className="cursor-pointer border-0 bg-transparent text-[0.68rem] font-semibold"
-                style={{ color: GOLD }}
-              >
-                Mark all read
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {unread > 0 && (
+                <button
+                  type="button"
+                  onClick={() => void markAll()}
+                  className="cursor-pointer border-0 bg-transparent text-[0.68rem] font-semibold"
+                  style={{ color: GOLD }}
+                >
+                  Mark all read
+                </button>
+              )}
+              {items.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => void deleteAll()}
+                  className="cursor-pointer border-0 bg-transparent text-[0.68rem] font-semibold"
+                  style={{ color: 'rgba(163,32,32,0.85)' }}
+                >
+                  Delete all
+                </button>
+              )}
+            </div>
           </div>
 
           <ul
@@ -164,16 +188,27 @@ export default function NavbarNotifications({ ink }: { ink: string }) {
                       </button>
                     )}
                   </div>
+                <div className="flex shrink-0 flex-col items-end gap-1">
                   {!n.read && (
                     <button
                       type="button"
                       onClick={() => void markRead(n.id)}
-                      className="shrink-0 cursor-pointer border-0 bg-transparent text-[0.62rem] font-semibold"
+                      className="cursor-pointer border-0 bg-transparent text-[0.62rem] font-semibold"
                       style={{ color: GOLD }}
                     >
                       Read
                     </button>
                   )}
+                  <button
+                    type="button"
+                    onClick={() => void deleteOne(n.id)}
+                    className="cursor-pointer border-0 bg-transparent text-[0.62rem] font-semibold"
+                    style={{ color: 'rgba(163,32,32,0.75)' }}
+                    aria-label="Delete notification"
+                  >
+                    Delete
+                  </button>
+                </div>
                 </div>
               </li>
             ))}

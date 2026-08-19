@@ -5,40 +5,92 @@ import { Transaction } from '../models/Transaction.js'
 import { asyncHandler, sendSuccess } from '../utils/asyncHandler.js'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const MONTHS_FULL = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
 
-export const getDashboard = asyncHandler(async (_req, res) => {
+function monthRange(year, month1to12) {
+  const start = new Date(year, month1to12 - 1, 1, 0, 0, 0, 0)
+  const end = new Date(year, month1to12, 0, 23, 59, 59, 999)
+  return { start, end }
+}
+
+function daysInMonth(year, month1to12) {
+  return new Date(year, month1to12, 0).getDate()
+}
+
+export const getDashboard = asyncHandler(async (req, res) => {
+  const period = req.query.period === 'month' ? 'month' : 'all'
+  const year = Math.min(9999, Math.max(2000, Number(req.query.year) || new Date().getFullYear()))
+  const month = Number(req.query.month)
+
   const startOfDay = new Date()
   startOfDay.setHours(0, 0, 0, 0)
 
+  let orderDateFilter = {}
+  let txnDateFilter = { status: 'paid' }
+  let periodLabel = 'All time'
+
+  if (period === 'month' && month >= 1 && month <= 12) {
+    const { start, end } = monthRange(year, month)
+    orderDateFilter = { createdAt: { $gte: start, $lte: end } }
+    txnDateFilter = { ...txnDateFilter, createdAt: { $gte: start, $lte: end } }
+    periodLabel = `${MONTHS_FULL[month - 1]} ${year}`
+  }
+
+  const orderMatch = Object.keys(orderDateFilter).length ? [{ $match: orderDateFilter }] : []
+
   const [
     paidSales,
-    ordersToday,
-    lowStock,
+    ordersInPeriod,
+    totalProducts,
     customers,
-    salesByMonthRaw,
+    salesSeriesRaw,
     inventory,
     shipment,
-    topProducts,
+    topProductsAgg,
     recentOrders,
   ] = await Promise.all([
     Transaction.aggregate([
-      { $match: { status: 'paid' } },
+      { $match: txnDateFilter },
       { $group: { _id: null, total: { $sum: '$amount' } } },
     ]),
-    Order.countDocuments({ createdAt: { $gte: startOfDay } }),
-    Product.countDocuments({
-      isActive: true,
-      $or: [{ outOfStock: true }, { stock: { $gt: 0, $lt: 20 } }],
-    }),
-    Customer.countDocuments(),
-    Order.aggregate([
-      {
-        $group: {
-          _id: { $month: '$createdAt' },
-          total: { $sum: '$total' },
-        },
-      },
-    ]),
+    period === 'month'
+      ? Order.countDocuments(orderDateFilter)
+      : Order.countDocuments({ createdAt: { $gte: startOfDay } }),
+    Product.countDocuments({ isActive: true }),
+    period === 'month'
+      ? Order.distinct('customerEmail', orderDateFilter).then((emails) => emails.filter(Boolean).length)
+      : Customer.countDocuments(),
+    period === 'month' && month >= 1 && month <= 12
+      ? Order.aggregate([
+          ...orderMatch,
+          {
+            $group: {
+              _id: { $dayOfMonth: '$createdAt' },
+              total: { $sum: '$total' },
+            },
+          },
+        ])
+      : Order.aggregate([
+          {
+            $group: {
+              _id: { $month: '$createdAt' },
+              total: { $sum: '$total' },
+            },
+          },
+        ]),
     Product.aggregate([
       { $match: { isActive: true } },
       {
@@ -56,13 +108,47 @@ export const getDashboard = asyncHandler(async (_req, res) => {
         },
       },
     ]),
-    Order.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
-    Product.find({ isActive: true }).sort({ sales: -1 }).limit(4),
-    Order.find().sort({ createdAt: -1 }).limit(6),
+    Order.aggregate([...orderMatch, { $group: { _id: '$status', count: { $sum: 1 } } }]),
+    Order.aggregate([
+      ...orderMatch,
+      { $unwind: '$items' },
+      {
+        $group: {
+          _id: '$items.productId',
+          name: { $first: '$items.name' },
+          qty: { $sum: '$items.qty' },
+          revenue: { $sum: '$items.lineTotal' },
+        },
+      },
+    ]),
+    Order.find(orderDateFilter)
+      .sort({ createdAt: -1 })
+      .limit(6),
   ])
 
-  const salesMap = Object.fromEntries(salesByMonthRaw.map((r) => [r._id, r.total]))
-  const maxMonth = Math.max(...Object.values(salesMap), 1)
+  let salesByMonth
+  if (period === 'month' && month >= 1 && month <= 12) {
+    const dayMap = Object.fromEntries(salesSeriesRaw.map((r) => [r._id, r.total]))
+    const totalDays = daysInMonth(year, month)
+    const maxDay = Math.max(...Object.values(dayMap), 1)
+    salesByMonth = Array.from({ length: totalDays }, (_, i) => {
+      const day = i + 1
+      const amount = dayMap[day] || 0
+      return {
+        m: String(day),
+        v: Math.round((amount / maxDay) * 100) || 0,
+        amount,
+      }
+    })
+  } else {
+    const salesMap = Object.fromEntries(salesSeriesRaw.map((r) => [r._id, r.total]))
+    const maxMonth = Math.max(...Object.values(salesMap), 1)
+    salesByMonth = MONTHS.map((m, i) => ({
+      m,
+      v: Math.round(((salesMap[i + 1] || 0) / maxMonth) * 100) || 0,
+      amount: salesMap[i + 1] || 0,
+    }))
+  }
 
   const inventoryStatus = [
     { label: 'In Stock', count: 0, tone: 'ok' },
@@ -87,19 +173,40 @@ export const getDashboard = asyncHandler(async (_req, res) => {
     color: row.color,
   }))
 
+  const soldMap = new Map(topProductsAgg.map((r) => [String(r._id), r]))
+  const allProducts = await Product.find({ isActive: true }).sort({ name: 1 })
+
+  let topProducts = allProducts.map((p) => {
+    const row = soldMap.get(p._id.toString())
+    const json = p.toPublicJSON()
+    return {
+      ...json,
+      sales: row?.revenue ?? 0,
+      reviews: row?.qty ?? 0,
+    }
+  })
+
+  if (period === 'all' && topProductsAgg.length === 0) {
+    topProducts = allProducts
+      .map((p) => p.toPublicJSON())
+      .sort((a, b) => (b.sales ?? 0) - (a.sales ?? 0) || a.name.localeCompare(b.name))
+  } else {
+    topProducts.sort(
+      (a, b) => (b.reviews ?? 0) - (a.reviews ?? 0) || (b.sales ?? 0) - (a.sales ?? 0) || a.name.localeCompare(b.name),
+    )
+  }
+
   return sendSuccess(res, {
     data: {
+      period: period === 'month' && month >= 1 && month <= 12 ? { mode: 'month', year, month } : { mode: 'all' },
+      periodLabel,
       metrics: {
         totalSales: paidSales[0]?.total || 0,
-        ordersToday,
-        lowStock,
+        ordersToday: ordersInPeriod,
+        totalProducts,
         customers,
       },
-      salesByMonth: MONTHS.map((m, i) => ({
-        m,
-        v: Math.round(((salesMap[i + 1] || 0) / maxMonth) * 100) || 0,
-        amount: salesMap[i + 1] || 0,
-      })),
+      salesByMonth,
       inventoryStatus,
       shipmentBreakdown,
       customerActivity: [
@@ -114,7 +221,7 @@ export const getDashboard = asyncHandler(async (_req, res) => {
         { label: 'Instagram', a: 79, b: 55 },
         { label: 'Video', a: 41, b: 28 },
       ],
-      topProducts: topProducts.map((p) => p.toPublicJSON()),
+      topProducts,
       recentOrders: recentOrders.map((o) => o.toPublicJSON()),
     },
   })

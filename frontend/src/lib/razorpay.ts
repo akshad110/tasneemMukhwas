@@ -32,6 +32,23 @@ const SCRIPT_SRC = 'https://checkout.razorpay.com/v1/checkout.js'
 
 let scriptPromise: Promise<void> | null = null
 
+function attachScriptListeners(script: HTMLScriptElement, resolve: () => void, reject: (err: Error) => void) {
+  const onLoad = () => {
+    script.removeEventListener('load', onLoad)
+    script.removeEventListener('error', onError)
+    resolve()
+  }
+  const onError = () => {
+    script.removeEventListener('load', onLoad)
+    script.removeEventListener('error', onError)
+    scriptPromise = null
+    reject(new Error('Razorpay script failed to load'))
+  }
+  script.addEventListener('load', onLoad)
+  script.addEventListener('error', onError)
+}
+
+/** Preload on checkout so the first payment attempt opens immediately. */
 export function loadRazorpayScript(): Promise<void> {
   if (typeof window === 'undefined') return Promise.reject(new Error('No window'))
   if (window.Razorpay) return Promise.resolve()
@@ -40,18 +57,23 @@ export function loadRazorpayScript(): Promise<void> {
   scriptPromise = new Promise((resolve, reject) => {
     const existing = document.getElementById(SCRIPT_ID) as HTMLScriptElement | null
     if (existing) {
-      existing.addEventListener('load', () => resolve())
-      existing.addEventListener('error', () => reject(new Error('Razorpay script failed')))
-      if (window.Razorpay) resolve()
+      if (window.Razorpay) {
+        resolve()
+        return
+      }
+      attachScriptListeners(existing, resolve, reject)
       return
     }
+
     const script = document.createElement('script')
     script.id = SCRIPT_ID
     script.src = SCRIPT_SRC
     script.async = true
-    script.onload = () => resolve()
-    script.onerror = () => reject(new Error('Razorpay script failed'))
-    document.body.appendChild(script)
+    attachScriptListeners(script, resolve, reject)
+    document.head.appendChild(script)
+  }).catch((err) => {
+    scriptPromise = null
+    throw err
   })
 
   return scriptPromise

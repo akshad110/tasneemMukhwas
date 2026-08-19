@@ -35,6 +35,10 @@ app.use(
   }),
 )
 
+app.get('/api/health', (_req, res) => {
+  res.json({ success: true, data: { ok: true } })
+})
+
 app.use('/api', apiRoutes)
 app.use(notFoundHandler)
 app.use(errorHandler)

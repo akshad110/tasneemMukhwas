@@ -71,11 +71,17 @@ export type AdminTransaction = {
   date: string
 }
 
+export type DashboardPeriod =
+  | { mode: 'all' }
+  | { mode: 'month'; year: number; month: number }
+
 export type DashboardData = {
+  period?: DashboardPeriod
+  periodLabel?: string
   metrics: {
     totalSales: number
     ordersToday: number
-    lowStock: number
+    totalProducts: number
     customers: number
   }
   salesByMonth: { m: string; v: number; amount?: number }[]
@@ -88,30 +94,19 @@ export type DashboardData = {
 }
 
 export const authApi = {
-  login: async (email: string, password: string) => {
-    const attempt = () =>
-      apiRequest<{ token: string; user: AuthUser }>('/auth/login', {
-        method: 'POST',
-        body: { email, password },
-        auth: false,
-      })
-    try {
-      return await attempt()
-    } catch (err) {
-      if (err instanceof ApiRequestError && err.status === 0) {
-        await new Promise((r) => setTimeout(r, 600))
-        return attempt()
-      }
-      throw err
-    }
-  },
+  login: (email: string, password: string) =>
+    apiRequest<{ token: string; user: AuthUser }>('/auth/login', {
+      method: 'POST',
+      body: { email, password },
+      auth: false,
+    }),
   register: (payload: { name: string; email: string; password: string; phone?: string }) =>
     apiRequest<{ token: string; user: AuthUser }>('/auth/register', {
       method: 'POST',
       body: payload,
       auth: false,
     }),
-  me: () => apiRequest<AuthUser>('/auth/me'),
+  me: (signal?: AbortSignal) => apiRequest<AuthUser>('/auth/me', { signal }),
   updateProfile: (payload: Partial<AuthUser>) =>
     apiRequest<AuthUser>('/auth/profile', { method: 'PATCH', body: payload }),
   changePassword: (payload: { currentPassword: string; newPassword: string }) =>
@@ -183,6 +178,7 @@ export const paymentsApi = {
     apiRequest<{ order: AdminOrder; transaction: AdminTransaction }>('/payments/razorpay/verify', {
       method: 'POST',
       body,
+      auth: false,
     }),
   cancelRazorpay: (orderNumber: string) =>
     apiRequest<{ order: AdminOrder }>('/payments/razorpay/cancel', {
@@ -283,7 +279,18 @@ export const transactionsApi = {
 }
 
 export const dashboardApi = {
-  get: () => apiRequest<DashboardData>('/dashboard'),
+  get: (period?: DashboardPeriod) => {
+    const qs = new URLSearchParams()
+    if (period?.mode === 'month') {
+      qs.set('period', 'month')
+      qs.set('year', String(period.year))
+      qs.set('month', String(period.month))
+    } else if (period?.mode === 'all') {
+      qs.set('period', 'all')
+    }
+    const q = qs.toString()
+    return apiRequest<DashboardData>(`/dashboard${q ? `?${q}` : ''}`)
+  },
 }
 
 export type CouponRecord = {
@@ -381,7 +388,9 @@ export const campaignsApi = {
 export const notificationsApi = {
   mine: () => apiRequest<{ items: AppNotification[]; unread: number; mailConfigured: boolean }>('/notifications/mine'),
   readAll: () => apiRequest<unknown>('/notifications/mine/read-all', { method: 'PATCH' }),
+  deleteAll: () => apiRequest<{ deleted: number }>('/notifications/mine', { method: 'DELETE' }),
   markRead: (id: string) => apiRequest<AppNotification>(`/notifications/${id}/read`, { method: 'PATCH' }),
+  remove: (id: string) => apiRequest<unknown>(`/notifications/${id}`, { method: 'DELETE' }),
   adminList: (type = 'all') =>
     apiRequest<{ items: AppNotification[]; counts: Record<string, number>; mailConfigured: boolean }>(
       `/notifications/admin?type=${encodeURIComponent(type)}`,

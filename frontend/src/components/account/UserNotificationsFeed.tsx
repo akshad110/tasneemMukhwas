@@ -59,6 +59,33 @@ export default function UserNotificationsFeed() {
     }
   }
 
+  const deleteOne = async (id: string) => {
+    try {
+      await notificationsApi.remove(id)
+      setItems((prev) => {
+        const removed = prev.find((n) => n.id === id)
+        if (removed && !removed.read) {
+          setUnread((u) => Math.max(0, u - 1))
+        }
+        return prev.filter((n) => n.id !== id)
+      })
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const deleteAll = async () => {
+    if (!items.length) return
+    if (!window.confirm('Delete all notifications?')) return
+    try {
+      await notificationsApi.deleteAll()
+      setItems([])
+      setUnread(0)
+    } catch {
+      /* ignore */
+    }
+  }
+
   if (loading) {
     return (
       <p className="m-0 py-4 text-[0.85rem]" style={{ color: ACCOUNT_MUTED }}>
@@ -80,17 +107,29 @@ export default function UserNotificationsFeed() {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <p className="m-0 text-[0.82rem]" style={{ color: ACCOUNT_MUTED }}>
           {unread > 0 ? `${unread} unread · ` : ''}
-          Track payments, shipping, and offers in one place.
+          Auto-removed after 2 days · delete anytime below.
         </p>
-        {unread > 0 ? (
-          <button
-            type="button"
-            onClick={() => void markAllRead()}
-            className="settings-main-card__link-btn"
-          >
-            Mark all read
-          </button>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-3">
+          {unread > 0 ? (
+            <button
+              type="button"
+              onClick={() => void markAllRead()}
+              className="settings-main-card__link-btn"
+            >
+              Mark all read
+            </button>
+          ) : null}
+          {items.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => void deleteAll()}
+              className="settings-main-card__link-btn"
+              style={{ color: '#a32020' }}
+            >
+              Delete all
+            </button>
+          ) : null}
+        </div>
       </div>
 
       {items.length === 0 ? (
@@ -129,6 +168,14 @@ export default function UserNotificationsFeed() {
                   Mark read
                 </button>
               ) : null}
+              <button
+                type="button"
+                onClick={() => void deleteOne(n.id)}
+                className="settings-main-card__link-btn mt-2 ml-3"
+                style={{ color: '#a32020' }}
+              >
+                Delete
+              </button>
             </li>
           ))}
         </ul>

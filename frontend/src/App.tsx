@@ -37,7 +37,6 @@ import ProfilePage from './pages/ProfilePage'
 import SettingsPage from './pages/SettingsPage'
 import ShopPage from './pages/ShopPage'
 import WishlistPage from './pages/WishlistPage'
-import DiscountPromoPopup from './components/shared/DiscountPromoPopup'
 
 function AppRoutes({ path }: { path: string }) {
   const { user, loading } = useAuth()
@@ -55,7 +54,7 @@ function AppRoutes({ path }: { path: string }) {
   const admin = isAdminPath(path)
   const authMode = path === '/signup' ? 'signup' : 'login'
 
-  if (loading) return <Home ready={false} />
+  if (loading && !isAuthPath(path)) return <Home ready={false} />
 
   if (!user && !isPublicPath(path)) {
     return <AuthPage initialMode="login" />
@@ -122,7 +121,6 @@ function App() {
     <SmoothScroll enabled>
       <RouteScrollReset routeKey={path} />
       <AppRoutes path={path} />
-      <DiscountPromoPopup />
     </SmoothScroll>
   )
 }

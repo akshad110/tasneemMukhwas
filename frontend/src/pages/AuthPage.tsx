@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useId, useState, type FormEvent } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { ApiRequestError } from '../lib/api'
+import { ApiRequestError, warmApi } from '../lib/api'
 import { APP_ROUTES, navigateApp } from '../lib/appRoutes'
 import { scrollAppToTop } from '../lib/scrollControl'
 import BrandLogo from '../components/shared/BrandLogo'
@@ -63,6 +63,7 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
     scrollAppToTop(true)
     document.documentElement.style.overflow = 'hidden'
     document.body.style.overflow = 'hidden'
+    void warmApi()
     return () => {
       document.documentElement.style.removeProperty('overflow')
       document.body.style.removeProperty('overflow')
@@ -87,30 +88,41 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
     const fd = new FormData(e.currentTarget)
     const email = String(fd.get('email') || '').trim()
     const password = String(fd.get('password') || '')
-    try {
-      if (mode === 'login') {
-        const user = await login(email, password)
-        setDoneAsAdmin(user.role === 'admin')
-        setDone(true)
-        if (user.role === 'admin') {
-          navigateApp(APP_ROUTES.admin)
-          return
+
+    const maxAttempts = 5
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        if (mode === 'login') {
+          const user = await login(email, password)
+          setDoneAsAdmin(user.role === 'admin')
+          setDone(true)
+          if (user.role === 'admin') {
+            navigateApp(APP_ROUTES.admin)
+            return
+          }
+        } else {
+          await register({
+            name: String(fd.get('name') || '').trim(),
+            phone: String(fd.get('phone') || '').trim(),
+            email,
+            password,
+          })
+          setDoneAsAdmin(false)
+          setDone(true)
         }
-      } else {
-        await register({
-          name: String(fd.get('name') || '').trim(),
-          phone: String(fd.get('phone') || '').trim(),
-          email,
-          password,
-        })
-        setDoneAsAdmin(false)
-        setDone(true)
+        setSubmitting(false)
+        return
+      } catch (err) {
+        const retryable = err instanceof ApiRequestError && err.status === 0
+        if (retryable && attempt < maxAttempts - 1) {
+          await warmApi(4)
+          continue
+        }
+        setError(err instanceof ApiRequestError ? err.message : 'Authentication failed')
+        break
       }
-    } catch (err) {
-      setError(err instanceof ApiRequestError ? err.message : 'Authentication failed')
-    } finally {
-      setSubmitting(false)
     }
+    setSubmitting(false)
   }
 
   return (

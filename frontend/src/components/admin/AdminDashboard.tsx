@@ -1,6 +1,33 @@
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
-import { dashboardApi, type DashboardData } from '../../lib/services'
+import { dashboardApi, type DashboardData, type DashboardPeriod } from '../../lib/services'
+
+const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
+
+const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+function currentMonthPeriod(): Extract<DashboardPeriod, { mode: 'month' }> {
+  const now = new Date()
+  return { mode: 'month', year: now.getFullYear(), month: now.getMonth() + 1 }
+}
+
+function shiftMonth(year: number, month: number, delta: number) {
+  const d = new Date(year, month - 1 + delta, 1)
+  return { year: d.getFullYear(), month: d.getMonth() + 1 }
+}
 
 const INK = '#0a2e22'
 const GOLD = '#b8860b'
@@ -153,20 +180,24 @@ function SalesChart({ data }: { data: DashboardData['salesByMonth'] }) {
         strokeLinecap="round"
       />
 
-      {pts.map((p) => (
-        <text
-          key={p.m}
-          x={p.x}
-          y={h - 4}
-          textAnchor="middle"
-          fontSize="9"
-          fontFamily="Inter, sans-serif"
-          fill={p.m === peak.m ? '#22c55e' : 'rgba(10,46,34,0.45)'}
-          fontWeight={p.m === peak.m ? 600 : 400}
-        >
-          {p.m}
-        </text>
-      ))}
+      {pts.map((p, i) => {
+        const step = values.length > 16 ? Math.ceil(values.length / 8) : values.length > 12 ? 2 : 1
+        if (i % step !== 0 && i !== values.length - 1) return null
+        return (
+          <text
+            key={`${p.m}-${i}`}
+            x={p.x}
+            y={h - 4}
+            textAnchor="middle"
+            fontSize="9"
+            fontFamily="Inter, sans-serif"
+            fill={p.m === peak.m ? '#22c55e' : 'rgba(10,46,34,0.45)'}
+            fontWeight={p.m === peak.m ? 600 : 400}
+          >
+            {p.m}
+          </text>
+        )
+      })}
 
       {peak.v > 0 && (
         <>
@@ -245,8 +276,325 @@ function Donut({
   )
 }
 
+function DashboardPeriodPicker({
+  period,
+  onChange,
+}: {
+  period: DashboardPeriod
+  onChange: (next: DashboardPeriod) => void
+}) {
+  const [monthOpen, setMonthOpen] = useState(false)
+  const [pickerYear, setPickerYear] = useState(() =>
+    period.mode === 'month' ? period.year : new Date().getFullYear(),
+  )
+  const wrapRef = useRef<HTMLDivElement>(null)
+
+  const anchor =
+    period.mode === 'month' ? period : { year: new Date().getFullYear(), month: new Date().getMonth() + 1 }
+
+  useEffect(() => {
+    if (!monthOpen) return
+    setPickerYear(period.mode === 'month' ? period.year : new Date().getFullYear())
+    const onDoc = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setMonthOpen(false)
+    }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [monthOpen, period])
+
+  const goPrev = () => {
+    const base = period.mode === 'month' ? period : currentMonthPeriod()
+    onChange({ mode: 'month', ...shiftMonth(base.year, base.month, -1) })
+  }
+
+  const goNext = () => {
+    const base = period.mode === 'month' ? period : currentMonthPeriod()
+    onChange({ mode: 'month', ...shiftMonth(base.year, base.month, 1) })
+  }
+
+  const navBtn =
+    'flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent text-[0.95rem] font-semibold transition hover:bg-white/80'
+
+  return (
+    <div
+      ref={wrapRef}
+      className="inline-flex items-center gap-0.5 rounded-full border px-1 py-0.5 text-[0.78rem] font-medium"
+      style={{ borderColor: LINE, backgroundColor: '#f7faf8', color: INK }}
+    >
+      <button type="button" className={navBtn} onClick={goPrev} aria-label="Previous month">
+        &lt;
+      </button>
+
+      <button
+        type="button"
+        className="cursor-pointer rounded-md border-0 px-2 py-1 transition hover:bg-white/80"
+        style={{
+          backgroundColor: period.mode === 'all' ? 'rgba(45,106,79,0.12)' : 'transparent',
+          color: period.mode === 'all' ? '#2d6a4f' : MUTED,
+          fontWeight: period.mode === 'all' ? 700 : 500,
+        }}
+        onClick={() => onChange({ mode: 'all' })}
+      >
+        all
+      </button>
+
+      <div className="relative">
+        <button
+          type="button"
+          className="cursor-pointer rounded-md border-0 px-2 py-1 whitespace-nowrap transition hover:bg-white/80"
+          style={{
+            color: period.mode === 'month' ? INK : MUTED,
+            fontWeight: period.mode === 'month' ? 600 : 500,
+          }}
+          onClick={() => setMonthOpen((o) => !o)}
+          aria-expanded={monthOpen}
+          aria-haspopup="listbox"
+        >
+          {MONTH_NAMES[anchor.month - 1]} {anchor.year}
+        </button>
+
+        {monthOpen && (
+          <div
+            className="absolute right-0 top-[calc(100%+6px)] z-30 min-w-[220px] rounded-xl border p-3 shadow-lg"
+            style={{ borderColor: LINE, backgroundColor: CARD }}
+            role="listbox"
+          >
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <button
+                type="button"
+                className={navBtn}
+                style={{ color: INK }}
+                onClick={() => setPickerYear((y) => y - 1)}
+                aria-label="Previous year"
+              >
+                &lt;
+              </button>
+              <span className="text-[0.82rem] font-bold" style={{ color: INK }}>
+                {pickerYear}
+              </span>
+              <button
+                type="button"
+                className={navBtn}
+                style={{ color: INK }}
+                onClick={() => setPickerYear((y) => y + 1)}
+                aria-label="Next year"
+              >
+                &gt;
+              </button>
+            </div>
+            <div className="grid grid-cols-3 gap-1.5">
+              {MONTH_SHORT.map((label, i) => {
+                const month = i + 1
+                const selected = period.mode === 'month' && period.year === pickerYear && period.month === month
+                return (
+                  <button
+                    key={label}
+                    type="button"
+                    role="option"
+                    aria-selected={selected}
+                    className="cursor-pointer rounded-lg border-0 px-2 py-1.5 text-[0.72rem] font-medium transition hover:brightness-95"
+                    style={{
+                      backgroundColor: selected ? '#2d6a4f' : '#f3f7f4',
+                      color: selected ? '#fff' : INK,
+                    }}
+                    onClick={() => {
+                      onChange({ mode: 'month', year: pickerYear, month })
+                      setMonthOpen(false)
+                    }}
+                  >
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <button type="button" className={navBtn} onClick={goNext} aria-label="Next month">
+        &gt;
+      </button>
+    </div>
+  )
+}
+
+function ProductSalesPanel({ products }: { products: DashboardData['topProducts'] }) {
+  const [sortOrder, setSortOrder] = useState<'top' | 'least'>('top')
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [scrollHints, setScrollHints] = useState({ up: false, down: false })
+
+  const sorted = [...products].sort((a, b) => {
+    const unitsA = a.reviews ?? 0
+    const unitsB = b.reviews ?? 0
+    if (unitsA !== unitsB) return sortOrder === 'top' ? unitsB - unitsA : unitsA - unitsB
+    const revA = a.sales ?? 0
+    const revB = b.sales ?? 0
+    if (revA !== revB) return sortOrder === 'top' ? revB - revA : revA - revB
+    return a.name.localeCompare(b.name)
+  })
+
+  const refreshScrollHints = useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const overflow = el.scrollHeight > el.clientHeight + 2
+    setScrollHints({
+      up: overflow && el.scrollTop > 2,
+      down: overflow && el.scrollTop + el.clientHeight < el.scrollHeight - 2,
+    })
+  }, [])
+
+  useEffect(() => {
+    refreshScrollHints()
+    const el = scrollRef.current
+    if (!el) return
+    el.addEventListener('scroll', refreshScrollHints, { passive: true })
+    const ro = new ResizeObserver(refreshScrollHints)
+    ro.observe(el)
+
+    const onWheel = (e: WheelEvent) => {
+      if (el.scrollHeight <= el.clientHeight + 2) return
+      e.stopPropagation()
+      const atTop = el.scrollTop <= 0
+      const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1
+      if ((e.deltaY < 0 && atTop) || (e.deltaY > 0 && atBottom)) {
+        e.preventDefault()
+      }
+    }
+    el.addEventListener('wheel', onWheel, { passive: false, capture: true })
+
+    return () => {
+      el.removeEventListener('scroll', refreshScrollHints)
+      el.removeEventListener('wheel', onWheel, { capture: true })
+      ro.disconnect()
+    }
+  }, [sorted.length, sortOrder, refreshScrollHints])
+
+  const toggleSort = () => setSortOrder((s) => (s === 'top' ? 'least' : 'top'))
+
+  const scrollList = (dir: -1 | 1) => {
+    scrollRef.current?.scrollBy({ top: dir * 76, behavior: 'smooth' })
+  }
+
+  const hintBtn =
+    'pointer-events-auto flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-0 shadow-sm transition hover:brightness-95'
+
+  return (
+    <>
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="m-0 text-[1.05rem] font-bold" style={{ color: INK }}>
+          {sortOrder === 'top' ? 'Top Selling Products' : 'Least Selling Products'}
+        </h2>
+        <button
+          type="button"
+          onClick={toggleSort}
+          className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border-0 transition hover:brightness-95"
+          style={{ backgroundColor: '#f3f7f4', color: INK }}
+          title={sortOrder === 'top' ? 'Show least selling' : 'Show top selling'}
+          aria-label={sortOrder === 'top' ? 'Sort by least selling' : 'Sort by top selling'}
+        >
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M8 9l4-4 4 4M8 15l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </div>
+
+      <div className="relative mt-4">
+        {(scrollHints.up || scrollHints.down) && (
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-center pt-0.5">
+            {scrollHints.up && (
+              <button
+                type="button"
+                className={hintBtn}
+                style={{ backgroundColor: '#fff', color: INK }}
+                onClick={() => scrollList(-1)}
+                aria-label="Scroll up"
+              >
+                <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M4 10l4-4 4 4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            )}
+          </div>
+        )}
+
+        <div
+          ref={scrollRef}
+          className="max-h-[min(320px,42vh)] overflow-y-auto overscroll-y-contain touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          onTouchMove={(e) => e.stopPropagation()}
+        >
+          <ul className="m-0 list-none space-y-3 p-0 pr-0.5">
+            {sorted.map((p) => (
+              <li key={p.id} className="flex items-center gap-3">
+                <img
+                  src={p.image}
+                  alt=""
+                  className="h-10 w-10 shrink-0 rounded-lg object-contain"
+                  style={{ backgroundColor: '#f3f7f4' }}
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="m-0 truncate text-[0.85rem] font-semibold" style={{ color: INK }}>
+                    {p.name}
+                  </p>
+                  <p className="m-0 text-[0.75rem]" style={{ color: MUTED }}>
+                    ₹{(p.sales ?? 0).toLocaleString()}
+                  </p>
+                </div>
+                <span
+                  className="shrink-0 text-[0.75rem] font-semibold"
+                  style={{ color: (p.reviews ?? 0) > 0 ? '#1b7a3e' : MUTED }}
+                >
+                  {(p.reviews ?? 0) > 0 ? `${p.reviews} sold` : '0 sold'}
+                </span>
+              </li>
+            ))}
+            {sorted.length === 0 && (
+              <li className="text-[0.82rem]" style={{ color: MUTED }}>
+                No products yet
+              </li>
+            )}
+          </ul>
+        </div>
+
+        {(scrollHints.up || scrollHints.down) && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center pb-0.5">
+            {scrollHints.down && (
+              <button
+                type="button"
+                className={hintBtn}
+                style={{ backgroundColor: '#fff', color: INK }}
+                onClick={() => scrollList(1)}
+                aria-label="Scroll down"
+              >
+                <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M4 6l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            )}
+          </div>
+        )}
+
+        {scrollHints.down && (
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-8 rounded-b-2xl"
+            style={{ background: 'linear-gradient(to top, rgba(255,255,255,0.95), transparent)' }}
+            aria-hidden
+          />
+        )}
+        {scrollHints.up && (
+          <div
+            className="pointer-events-none absolute inset-x-0 top-0 h-8 rounded-t-2xl"
+            style={{ background: 'linear-gradient(to bottom, rgba(255,255,255,0.95), transparent)' }}
+            aria-hidden
+          />
+        )}
+      </div>
+    </>
+  )
+}
+
 /** Dashboard — reference layout with brand light-green / gold accents. */
 export default function AdminDashboard() {
+  const [period, setPeriod] = useState<DashboardPeriod>({ mode: 'all' })
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -256,7 +604,7 @@ export default function AdminDashboard() {
     setLoading(true)
     setError(null)
     dashboardApi
-      .get()
+      .get(period)
       .then((res) => {
         if (!cancelled) setData(res)
       })
@@ -269,37 +617,77 @@ export default function AdminDashboard() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [period])
 
-  if (loading) {
+  if (error && !data) {
     return (
-      <p className="m-0 text-[0.95rem]" style={{ color: MUTED }}>
-        Loading dashboard…
-      </p>
+      <div>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="m-0 text-[1.85rem] font-bold tracking-tight" style={{ color: INK }}>
+            Dashboard
+          </h1>
+          <DashboardPeriodPicker period={period} onChange={setPeriod} />
+        </div>
+        <p className="mt-4 m-0 text-[0.95rem]" style={{ color: '#a32020' }}>
+          {error}
+        </p>
+      </div>
     )
   }
 
-  if (error || !data) {
+  if (!data) {
     return (
-      <p className="m-0 text-[0.95rem]" style={{ color: '#a32020' }}>
-        {error || 'Failed to load dashboard'}
-      </p>
+      <div>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="m-0 text-[1.85rem] font-bold tracking-tight" style={{ color: INK }}>
+            Dashboard
+          </h1>
+          <DashboardPeriodPicker period={period} onChange={setPeriod} />
+        </div>
+        <p className="mt-4 m-0 text-[0.95rem]" style={{ color: MUTED }}>
+          Loading dashboard…
+        </p>
+      </div>
     )
   }
 
-  const { metrics, salesByMonth, inventoryStatus, shipmentBreakdown, customerActivity, marketingBars, topProducts, recentOrders } =
-    data
+  const {
+    metrics,
+    salesByMonth,
+    inventoryStatus,
+    shipmentBreakdown,
+    customerActivity,
+    marketingBars,
+    topProducts,
+    recentOrders,
+    periodLabel,
+  } = data
+
+  const isMonthView = period.mode === 'month'
+  const ordersLabel = isMonthView ? 'Orders This Month' : 'Orders Today'
+  const customersLabel = isMonthView ? 'Customers This Month' : 'Total Customers'
+  const salesLabel = isMonthView ? 'Sales This Month' : 'Total Sales'
+  const chartBadge = isMonthView ? 'Daily' : 'Monthly'
 
   return (
     <div>
-      <h1 className="m-0 text-[1.85rem] font-bold tracking-tight" style={{ color: INK }}>
-        Dashboard
-      </h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="m-0 text-[1.85rem] font-bold tracking-tight" style={{ color: INK }}>
+          Dashboard
+        </h1>
+        <DashboardPeriodPicker period={period} onChange={setPeriod} />
+      </div>
+      {periodLabel && (
+        <p className="mt-1.5 m-0 text-[0.75rem] font-medium" style={{ color: MUTED }}>
+          Showing {periodLabel}
+          {loading ? ' · updating…' : ''}
+        </p>
+      )}
 
       {/* Metrics */}
       <div className="mt-4 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          label="Total Sales"
+          label={salesLabel}
           value={inr(metrics.totalSales)}
           tint="#e9f5ee"
           icon={
@@ -310,7 +698,7 @@ export default function AdminDashboard() {
           }
         />
         <MetricCard
-          label="Orders Today"
+          label={ordersLabel}
           value={String(metrics.ordersToday)}
           tint="#e7f0fa"
           icon={
@@ -321,18 +709,18 @@ export default function AdminDashboard() {
           }
         />
         <MetricCard
-          label="Low Stock Items"
-          value={String(metrics.lowStock)}
+          label="Total Products"
+          value={String(metrics.totalProducts)}
           tint="#f7efe0"
           icon={
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7">
-              <circle cx="12" cy="12" r="8" />
-              <path d="M12 8v5M12 16.5v.5" strokeLinecap="round" />
+              <path d="M4 8.5 12 4l8 4.5v7L12 20l-8-4.5v-7Z" />
+              <path d="M12 12v8M4 8.5l8 3.5 8-3.5" />
             </svg>
           }
         />
         <MetricCard
-          label="Total Customers"
+          label={customersLabel}
           value={metrics.customers.toLocaleString()}
           tint="#ecefea"
           icon={
@@ -355,10 +743,7 @@ export default function AdminDashboard() {
               className="inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[0.68rem] font-medium"
               style={{ borderColor: LINE, color: MUTED, backgroundColor: '#f7faf8' }}
             >
-              Monthly
-              <svg viewBox="0 0 12 12" className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
-                <path d="M3 4.5 6 7.5 9 4.5" strokeLinecap="round" />
-              </svg>
+              {chartBadge}
             </span>
           </div>
           <SalesChart data={salesByMonth} />
@@ -408,37 +793,7 @@ export default function AdminDashboard() {
       {/* Top products / Recent orders / Shipment */}
       <div className="mt-4 grid gap-4 xl:grid-cols-3">
         <Card className="xl:col-span-1">
-          <h2 className="m-0 text-[1.05rem] font-bold" style={{ color: INK }}>
-            Top Selling Products
-          </h2>
-          <ul className="mt-4 m-0 list-none space-y-3 p-0">
-            {topProducts.map((p) => (
-              <li key={p.id} className="flex items-center gap-3">
-                <img
-                  src={p.image}
-                  alt=""
-                  className="h-10 w-10 rounded-lg object-contain"
-                  style={{ backgroundColor: '#f3f7f4' }}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="m-0 truncate text-[0.85rem] font-semibold" style={{ color: INK }}>
-                    {p.name}
-                  </p>
-                  <p className="m-0 text-[0.75rem]" style={{ color: MUTED }}>
-                    ₹{(p.sales ?? 0).toLocaleString()}
-                  </p>
-                </div>
-                <span className="text-[0.75rem] font-semibold" style={{ color: '#1b7a3e' }}>
-                  {p.reviews > 0 ? `${p.reviews} sold` : '—'}
-                </span>
-              </li>
-            ))}
-            {topProducts.length === 0 && (
-              <li className="text-[0.82rem]" style={{ color: MUTED }}>
-                No products yet
-              </li>
-            )}
-          </ul>
+          <ProductSalesPanel products={topProducts} />
         </Card>
 
         <Card>
@@ -483,7 +838,7 @@ export default function AdminDashboard() {
               Shipment Status
             </h2>
             <span className="text-[0.72rem]" style={{ color: MUTED }}>
-              Today
+              {isMonthView ? 'This month' : 'All time'}
             </span>
           </div>
           <Donut data={shipmentBreakdown} />
@@ -510,7 +865,7 @@ export default function AdminDashboard() {
             </div>
             <div className="rounded-xl px-3 py-3" style={{ backgroundColor: '#f7efe0' }}>
               <p className="m-0 text-[0.72rem]" style={{ color: MUTED }}>
-                Orders Today
+                {ordersLabel}
               </p>
               <p className="mt-1 m-0 text-[1.2rem] font-bold" style={{ color: INK }}>
                 {metrics.ordersToday}

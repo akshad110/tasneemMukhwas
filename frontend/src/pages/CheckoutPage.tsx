@@ -225,6 +225,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     document.title = 'Checkout · Tasneem Mukhwas'
     scrollAppToTop(true)
+    void import('../lib/razorpay').then((m) => m.loadRazorpayScript()).catch(() => {})
     return () => {
       document.title = 'Tasneem Mukhwas'
     }

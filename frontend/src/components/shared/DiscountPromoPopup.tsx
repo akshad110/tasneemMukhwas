@@ -1,11 +1,13 @@
-import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect, useMemo, useState } from 'react'
+import { motion } from 'framer-motion'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useLenis } from 'lenis/react'
 import { couponsApi } from '../../lib/services'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
+import { getActiveSectionId } from '../../lib/sectionNav'
+import { BRAND_CREAM, BRAND_GOLD, BRAND_INK, BRAND_SERIF } from '../../lib/brand'
 
-const INK = '#0a2e22'
-const GOLD = '#b8860b'
-const CREAM = '#f2f4f5'
+const PANEL = '#1e4a38'
+const FRAME = '#ebe4d8'
 
 type Promo = {
   id: string
@@ -15,35 +17,41 @@ type Promo = {
   label: string
   productName?: string
   productImage?: string
+  discountType?: string
+  value?: number
 }
 
-const DISMISS_KEY = 'tm-promo-dismissed'
-
-function loadDismissed(): Set<string> {
-  try {
-    const raw = sessionStorage.getItem(DISMISS_KEY)
-    if (!raw) return new Set()
-    return new Set(JSON.parse(raw) as string[])
-  } catch {
-    return new Set()
+function discountDisplay(promo: Promo) {
+  if (promo.discountType === 'percent' && promo.value != null) {
+    return { main: String(promo.value), suffix: '%' }
   }
+  if (promo.value != null) {
+    return { main: `₹${promo.value}`, suffix: '' }
+  }
+  const pct = promo.label.match(/(\d+)\s*%/)
+  if (pct) return { main: pct[1], suffix: '%' }
+  const flat = promo.label.match(/₹(\d+)/)
+  if (flat) return { main: `₹${flat[1]}`, suffix: '' }
+  return { main: promo.label.split(' ')[0] || 'OFF', suffix: '' }
 }
 
-function dismissPromo(id: string) {
-  const set = loadDismissed()
-  set.add(id)
-  sessionStorage.setItem(DISMISS_KEY, JSON.stringify([...set]))
-}
-
-/** Slide-in product discount popup when a product-specific offer is active. */
+/** Looping discount banner — home hero section only. */
 export default function DiscountPromoPopup() {
   const [promos, setPromos] = useState<Promo[]>([])
-  const [visible, setVisible] = useState(false)
+  const [onHero, setOnHero] = useState(() => getActiveSectionId() === 'home')
+  const [dismissed, setDismissed] = useState(false)
+  const [showBanner, setShowBanner] = useState(false)
+  const [heroCycle, setHeroCycle] = useState(0)
+  const wasOnHeroRef = useRef(onHero)
 
-  const promo = useMemo(() => {
-    const dismissed = loadDismissed()
-    return promos.find((p) => p.scope === 'product' && p.productImage && !dismissed.has(p.id)) || null
-  }, [promos])
+  const promo = useMemo(
+    () => promos.find((p) => p.scope === 'product' && p.productImage) || null,
+    [promos],
+  )
+
+  useLenis(() => {
+    setOnHero(getActiveSectionId() === 'home')
+  })
 
   useEffect(() => {
     couponsApi
@@ -53,109 +61,135 @@ export default function DiscountPromoPopup() {
   }, [])
 
   useEffect(() => {
-    if (!promo) return
-    const t = window.setTimeout(() => setVisible(true), 800)
+    let ticking = false
+    const update = () => {
+      setOnHero(getActiveSectionId() === 'home')
+      ticking = false
+    }
+    const onScroll = () => {
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(update)
+    }
+    update()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('popstate', update)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('popstate', update)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (onHero && !wasOnHeroRef.current) {
+      setHeroCycle((c) => c + 1)
+      setDismissed(false)
+    }
+    wasOnHeroRef.current = onHero
+  }, [onHero])
+
+  useEffect(() => {
+    if (!onHero || !promo || dismissed) {
+      setShowBanner(false)
+      return
+    }
+    const t = window.setTimeout(() => setShowBanner(true), 500)
     return () => window.clearTimeout(t)
-  }, [promo])
+  }, [onHero, promo, dismissed, heroCycle])
 
-  const close = () => {
-    if (!promo) return
-    dismissPromo(promo.id)
-    setVisible(false)
-  }
+  if (!promo || !onHero || !showBanner || dismissed) return null
 
-  const goShop = () => {
-    close()
-    navigateApp(APP_ROUTES.shop)
-  }
+  const { main, suffix } = discountDisplay(promo)
 
   return (
-    <AnimatePresence>
-      {promo && visible && (
-        <motion.div
-          className="fixed inset-0 z-[120] flex items-start justify-center px-4 pt-[5.5rem] sm:justify-end sm:px-6 sm:pt-24"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          aria-live="polite"
+    <div
+      className="pointer-events-none fixed bottom-5 right-0 z-[110] w-[min(calc(100vw-1rem),21.5rem)] overflow-hidden px-3 sm:bottom-8 sm:px-5"
+      aria-live="polite"
+    >
+      <motion.aside
+        key={heroCycle}
+        role="dialog"
+        aria-label="Special discount offer"
+        className="pointer-events-auto relative flex overflow-hidden rounded-[1.1rem] shadow-[0_18px_48px_-16px_rgba(10,46,34,0.55)]"
+        style={{ minHeight: '6.75rem' }}
+        initial={{ x: '110%' }}
+        animate={{ x: ['110%', '0%', '0%', '110%'] }}
+        transition={{
+          duration: 11,
+          times: [0, 0.22, 0.72, 1],
+          repeat: Infinity,
+          repeatDelay: 0.35,
+          ease: ['easeOut', 'linear', 'easeIn'],
+        }}
+      >
+        <div
+          className="flex w-[38%] shrink-0 items-center justify-center p-2.5 sm:p-3"
+          style={{ backgroundColor: FRAME }}
+        >
+          <div
+            className="flex aspect-square w-full max-w-[5.5rem] items-center justify-center overflow-hidden rounded-md border-2 p-1.5 sm:max-w-[6rem]"
+            style={{ borderColor: BRAND_CREAM, backgroundColor: '#fff' }}
+          >
+            <img src={promo.productImage} alt="" className="h-full w-full object-contain" />
+          </div>
+        </div>
+
+        <div
+          className="relative flex min-w-0 flex-1 flex-col justify-center gap-2 px-3 py-3 sm:px-4 sm:py-3.5"
+          style={{ backgroundColor: PANEL }}
         >
           <button
             type="button"
-            className="absolute inset-0 cursor-default border-0 bg-[#0a2e22]/28 backdrop-blur-[2px]"
-            aria-label="Dismiss offer backdrop"
-            onClick={close}
-          />
-          <motion.div
-            role="dialog"
-            aria-label="Special discount offer"
-            initial={{ x: 120, opacity: 0, scale: 0.94 }}
-            animate={{ x: 0, opacity: 1, scale: 1 }}
-            exit={{ x: 140, opacity: 0, scale: 0.92 }}
-            transition={{ type: 'spring', stiffness: 280, damping: 26 }}
-            className="relative w-full max-w-[min(100%,22rem)] overflow-hidden rounded-2xl border shadow-[0_24px_60px_-20px_rgba(10,46,34,0.55)]"
-            style={{ borderColor: 'rgba(184,134,11,0.45)', backgroundColor: CREAM }}
+            onClick={() => setDismissed(true)}
+            className="absolute right-2 top-1.5 cursor-pointer border-0 bg-transparent p-0 text-[1rem] leading-none opacity-70 transition hover:opacity-100"
+            style={{ color: BRAND_CREAM }}
+            aria-label="Dismiss offer"
           >
-            <div
-              className="flex items-center justify-between px-4 py-2.5"
-              style={{ backgroundColor: INK, color: CREAM }}
-            >
-              <span className="text-[0.62rem] font-bold tracking-[0.2em] uppercase" style={{ color: GOLD }}>
-                Special offer
+            ×
+          </button>
+
+          <p
+            className="m-0 pr-5 text-[0.58rem] font-medium tracking-[0.22em] uppercase sm:text-[0.62rem]"
+            style={{ fontFamily: BRAND_SERIF, color: BRAND_CREAM }}
+          >
+            Special discount
+          </p>
+
+          <div className="flex items-end gap-2 pr-1">
+            <p className="m-0 leading-none" style={{ color: BRAND_CREAM }}>
+              <span
+                className="text-[2.35rem] font-bold tracking-tight sm:text-[2.65rem]"
+                style={{ fontFamily: BRAND_SERIF }}
+              >
+                {main}
               </span>
-              <button
-                type="button"
-                onClick={close}
-                className="cursor-pointer border-0 bg-transparent text-[1.1rem] leading-none"
-                style={{ color: CREAM }}
-                aria-label="Close"
-              >
-                ×
-              </button>
-            </div>
+              {suffix && (
+                <span className="ml-0.5 text-[1.15rem] font-semibold sm:text-[1.25rem]" style={{ color: BRAND_GOLD }}>
+                  {suffix}
+                </span>
+              )}
+            </p>
+          </div>
 
-            <div className="grid grid-cols-[88px_1fr] gap-3 p-4">
-              <div
-                className="overflow-hidden rounded-xl border p-1.5"
-                style={{ borderColor: 'rgba(10,46,34,0.1)', backgroundColor: '#fff' }}
-              >
-                <img src={promo.productImage} alt="" className="h-full w-full object-contain" />
-              </div>
-              <div className="min-w-0">
-                <p className="m-0 text-[0.62rem] font-semibold tracking-[0.14em] uppercase" style={{ color: GOLD }}>
-                  {promo.label}
-                </p>
-                <p className="mt-1 m-0 text-[0.95rem] font-bold leading-snug" style={{ color: INK }}>
-                  {promo.title}
-                </p>
-                {promo.productName && (
-                  <p className="mt-1 m-0 text-[0.72rem]" style={{ color: 'rgba(10,46,34,0.62)' }}>
-                    on {promo.productName}
-                  </p>
-                )}
-              </div>
-            </div>
+          {promo.productName && (
+            <p className="m-0 truncate pr-1 text-[0.62rem] opacity-80 sm:text-[0.68rem]" style={{ color: BRAND_CREAM }}>
+              on {promo.productName}
+            </p>
+          )}
 
-            <div className="flex gap-2 px-4 pb-4">
-              <button
-                type="button"
-                onClick={goShop}
-                className="flex-1 cursor-pointer rounded-full border-0 py-2.5 text-[0.72rem] font-bold tracking-[0.1em] uppercase"
-                style={{ backgroundColor: INK, color: CREAM }}
-              >
-                Shop now
-              </button>
-              <button
-                type="button"
-                onClick={close}
-                className="cursor-pointer rounded-full border px-4 py-2.5 text-[0.72rem] font-semibold"
-                style={{ borderColor: 'rgba(10,46,34,0.18)', color: INK, backgroundColor: 'transparent' }}
-              >
-                Later
-              </button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          <button
+            type="button"
+            onClick={() => {
+              setDismissed(true)
+              navigateApp(APP_ROUTES.shop)
+            }}
+            className="mt-0.5 w-fit cursor-pointer rounded-md border-0 px-3.5 py-1.5 text-[0.68rem] font-semibold tracking-wide transition hover:scale-[1.02] sm:text-[0.72rem]"
+            style={{ backgroundColor: BRAND_CREAM, color: BRAND_INK }}
+          >
+            Shop now
+          </button>
+        </div>
+      </motion.aside>
+    </div>
   )
 }

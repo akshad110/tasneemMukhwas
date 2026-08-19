@@ -38,8 +38,6 @@ const HOME_SECTION_PATHS = ['/about', '/products'] as const
 export const HOME_SECTION_SCROLL_PATHS = [
   '/about',
   '/products',
-  '/contact',
-  '/wholesale',
 ] as const
 
 export function isHomeSectionScrollPath(pathname: string) {

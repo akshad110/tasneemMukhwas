@@ -38,31 +38,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   /** Bumps when login/logout starts so stale /auth/me calls cannot wipe the session */
   const sessionEpochRef = useRef(0)
+  const refreshAbortRef = useRef<AbortController | null>(null)
 
   const refresh = useCallback(async () => {
+    refreshAbortRef.current?.abort()
+    const controller = new AbortController()
+    refreshAbortRef.current = controller
+
     const epoch = sessionEpochRef.current
     const token = getToken()
     if (!token) {
-      if (epoch === sessionEpochRef.current) {
+      if (epoch === sessionEpochRef.current && !controller.signal.aborted) {
         setUser(null)
         setLoading(false)
       }
       return
     }
     try {
-      const me = await authApi.me()
-      if (epoch === sessionEpochRef.current) {
-        setUser(me)
-      }
+      const me = await authApi.me(controller.signal)
+      if (controller.signal.aborted || epoch !== sessionEpochRef.current) return
+      setUser(me)
     } catch (err) {
-      if (epoch !== sessionEpochRef.current) return
-      // Only drop session on explicit auth failure — not during server restarts / network blips
+      if (controller.signal.aborted || epoch !== sessionEpochRef.current) return
       if (err instanceof ApiRequestError && err.status === 401) {
         setToken(null)
         setUser(null)
       }
     } finally {
-      if (epoch === sessionEpochRef.current) {
+      if (!controller.signal.aborted && epoch === sessionEpochRef.current) {
         setLoading(false)
       }
     }
@@ -70,9 +73,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     void refresh()
+    return () => refreshAbortRef.current?.abort()
   }, [refresh])
 
   const login = useCallback(async (email: string, password: string) => {
+    refreshAbortRef.current?.abort()
     sessionEpochRef.current += 1
     const data = await authApi.login(email, password)
     setToken(data.token)
@@ -83,6 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = useCallback(
     async (payload: { name: string; email: string; password: string; phone?: string }) => {
+      refreshAbortRef.current?.abort()
       sessionEpochRef.current += 1
       const data = await authApi.register(payload)
       setToken(data.token)
@@ -94,6 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const logout = useCallback(() => {
+    refreshAbortRef.current?.abort()
     sessionEpochRef.current += 1
     setToken(null)
     setUser(null)

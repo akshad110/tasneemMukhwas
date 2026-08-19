@@ -16,6 +16,7 @@ import {
   navigateApp,
 } from '../../lib/appRoutes'
 import {
+  getActiveSectionId,
   pathForSection,
   scrollToSection,
   syncActiveSectionFromScroll,
@@ -86,8 +87,14 @@ function useActiveSection() {
     if (isShopPath(pathname)) return 'products'
     if (isWholesalePath(pathname)) return 'wholesale'
     if (isContactPath(pathname)) return 'contact'
-    // Home scroll — underline Home only; section pages get underlines when split out later
-    if (isHomeScrollPath(pathname)) return 'home'
+
+    if (pathname === '/' || isHomeScrollPath(pathname)) {
+      const section = getActiveSectionId()
+      // Home contact section — keep Home underline; /contact page gets its own underline
+      if (section === 'contact') return 'home'
+      return section
+    }
+
     return 'home'
   }
 
@@ -100,13 +107,12 @@ function useActiveSection() {
 
     const update = () => {
       const pathname = window.location.pathname
-      setActiveId(resolveActive(pathname))
 
-      // Keep soft URL sync on home scroll without changing nav underline
-      if (isHomeScrollPath(pathname)) {
+      if (pathname === '/' || isHomeScrollPath(pathname)) {
         syncActiveSectionFromScroll()
       }
 
+      setActiveId(resolveActive(window.location.pathname))
       ticking = false
     }
 

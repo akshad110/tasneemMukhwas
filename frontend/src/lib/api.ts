@@ -51,6 +51,34 @@ type RequestOptions = {
   body?: unknown
   auth?: boolean
   signal?: AbortSignal
+  /** Internal — avoid infinite retry loops */
+  _retry?: number
+}
+
+const RETRYABLE_STATUS = new Set([0, 502, 503, 504, 429])
+const MAX_API_RETRIES = 6
+
+function retryDelayMs(attempt: number) {
+  return Math.min(450 * 2 ** attempt, 2800)
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms))
+}
+
+/** Ping API on auth/checkout screens so the first submit is not hit during a dev-server restart. */
+export async function warmApi(maxAttempts = 8) {
+  const url = `${apiBase()}/health`
+  for (let i = 0; i < maxAttempts; i++) {
+    try {
+      const res = await fetch(url, { method: 'GET' })
+      if (res.ok) return true
+    } catch {
+      /* server restarting or not ready */
+    }
+    await sleep(500 * (i + 1))
+  }
+  return false
 }
 
 function filenameFromDisposition(header: string | null) {
@@ -129,6 +157,8 @@ export async function apiDownload(path: string, filename: string) {
 }
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const retry = options._retry ?? 0
+
   const headers: Record<string, string> = {
     Accept: 'application/json',
   }
@@ -151,7 +181,12 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       signal: options.signal,
     })
   } catch {
-    throw new ApiRequestError(0, 'Could not reach the server. Wait a moment and try again.')
+    const err = new ApiRequestError(0, 'Could not reach the server. Wait a moment and try again.')
+    if (retry < MAX_API_RETRIES - 1 && RETRYABLE_STATUS.has(err.status)) {
+      await sleep(retryDelayMs(retry))
+      return apiRequest<T>(path, { ...options, _retry: retry + 1 })
+    }
+    throw err
   }
 
   let json: { success?: boolean; message?: string; data?: T; errors?: ApiErrorBody['errors'] } = {}
@@ -162,11 +197,16 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   }
 
   if (!res.ok || json.success === false) {
-    throw new ApiRequestError(
+    const err = new ApiRequestError(
       res.status,
       json.message || res.statusText || 'Request failed',
       json.errors ?? null,
     )
+    if (retry < MAX_API_RETRIES - 1 && RETRYABLE_STATUS.has(err.status)) {
+      await sleep(retryDelayMs(retry))
+      return apiRequest<T>(path, { ...options, _retry: retry + 1 })
+    }
+    throw err
   }
 
   return json.data as T

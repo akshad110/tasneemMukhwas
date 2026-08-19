@@ -9,6 +9,7 @@ import ContactSection from '../components/contact/ContactSection'
 import HomeTestimonials from '../components/testimonials/HomeTestimonials'
 import PopularProducts from '../components/products/PopularProducts'
 import FloatingActions from '../components/shared/FloatingActions'
+import DiscountPromoPopup from '../components/shared/DiscountPromoPopup'
 import SiteFooter from '../components/shared/SiteFooter'
 import TrustBadges from '../components/shared/TrustBadges'
 import { scrollToSection, type SectionId } from '../lib/sectionNav'
@@ -47,6 +48,7 @@ export default function Home({ ready = true }: HomeProps) {
       <SiteFooter />
 
       <FloatingActions />
+      {ready ? <DiscountPromoPopup /> : null}
     </main>
   )
 }

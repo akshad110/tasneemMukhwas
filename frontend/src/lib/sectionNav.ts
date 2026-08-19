@@ -23,6 +23,12 @@ export function pathForSection(id: SectionId): string {
   return PATH_BY_ID[id] ?? '/'
 }
 
+/** Scroll-sync URL on the home page — contact has its own /contact route. */
+function pathForHomeScrollSync(id: SectionId): string {
+  if (id === 'contact') return '/'
+  return pathForSection(id)
+}
+
 export function sectionFromPath(pathname: string): SectionId {
   return ID_BY_PATH[pathname] ?? 'home'
 }
@@ -104,6 +110,6 @@ export function syncActiveSectionFromScroll(): SectionId {
     return sectionFromPath(window.location.pathname)
   }
   const current = getActiveSectionId()
-  setSectionPath(pathForSection(current))
+  setSectionPath(pathForHomeScrollSync(current))
   return current
 }
