@@ -7,7 +7,8 @@
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
     "seed": "node src/seed/seed.js",
-    "seed:force": "node src/seed/seed.js --force"
+    "seed:force": "node src/seed/seed.js --force",
+    "ensure-admin": "node src/scripts/ensureAdmin.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
@@ -19,6 +20,9 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.1",
     "morgan": "^1.10.0",
+    "pdfkit": "^0.19.1",
+    "razorpay": "^2.9.8",
+    "resend": "^6.20.0",
     "zod": "^3.25.67"
   }
 }

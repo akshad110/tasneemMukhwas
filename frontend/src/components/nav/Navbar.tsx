@@ -3,11 +3,16 @@ import { useEffect, useState, type MouseEvent } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
 import { useWishlist } from '../../context/WishlistContext'
+import NavbarNotifications from './NavbarNotifications'
 import {
   APP_ROUTES,
   isAppPagePath,
   isKnowMorePath,
+  isHomeScrollPath,
+  isNavNeutralAppPath,
   isShopPath,
+  isWholesalePath,
+  isContactPath,
   navigateApp,
 } from '../../lib/appRoutes'
 import {
@@ -27,13 +32,15 @@ const NAV_LINKS = [
   { label: 'Contact us', id: 'contact' as const },
 ]
 
-const PEACH = '#f3e6c8'
+const PEACH = '#f2f4f5'
 const INK = '#0a2e22'
 const GOLD = '#b8860b'
+const NAV_LINK_DARK = 'rgba(242,244,245,0.68)'
+const NAV_LINK_LIGHT = 'rgba(10,46,34,0.62)'
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
-/** Hysteresis avoids flicker when navbar height change shifts scrollY near the threshold */
-const SCROLL_COMPACT_AT = 56
-const SCROLL_EXPAND_AT = 12
+/** Hysteresis avoids flicker when navbar height change shifts scroll position near the threshold */
+const SCROLL_COMPACT_AT = 72
+const SCROLL_EXPAND_AT = 8
 
 function CartIcon({ className = '' }: { className?: string }) {
   return (
@@ -73,36 +80,33 @@ function HeartIcon({ className = '', filled = false }: { className?: string; fil
 }
 
 function useActiveSection() {
-  const [activeId, setActiveId] = useState<SectionId>(() => {
-    if (isKnowMorePath(window.location.pathname)) return 'about'
-    if (isShopPath(window.location.pathname)) return 'products'
+  const resolveActive = (pathname: string): SectionId | null => {
+    if (isNavNeutralAppPath(pathname)) return null
+    if (isKnowMorePath(pathname)) return 'about'
+    if (isShopPath(pathname)) return 'products'
+    if (isWholesalePath(pathname)) return 'wholesale'
+    if (isContactPath(pathname)) return 'contact'
+    // Home scroll — underline Home only; section pages get underlines when split out later
+    if (isHomeScrollPath(pathname)) return 'home'
     return 'home'
-  })
+  }
+
+  const [activeId, setActiveId] = useState<SectionId | null>(() =>
+    resolveActive(window.location.pathname),
+  )
 
   useEffect(() => {
     let ticking = false
 
-    const fromPath = (): SectionId | null => {
-      if (isKnowMorePath(window.location.pathname)) return 'about'
-      if (isShopPath(window.location.pathname)) return 'products'
-      if (isAppPagePath(window.location.pathname)) return 'home'
-      return null
-    }
-
     const update = () => {
-      const pathActive = fromPath()
-      if (pathActive) {
-        setActiveId(pathActive)
-        ticking = false
-        return
+      const pathname = window.location.pathname
+      setActiveId(resolveActive(pathname))
+
+      // Keep soft URL sync on home scroll without changing nav underline
+      if (isHomeScrollPath(pathname)) {
+        syncActiveSectionFromScroll()
       }
-      const current = syncActiveSectionFromScroll()
-      // About / Shop underlines only on their pages — not home section scroll
-      setActiveId((prev) => {
-        if (current === 'about') return prev === 'about' ? 'wholesale' : prev
-        if (current === 'products') return prev === 'products' ? 'wholesale' : prev
-        return current
-      })
+
       ticking = false
     }
 
@@ -126,14 +130,46 @@ function useActiveSection() {
   return [activeId, setActiveId] as const
 }
 
+function NavCountBadge({
+  count,
+  label,
+  variant = 'cart',
+  ringColor,
+}: {
+  count: number
+  label: string
+  variant?: 'cart' | 'wishlist'
+  ringColor: string
+}) {
+  if (count <= 0) return null
+
+  const display = count > 99 ? '99+' : String(count)
+
+  return (
+    <span
+      className="absolute -right-1 -top-1 z-10 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[0.65rem] font-bold leading-none"
+      style={{
+        backgroundColor: variant === 'wishlist' ? '#b91c1c' : INK,
+        color: '#ffffff',
+        boxShadow: `0 0 0 2px ${ringColor}`,
+      }}
+      aria-label={`${label}: ${display}`}
+    >
+      {display}
+    </span>
+  )
+}
+
 function NavLinks({
   activeId,
   stacked,
   onNavigate,
+  onDark = false,
 }: {
-  activeId: SectionId
+  activeId: SectionId | null
   stacked?: boolean
   onNavigate?: (id: SectionId) => void
+  onDark?: boolean
 }) {
   return (
     <ul
@@ -159,12 +195,14 @@ function NavLinks({
                 e.preventDefault()
                 onNavigate?.(link.id)
               }}
-              className={`cursor-pointer text-[0.92rem] font-medium tracking-wide no-underline transition-opacity hover:opacity-70 ${
-                isActive
-                  ? 'border-b-2 border-current pb-0.5'
-                  : 'border-b-2 border-transparent pb-0.5'
+              className={`cursor-pointer text-[0.78rem] font-medium tracking-wide no-underline transition-opacity hover:opacity-80 ${
+                isActive ? 'border-b-2 pb-0.5' : 'border-b-2 border-transparent pb-0.5'
               }`}
-              style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
+              style={{
+                color: onDark ? NAV_LINK_DARK : NAV_LINK_LIGHT,
+                borderColor: isActive ? GOLD : 'transparent',
+                fontFamily: 'Inter, sans-serif',
+              }}
               aria-current={isActive ? 'page' : undefined}
             >
               {link.label}
@@ -176,13 +214,38 @@ function NavLinks({
   )
 }
 
-function ProfileAvatarMenu({ stacked = false }: { stacked?: boolean }) {
-  const { user } = useAuth()
+function ProfileAvatarMenu({
+  stacked = false,
+  onDark = false,
+  onAction,
+}: {
+  stacked?: boolean
+  onDark?: boolean
+  onAction?: () => void
+}) {
+  const { user, logout } = useAuth()
   if (!user) return null
 
   const initial = (user.name?.trim()?.[0] || 'U').toUpperCase()
-  const goProfile = () => navigateApp(APP_ROUTES.profile)
-  const goOrders = () => navigateApp(APP_ROUTES.myOrders)
+
+  const run = (fn: () => void) => {
+    onAction?.()
+    fn()
+  }
+
+  const goProfile = () => run(() => navigateApp(APP_ROUTES.profile))
+  const goOrders = () => run(() => navigateApp(APP_ROUTES.myOrders))
+  const goSettings = () => run(() => navigateApp(APP_ROUTES.settings))
+  const handleLogout = () =>
+    run(() => {
+      logout()
+      navigateApp(APP_ROUTES.home)
+    })
+
+  const menuBtn =
+    'flex w-full cursor-pointer items-center gap-2 border-0 bg-transparent px-3.5 py-2 text-left text-[0.8rem] font-semibold transition hover:bg-[#0a2e22]/8'
+  const menuBtnDanger =
+    'flex w-full cursor-pointer items-center gap-2 border-0 bg-transparent px-3.5 py-2 text-left text-[0.8rem] font-semibold transition hover:bg-[#a32020]/8'
 
   if (stacked) {
     return (
@@ -192,8 +255,8 @@ function ProfileAvatarMenu({ stacked = false }: { stacked?: boolean }) {
           onClick={goProfile}
           className="flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-full text-[0.9rem] font-semibold"
           style={{
-            backgroundColor: INK,
-            color: PEACH,
+            backgroundColor: onDark ? GOLD : INK,
+            color: onDark ? INK : PEACH,
             fontFamily: 'Inter, sans-serif',
           }}
         >
@@ -210,13 +273,39 @@ function ProfileAvatarMenu({ stacked = false }: { stacked?: boolean }) {
           onClick={goOrders}
           className="flex h-11 w-full cursor-pointer items-center justify-center rounded-full border text-[0.9rem] font-semibold"
           style={{
-            borderColor: 'rgba(10,46,34,0.2)',
+            borderColor: onDark ? 'rgba(242,244,245,0.35)' : 'rgba(10,46,34,0.2)',
             backgroundColor: 'transparent',
-            color: INK,
+            color: onDark ? PEACH : INK,
             fontFamily: 'Inter, sans-serif',
           }}
         >
           My Orders
+        </button>
+        <button
+          type="button"
+          onClick={goSettings}
+          className="flex h-11 w-full cursor-pointer items-center justify-center rounded-full border text-[0.9rem] font-semibold"
+          style={{
+            borderColor: onDark ? 'rgba(242,244,245,0.35)' : 'rgba(10,46,34,0.2)',
+            backgroundColor: 'transparent',
+            color: onDark ? PEACH : INK,
+            fontFamily: 'Inter, sans-serif',
+          }}
+        >
+          Settings
+        </button>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="flex h-11 w-full cursor-pointer items-center justify-center rounded-full border text-[0.9rem] font-semibold"
+          style={{
+            borderColor: 'rgba(163,32,32,0.28)',
+            backgroundColor: 'rgba(163,32,32,0.06)',
+            color: '#a32020',
+            fontFamily: 'Inter, sans-serif',
+          }}
+        >
+          Logout
         </button>
       </div>
     )
@@ -234,7 +323,7 @@ function ProfileAvatarMenu({ stacked = false }: { stacked?: boolean }) {
         {initial}
       </button>
       <div
-        className="invisible absolute right-0 top-[calc(100%+6px)] z-50 min-w-[150px] translate-y-1 rounded-xl border py-1.5 opacity-0 shadow-lg transition duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100"
+        className="invisible absolute right-0 top-[calc(100%+6px)] z-50 min-w-[168px] translate-y-1 rounded-xl border py-1.5 opacity-0 shadow-lg transition duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100"
         style={{
           backgroundColor: PEACH,
           borderColor: 'rgba(10,46,34,0.12)',
@@ -242,23 +331,18 @@ function ProfileAvatarMenu({ stacked = false }: { stacked?: boolean }) {
         }}
         role="menu"
       >
-        <button
-          type="button"
-          role="menuitem"
-          onClick={goProfile}
-          className="flex w-full cursor-pointer items-center gap-2 border-0 bg-transparent px-3.5 py-2 text-left text-[0.8rem] font-semibold transition hover:bg-[#0a2e22]/8"
-          style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
-        >
+        <button type="button" role="menuitem" onClick={goProfile} className={menuBtn} style={{ color: INK, fontFamily: 'Inter, sans-serif' }}>
           Profile
         </button>
-        <button
-          type="button"
-          role="menuitem"
-          onClick={goOrders}
-          className="flex w-full cursor-pointer items-center gap-2 border-0 bg-transparent px-3.5 py-2 text-left text-[0.8rem] font-semibold transition hover:bg-[#0a2e22]/8"
-          style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
-        >
+        <button type="button" role="menuitem" onClick={goOrders} className={menuBtn} style={{ color: INK, fontFamily: 'Inter, sans-serif' }}>
           My Orders
+        </button>
+        <button type="button" role="menuitem" onClick={goSettings} className={menuBtn} style={{ color: INK, fontFamily: 'Inter, sans-serif' }}>
+          Settings
+        </button>
+        <div className="my-1.5 border-t" style={{ borderColor: 'rgba(10,46,34,0.1)' }} role="separator" />
+        <button type="button" role="menuitem" onClick={handleLogout} className={menuBtnDanger} style={{ color: '#a32020', fontFamily: 'Inter, sans-serif' }}>
+          Logout
         </button>
       </div>
     </div>
@@ -274,8 +358,15 @@ function ProfileAvatarMenu({ stacked = false }: { stacked?: boolean }) {
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [pathname, setPathname] = useState(() => window.location.pathname)
   const [activeId, setActiveId] = useActiveSection()
-  const lenis = useLenis()
+  const lenis = useLenis(({ scroll }) => {
+    setScrolled((prev) => {
+      if (!prev && scroll >= SCROLL_COMPACT_AT) return true
+      if (prev && scroll <= SCROLL_EXPAND_AT) return false
+      return prev
+    })
+  })
   const { user, loading: authLoading } = useAuth()
   const { count: wishlistCount } = useWishlist()
 
@@ -299,8 +390,6 @@ export default function Navbar() {
   }
 
   const { itemCount } = useCart()
-  const cartBadge = itemCount > 99 ? '99+' : String(itemCount)
-  const wishlistBadge = wishlistCount > 99 ? '99+' : String(wishlistCount)
 
   const goTo = (id: SectionId) => {
     setMenuOpen(false)
@@ -319,7 +408,21 @@ export default function Navbar() {
       return
     }
 
-    setActiveId(id)
+    // Wholesale → dedicated page
+    if (id === 'wholesale') {
+      setActiveId('wholesale')
+      navigateApp(APP_ROUTES.wholesale)
+      return
+    }
+
+    // Contact → dedicated page
+    if (id === 'contact') {
+      setActiveId('contact')
+      navigateApp(APP_ROUTES.contact)
+      return
+    }
+
+    setActiveId('home')
 
     // From shop / auth pages — return home, then scroll to section
     if (isAppPagePath(window.location.pathname)) {
@@ -339,61 +442,69 @@ export default function Navbar() {
   }
 
   useEffect(() => {
-    let ticking = false
-
     const sync = () => {
-      const y = window.scrollY
+      const y = lenis?.scroll ?? window.scrollY
       setScrolled((prev) => {
         if (!prev && y >= SCROLL_COMPACT_AT) return true
         if (prev && y <= SCROLL_EXPAND_AT) return false
         return prev
       })
-      ticking = false
-    }
-
-    const onScroll = () => {
-      if (ticking) return
-      ticking = true
-      requestAnimationFrame(sync)
     }
 
     sync()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    window.addEventListener('scroll', sync, { passive: true })
+    return () => window.removeEventListener('scroll', sync)
+  }, [lenis])
+
+  useEffect(() => {
+    const onPop = () => setPathname(window.location.pathname)
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
   }, [])
+
+  const isHome = isHomeScrollPath(pathname)
+  const isDarkNav = isHome && !scrolled
+  const heroOverlay = isHome && !scrolled
+  const navInk = isDarkNav ? 'rgba(242,244,245,0.82)' : INK
+  const navHover = isDarkNav ? 'hover:bg-white/10' : 'hover:bg-[#0a2e22]/8'
+  const navBorder = heroOverlay ? 'border-transparent' : 'border-[#0a2e22]/08'
+  const badgeRing = isDarkNav ? 'rgba(10,46,34,0.85)' : PEACH
 
   return (
     <header
-      className="sticky top-0 z-50 w-full border-b border-[#0a2e22]/10"
+      className={`sticky top-0 z-50 w-full border-b ${navBorder}`}
       style={{
-        backgroundColor: PEACH,
-        boxShadow: scrolled ? '0 8px 24px rgba(10,46,34,0.08)' : 'none',
-        transition: `box-shadow 450ms ${EASE}`,
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+        background: heroOverlay
+          ? 'linear-gradient(180deg, rgba(6,14,11,0.42) 0%, rgba(6,14,11,0.12) 55%, transparent 100%)'
+          : PEACH,
+        boxShadow: scrolled && !heroOverlay ? '0 6px 20px rgba(10,46,34,0.06)' : 'none',
+        transition: `background 450ms ${EASE}, box-shadow 450ms ${EASE}, border-color 450ms ${EASE}`,
       }}
     >
       {/* —— Desktop (single morphing bar) —— */}
       <nav
-        className="relative mx-auto hidden max-w-7xl items-center px-6 lg:px-10 md:flex"
+        className="relative hidden w-full items-center px-3 sm:px-4 md:flex"
         style={{
-          paddingTop: scrolled ? 8 : 14,
-          paddingBottom: scrolled ? 8 : 14,
-          minHeight: scrolled ? 56 : 88,
+          paddingTop: scrolled ? 6 : 10,
+          paddingBottom: scrolled ? 6 : 18,
+          minHeight: scrolled ? 52 : 96,
           transition: `padding 450ms ${EASE}, min-height 450ms ${EASE}`,
         }}
         aria-label="Primary"
       >
-        {/* Left — logo (+ name when scrolled) */}
+        {/* Left — logo (+ stacked name when scrolled) */}
         <a
           href="/"
           onClick={goHome}
-          className="relative z-10 flex shrink-0 cursor-pointer items-center no-underline"
+          className="relative z-10 flex shrink-0 cursor-pointer items-center gap-2.5 no-underline"
           aria-label="Tasneem Mukhwas home"
         >
           <span
             className="inline-flex shrink-0 items-center justify-center"
             style={{
-              width: scrolled ? 36 : 48,
-              height: scrolled ? 44 : 58,
+              width: scrolled ? 52 : 42,
+              height: scrolled ? 62 : 50,
               transition: `width 450ms ${EASE}, height 450ms ${EASE}`,
             }}
           >
@@ -402,22 +513,21 @@ export default function Navbar() {
           <span
             className="overflow-hidden"
             style={{
-              maxWidth: scrolled ? 260 : 0,
+              maxWidth: scrolled ? 140 : 0,
               opacity: scrolled ? 1 : 0,
-              marginLeft: scrolled ? 10 : 0,
-              transform: scrolled ? 'translateX(0)' : 'translateX(-6px)',
-              transition: `max-width 450ms ${EASE}, opacity 350ms ${EASE}, margin 450ms ${EASE}, transform 450ms ${EASE}`,
+              transform: scrolled ? 'translateX(0)' : 'translateX(-8px)',
+              transition: `max-width 450ms ${EASE}, opacity 350ms ${EASE}, transform 450ms ${EASE}`,
             }}
           >
-            <BrandNameLockup size="sm" />
+            <BrandNameLockup layout="stacked" stackedPreset="nav" className="!items-start" />
           </span>
         </a>
 
-        {/* Center — brand (top only) + links */}
+        {/* Center — stacked brand (top only) + links */}
         <div
           className="pointer-events-none absolute top-1/2 left-1/2 z-0 flex w-max -translate-x-1/2 -translate-y-1/2 flex-col items-center"
           style={{
-            gap: scrolled ? 0 : 10,
+            gap: scrolled ? 0 : 14,
             transition: `gap 450ms ${EASE}`,
           }}
         >
@@ -430,55 +540,48 @@ export default function Navbar() {
             tabIndex={scrolled ? -1 : 0}
             style={{
               lineHeight: 1,
-              maxHeight: scrolled ? 0 : 48,
+              maxHeight: scrolled ? 0 : 52,
               opacity: scrolled ? 0 : 1,
               overflow: 'hidden',
               transform: scrolled ? 'translateY(-6px)' : 'translateY(0)',
               transition: `max-height 450ms ${EASE}, opacity 350ms ${EASE}, transform 450ms ${EASE}`,
             }}
           >
-            <BrandNameLockup size="lg" />
+            <BrandNameLockup layout="stacked" stackedPreset="hero" />
           </a>
-          <div className="pointer-events-auto">
-            <NavLinks activeId={activeId} onNavigate={goTo} />
+          <div className="pointer-events-auto" style={{ paddingBottom: scrolled ? 0 : 6 }}>
+            <NavLinks activeId={activeId} onNavigate={goTo} onDark={isDarkNav} />
           </div>
         </div>
 
-        {/* Right — cart / favorite / login (always far right) */}
-        <div className="relative z-10 ml-auto flex shrink-0 items-center gap-2.5 md:gap-3">
+        {/* Right — cart / favorite / login (edge-aligned) */}
+        <div className="relative z-10 ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
           <button
             type="button"
             onClick={openCart}
-            className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md transition-colors hover:bg-[#0a2e22]/8"
-            style={{ color: INK }}
+            className={`relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md transition-colors ${navHover}`}
+            style={{ color: navInk }}
             aria-label="Cart"
           >
             <CartIcon className="h-[1.2rem] w-[1.2rem]" />
-            <span
-              className="absolute right-0.5 top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-sm px-0.5 text-[0.55rem] font-semibold leading-none"
-              style={{ backgroundColor: INK, color: PEACH }}
-            >
-              {cartBadge}
-            </span>
+            <NavCountBadge count={itemCount} label="Cart items" ringColor={badgeRing} />
           </button>
 
           <div className="group relative">
             <button
               type="button"
               onClick={openWishlist}
-              className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md transition-colors hover:bg-[#0a2e22]/8"
-              style={{ color: wishlistCount > 0 ? '#9b1c1c' : INK }}
+              className={`relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md transition-colors ${navHover}`}
+              style={{ color: wishlistCount > 0 ? '#f4a4a4' : navInk }}
               aria-label="Wishlist"
             >
               <HeartIcon className="h-[1.2rem] w-[1.2rem]" filled={wishlistCount > 0} />
-              {wishlistCount > 0 && (
-                <span
-                  className="absolute right-0.5 top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-sm px-0.5 text-[0.55rem] font-semibold leading-none"
-                  style={{ backgroundColor: '#9b1c1c', color: PEACH }}
-                >
-                  {wishlistBadge}
-                </span>
-              )}
+              <NavCountBadge
+                count={wishlistCount}
+                label="Wishlist items"
+                variant="wishlist"
+                ringColor={badgeRing}
+              />
             </button>
             <span
               className="pointer-events-none invisible absolute left-1/2 top-[calc(100%+8px)] z-50 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-lg border px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-wide opacity-0 shadow-md transition duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100"
@@ -495,15 +598,18 @@ export default function Navbar() {
           </div>
 
           {!authLoading && user ? (
-            <ProfileAvatarMenu />
+            <>
+              <NavbarNotifications ink={navInk} />
+              <ProfileAvatarMenu onDark={isDarkNav} />
+            </>
           ) : (
             <button
               type="button"
               onClick={openAuth}
               className="inline-flex h-9 cursor-pointer items-center rounded-full px-4 text-[0.8rem] font-semibold tracking-wide transition-transform duration-300 hover:scale-[1.02]"
               style={{
-                backgroundColor: INK,
-                color: PEACH,
+                backgroundColor: isDarkNav ? GOLD : INK,
+                color: isDarkNav ? INK : PEACH,
                 fontFamily: 'Inter, sans-serif',
               }}
             >
@@ -515,52 +621,45 @@ export default function Navbar() {
 
       {/* —— Mobile —— */}
       <nav
-        className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2 md:hidden"
+        className="flex w-full items-center gap-2 px-3 py-2 sm:px-4 md:hidden"
         aria-label="Primary mobile"
       >
         <a
           href="/"
           onClick={goHome}
-          className="flex shrink-0 cursor-pointer items-center gap-2.5 no-underline"
+          className="flex shrink-0 cursor-pointer items-center gap-2 no-underline"
           aria-label="Tasneem Mukhwas home"
         >
           <BrandLogo className="h-11 w-9 object-contain object-center" />
-          <BrandNameLockup size="sm" />
+          <BrandNameLockup layout="stacked" stackedPreset="nav" className="!items-start" />
         </a>
 
-        <div className="ml-auto flex items-center gap-1">
+        <div className="ml-auto flex items-center gap-0.5">
           <button
             type="button"
             onClick={openCart}
             className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md"
-            style={{ color: INK }}
+            style={{ color: navInk }}
             aria-label="Cart"
           >
             <CartIcon className="h-5 w-5" />
-            <span
-              className="absolute right-0.5 top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-sm px-0.5 text-[0.55rem] font-semibold leading-none"
-              style={{ backgroundColor: INK, color: PEACH }}
-            >
-              {cartBadge}
-            </span>
+            <NavCountBadge count={itemCount} label="Cart items" ringColor={badgeRing} />
           </button>
           <div className="group relative">
             <button
               type="button"
               onClick={openWishlist}
               className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md"
-              style={{ color: wishlistCount > 0 ? '#9b1c1c' : INK }}
+              style={{ color: wishlistCount > 0 ? '#f4a4a4' : navInk }}
               aria-label="Wishlist"
             >
               <HeartIcon className="h-5 w-5" filled={wishlistCount > 0} />
-              {wishlistCount > 0 && (
-                <span
-                  className="absolute right-0.5 top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-sm px-0.5 text-[0.55rem] font-semibold leading-none"
-                  style={{ backgroundColor: '#9b1c1c', color: PEACH }}
-                >
-                  {wishlistBadge}
-                </span>
-              )}
+              <NavCountBadge
+                count={wishlistCount}
+                label="Wishlist items"
+                variant="wishlist"
+                ringColor={badgeRing}
+              />
             </button>
             <span
               className="pointer-events-none invisible absolute left-1/2 top-[calc(100%+8px)] z-50 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-lg border px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-wide opacity-0 shadow-md transition duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100"
@@ -575,10 +674,11 @@ export default function Navbar() {
               Wishlist
             </span>
           </div>
+          {!authLoading && user ? <NavbarNotifications ink={navInk} /> : null}
           <button
             type="button"
             className="flex h-9 w-9 items-center justify-center rounded-md"
-            style={{ color: INK }}
+            style={{ color: navInk }}
             aria-expanded={menuOpen}
             aria-controls="mobile-nav"
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
@@ -605,20 +705,23 @@ export default function Navbar() {
       {menuOpen && (
         <div
           id="mobile-nav"
-          className="border-t border-[#0a2e22]/10 px-4 pb-4 pt-3 md:hidden"
-          style={{ backgroundColor: PEACH }}
+          className={`border-t px-3 pb-4 pt-3 sm:px-4 md:hidden ${navBorder}`}
+          style={{
+            backgroundColor: 'rgba(242,244,245,0.92)',
+            backdropFilter: 'blur(12px)',
+          }}
         >
-          <NavLinks activeId={activeId} stacked onNavigate={goTo} />
+          <NavLinks activeId={activeId} stacked onNavigate={goTo} onDark={isDarkNav} />
           {!authLoading && user ? (
-            <ProfileAvatarMenu stacked />
+            <ProfileAvatarMenu stacked onDark={isDarkNav} onAction={() => setMenuOpen(false)} />
           ) : (
             <button
               type="button"
               onClick={openAuth}
               className="mt-4 flex h-11 w-full cursor-pointer items-center justify-center rounded-full text-[0.9rem] font-semibold"
               style={{
-                backgroundColor: INK,
-                color: PEACH,
+                backgroundColor: isDarkNav ? GOLD : INK,
+                color: isDarkNav ? INK : PEACH,
                 fontFamily: 'Inter, sans-serif',
               }}
             >

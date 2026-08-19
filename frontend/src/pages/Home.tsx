@@ -8,17 +8,16 @@ import OrbitShowcase from '../components/orbit/OrbitShowcase'
 import ContactSection from '../components/contact/ContactSection'
 import HomeTestimonials from '../components/testimonials/HomeTestimonials'
 import PopularProducts from '../components/products/PopularProducts'
-import B2BBanner from '../components/shared/B2BBanner'
 import FloatingActions from '../components/shared/FloatingActions'
 import SiteFooter from '../components/shared/SiteFooter'
 import TrustBadges from '../components/shared/TrustBadges'
 import { scrollToSection, type SectionId } from '../lib/sectionNav'
 
 type HomeProps = {
-  ready: boolean
+  ready?: boolean
 }
 
-export default function Home({ ready }: HomeProps) {
+export default function Home({ ready = true }: HomeProps) {
   const lenis = useLenis()
 
   useEffect(() => {
@@ -43,7 +42,6 @@ export default function Home({ ready }: HomeProps) {
         <AboutJourneyFlow />
       </div>
       <PopularProducts />
-      <B2BBanner />
       <ContactSection />
       <HomeTestimonials />
       <SiteFooter />

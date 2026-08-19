@@ -6,10 +6,7 @@ const INK = '#0a2e22'
 const WHITE = '#ffffff'
 const BLACK = '#000000'
 const ABOUT_TEXTURE = '/image.png_2K_202608092240.jpeg'
-
-/** Transparent pixel — box fill comes from white CSS background */
-const WHITE_PIXEL =
-  'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+const ABOUT_STORY_BG = encodeURI('/Mukhwas_ingredients_arranged_on_…_202608182142.jpeg')
 
 /**
  * About Us — story content lives INSIDE the scroll-zoom white panel.
@@ -47,8 +44,8 @@ export default function AboutZoom() {
           <ScrollZoomReveal
             videoUrl=""
             image={{
-              src: WHITE_PIXEL,
-              alt: '',
+              src: ABOUT_STORY_BG,
+              alt: 'Mukhwas ingredients arranged on a bright surface',
             }}
             leftText=""
             rightText=""

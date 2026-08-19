@@ -4,10 +4,11 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react'
-import { getToken, setToken } from '../lib/api'
+import { ApiRequestError, getToken, setToken } from '../lib/api'
 import { authApi, type AuthUser } from '../lib/services'
 
 type AuthContextValue = {
@@ -35,22 +36,35 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
+  /** Bumps when login/logout starts so stale /auth/me calls cannot wipe the session */
+  const sessionEpochRef = useRef(0)
 
   const refresh = useCallback(async () => {
+    const epoch = sessionEpochRef.current
     const token = getToken()
     if (!token) {
-      setUser(null)
-      setLoading(false)
+      if (epoch === sessionEpochRef.current) {
+        setUser(null)
+        setLoading(false)
+      }
       return
     }
     try {
       const me = await authApi.me()
-      setUser(me)
-    } catch {
-      setToken(null)
-      setUser(null)
+      if (epoch === sessionEpochRef.current) {
+        setUser(me)
+      }
+    } catch (err) {
+      if (epoch !== sessionEpochRef.current) return
+      // Only drop session on explicit auth failure — not during server restarts / network blips
+      if (err instanceof ApiRequestError && err.status === 401) {
+        setToken(null)
+        setUser(null)
+      }
     } finally {
-      setLoading(false)
+      if (epoch === sessionEpochRef.current) {
+        setLoading(false)
+      }
     }
   }, [])
 
@@ -59,25 +73,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refresh])
 
   const login = useCallback(async (email: string, password: string) => {
+    sessionEpochRef.current += 1
     const data = await authApi.login(email, password)
     setToken(data.token)
     setUser(data.user)
+    setLoading(false)
     return data.user
   }, [])
 
   const register = useCallback(
     async (payload: { name: string; email: string; password: string; phone?: string }) => {
+      sessionEpochRef.current += 1
       const data = await authApi.register(payload)
       setToken(data.token)
       setUser(data.user)
+      setLoading(false)
       return data.user
     },
     [],
   )
 
   const logout = useCallback(() => {
+    sessionEpochRef.current += 1
     setToken(null)
     setUser(null)
+    setLoading(false)
   }, [])
 
   const updateProfile = useCallback(async (payload: Partial<AuthUser>) => {

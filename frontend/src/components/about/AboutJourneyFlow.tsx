@@ -6,11 +6,13 @@ import {
   useTransform,
   type MotionValue,
 } from 'framer-motion'
+import { BRAND_CREAM, BRAND_INK, BRAND_TEXTURE } from '../../lib/brand'
 
-const INK = '#0a2e22'
+const INK = BRAND_INK
+const CREAM = BRAND_CREAM
 const GOLD = '#b8860b'
-const TEXT = '#5a7066'
-const TRACK = '#e0d2b8'
+const TEXT = 'rgba(242,244,245,0.78)'
+const TRACK = 'rgba(224,210,184,0.45)'
 const STROKE = 6
 const COUNT = 4
 
@@ -18,9 +20,9 @@ const STEPS = [
   {
     number: 1,
     title: 'Trade Fair 2016',
-    text: 'Participation certificate for M/s. Furat Gruh Udyog — Pirojpura at the Maktabah Jafariyah Trade Fair (24 Nov – 31 Dec 2016).',
+    text: 'Participation certificate for M/s. Tasneem Mukhwas — Pirojpura at the Maktabah Jafariyah Trade Fair (24 Nov – 31 Dec 2016).',
     image: '/license-trade-fair-2016.png',
-    alt: 'Trade Fair 2016 participation certificate for Furat Gruh Udyog Pirojpura',
+    alt: 'Trade Fair 2016 participation certificate for Tasneem Mukhwas Pirojpura',
   },
   {
     number: 2,
@@ -40,9 +42,9 @@ const STEPS = [
   {
     number: 4,
     title: 'Trade Fair 2026',
-    text: 'Certificate of participation for M/s. Furat Gruh Udyog — Chappi at Maktabah Jafariyah Trade Fair 2026 (Stall No. 45 & 46).',
+    text: 'Certificate of participation for M/s. Tasneem Mukhwas — Chappi at Maktabah Jafariyah Trade Fair 2026 (Stall No. 45 & 46).',
     image: '/license-trade-fair-2026.png',
-    alt: 'Trade Fair 2026 participation certificate for Furat Gruh Udyog Chappi',
+    alt: 'Trade Fair 2026 participation certificate for Tasneem Mukhwas Chappi',
   },
 ] as const
 
@@ -236,7 +238,7 @@ function JourneyStep({
       </p>
       <h4
         className="m-0 mt-3 text-[1.15rem] font-bold tracking-tight sm:text-[1.25rem]"
-        style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
+        style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
       >
         {step.title}
       </h4>
@@ -257,10 +259,12 @@ function JourneyStep({
       style={{ opacity: reveal, y: rise }}
     >
       <div
-        className="relative flex items-center justify-center"
+        className="relative flex items-center justify-center rounded-sm p-2"
         style={{
           width: 'clamp(120px, 18vw, 180px)',
           height: 'clamp(110px, 16vw, 150px)',
+          backgroundColor: 'rgba(242,244,245,0.94)',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.22)',
         }}
       >
         <img
@@ -269,7 +273,6 @@ function JourneyStep({
           loading="lazy"
           className="block object-contain"
           style={{
-            // After -90° rotate, width↔height swap visually — keep same footprint as other steps
             maxWidth: rotateLeft
               ? 'clamp(110px, 16vw, 150px)'
               : 'clamp(120px, 18vw, 180px)',
@@ -278,8 +281,6 @@ function JourneyStep({
               : 'clamp(110px, 16vw, 150px)',
             width: 'auto',
             height: 'auto',
-            mixBlendMode: 'multiply',
-            backgroundColor: 'transparent',
             transform: rotateLeft ? 'rotate(-90deg)' : undefined,
             transformOrigin: 'center center',
           }}
@@ -325,10 +326,28 @@ export default function AboutJourneyFlow() {
   return (
     <section
       id="journey"
-      className="relative isolate z-20 w-full bg-white px-4 py-12 sm:px-8 sm:py-16"
+      className="relative isolate z-20 w-full overflow-x-clip px-4 py-12 sm:px-8 sm:py-16"
+      style={{ backgroundColor: INK }}
       aria-label="Our licenses and recognitions"
     >
-      <div className="mx-auto w-full max-w-[860px]">
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <img
+          src={BRAND_TEXTURE}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover brightness-[0.88] saturate-[0.92]"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(ellipse 55% 50% at 50% 58%, rgba(8,16,12,0.05) 0%, rgba(6,12,10,0.22) 55%, rgba(4,10,8,0.32) 100%)',
+          }}
+        />
+      </div>
+
+      <div className="relative z-10 mx-auto w-full max-w-[860px]">
         <p
           className="m-0 text-center text-[0.6rem] font-semibold tracking-[0.18em] uppercase"
           style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}
@@ -337,13 +356,13 @@ export default function AboutJourneyFlow() {
         </p>
         <h3
           className="mt-1.5 m-0 text-center text-[clamp(1.2rem,3.5vw,1.75rem)] leading-tight"
-          style={{ color: INK, fontFamily: '"Permanent Marker", cursive' }}
+          style={{ color: CREAM, fontFamily: '"Permanent Marker", cursive' }}
         >
           Our Licenses
         </h3>
         <p
-          className="mx-auto mt-2 mb-10 max-w-md text-center text-[0.8rem] leading-relaxed opacity-80"
-          style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
+          className="mx-auto mt-2 mb-10 max-w-md text-center text-[0.8rem] leading-relaxed"
+          style={{ color: TEXT, fontFamily: 'Inter, sans-serif' }}
         >
           Awards, trade-fair certificates, and industry honours that mark our journey in quality food craft.
         </p>

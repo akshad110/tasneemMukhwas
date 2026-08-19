@@ -10,7 +10,7 @@ const FAN = [
   { xPercent: -8, rotate: 14, z: 2, y: 12, scale: 0.92 },
 ] as const
 
-const CREAM = '#f3e6c8'
+const CREAM = '#f2f4f5'
 const INK = '#0a2e22'
 
 type ProductPacketsProps = {
@@ -150,7 +150,7 @@ export default function ProductPackets({ active }: ProductPacketsProps) {
             <a
               href="/products"
               onClick={goProducts}
-              className="relative block cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#f3e6c8]/70"
+              className="relative block cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#f2f4f5]/70"
               aria-label={`Order ${packet.name} now`}
               onFocus={() => handleEnter(packet.id, i)}
               onBlur={() => handleLeave(i)}

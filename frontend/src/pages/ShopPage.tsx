@@ -1,32 +1,80 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import Navbar from '../components/nav/Navbar'
+import ProductDetailModal from '../components/shop/ProductDetailModal'
 import ShopProductCard from '../components/shop/ShopProductCard'
+import { ProductCardSkeletonGrid } from '../components/shop/ProductCardSkeleton'
+import SiteFooter from '../components/shared/SiteFooter'
+import FloatingActions from '../components/shared/FloatingActions'
 import { useCatalog } from '../context/CatalogContext'
-import { CATEGORIES, getSellPrice } from '../lib/shopCatalog'
+import { couponsApi } from '../lib/services'
+import { CATEGORIES, getSellPrice, type ShopProduct } from '../lib/shopCatalog'
+import { scrollAppToTop } from '../lib/scrollControl'
 
 const INK = '#0a2e22'
 const GOLD = '#b8860b'
-const PAGE = '#f7f1e4'
+const PAGE = '#f2f4f5'
 const MUTED = 'rgba(10,46,34,0.62)'
-const PANEL = 'rgba(255,252,247,0.78)'
+const PANEL = 'rgba(248,249,250,0.92)'
 const BORDER = 'rgba(10,46,34,0.12)'
 const TEXTURE = '/image.png_2K_202608092240.jpeg'
+const SHOP_BANNER = encodeURI('/Mukhwas_ingredients_arranged_on_…_202608182142.jpeg')
 
-function FilterBox({
-  title,
-  children,
-}: {
-  title: string
-  children: ReactNode
-}) {
+function ShopBanner() {
+  return (
+    <section className="relative w-full overflow-hidden border-b" style={{ borderColor: BORDER }} aria-label="Shop banner">
+      <div className="relative h-[11.5rem] w-full sm:h-[14rem] lg:h-[16rem]">
+        <img
+          src={SHOP_BANNER}
+          alt="Fresh mukhwas ingredients and blends"
+          className="absolute inset-0 h-full w-full object-cover object-center opacity-[0.88]"
+          loading="eager"
+          fetchPriority="high"
+        />
+        <img
+          src={TEXTURE}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover opacity-15 mix-blend-multiply"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background: `
+              linear-gradient(180deg, rgba(10,46,34,0.52) 0%, rgba(10,46,34,0.18) 42%, rgba(10,46,34,0.55) 100%),
+              linear-gradient(90deg, rgba(10,46,34,0.38) 0%, transparent 18%, transparent 82%, rgba(10,46,34,0.38) 100%),
+              radial-gradient(ellipse 62% 78% at 50% 44%, rgba(10,46,34,0.22) 0%, transparent 68%)
+            `,
+          }}
+        />
+        <div className="absolute inset-0 flex items-center justify-center px-5 text-center sm:px-8 lg:px-10">
+          <div>
+            <p
+              className="m-0 text-[0.68rem] font-semibold tracking-[0.22em] uppercase"
+              style={{ color: 'rgba(242,244,245,0.62)', fontFamily: 'Inter, sans-serif' }}
+            >
+              Tasneem Mukhwas
+            </p>
+            <h1
+              className="mt-1.5 m-0 text-[clamp(1.75rem,4vw,2.35rem)] leading-tight tracking-tight uppercase"
+              style={{ color: '#f2f4f5', fontFamily: 'Anton, Impact, sans-serif' }}
+            >
+              Our Shop
+            </h1>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+type SortMode = 'default' | 'name-asc' | 'name-desc'
+
+function FilterBox({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div
-      className="rounded-2xl border px-3.5 py-3.5"
-      style={{
-        borderColor: BORDER,
-        backgroundColor: PANEL,
-        boxShadow: '0 10px 28px -22px rgba(10,46,34,0.35)',
-      }}
+      className="border-b px-4 py-4 last:border-b-0"
+      style={{ borderColor: BORDER }}
     >
       <p
         className="m-0 mb-3 text-[0.72rem] font-semibold tracking-[0.14em] uppercase"
@@ -39,9 +87,24 @@ function FilterBox({
   )
 }
 
-/**
- * Shop — light cream theme + filter sidebar + product grid.
- */
+function SortIcon({ mode }: { mode: SortMode }) {
+  return (
+    <svg viewBox="0 0 24 24" className="h-[1.05rem] w-[1.05rem]" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+      {mode === 'name-desc' ? (
+        <>
+          <path d="M4 6h12M4 12h8M4 18h4" strokeLinecap="round" />
+          <path d="M18 8v10M18 18l2-2M18 18l-2-2" strokeLinecap="round" strokeLinejoin="round" />
+        </>
+      ) : (
+        <>
+          <path d="M4 18h12M4 12h8M4 6h4" strokeLinecap="round" />
+          <path d="M18 16V6M18 6l2 2M18 6l-2 2" strokeLinecap="round" strokeLinejoin="round" />
+        </>
+      )}
+    </svg>
+  )
+}
+
 export default function ShopPage() {
   const { products, loading, error } = useCatalog()
   const [query, setQuery] = useState('')
@@ -49,10 +112,29 @@ export default function ShopPage() {
   const [maxPrice, setMaxPrice] = useState(1000)
   const [minRating, setMinRating] = useState(0)
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [sort, setSort] = useState<SortMode>('default')
+  const [detailProduct, setDetailProduct] = useState<ShopProduct | null>(null)
+  const [promos, setPromos] = useState<
+    { scope: string; productId?: string; category?: string; label: string }[]
+  >([])
+
+  useEffect(() => {
+    couponsApi
+      .activePromos()
+      .then((res) => setPromos(res.items))
+      .catch(() => setPromos([]))
+  }, [])
+
+  const promoForProduct = (productId: string, category: string) => {
+    const productPromo = promos.find((p) => p.scope === 'product' && p.productId === productId)
+    if (productPromo) return productPromo.label
+    const catPromo = promos.find((p) => p.scope === 'category' && p.category === category)
+    return catPromo?.label
+  }
 
   useEffect(() => {
     document.title = 'Shop · Tasneem Mukhwas'
-    window.scrollTo(0, 0)
+    scrollAppToTop(true)
     return () => {
       document.title = 'Tasneem Mukhwas'
     }
@@ -81,6 +163,13 @@ export default function ShopPage() {
     })
   }, [products, query, categories, maxPrice, minRating])
 
+  const sorted = useMemo(() => {
+    const list = [...filtered]
+    if (sort === 'name-asc') list.sort((a, b) => a.name.localeCompare(b.name))
+    if (sort === 'name-desc') list.sort((a, b) => b.name.localeCompare(a.name))
+    return list
+  }, [filtered, sort])
+
   const toggle = (list: string[], value: string, set: (v: string[]) => void) => {
     set(list.includes(value) ? list.filter((x) => x !== value) : [...list, value])
   }
@@ -90,10 +179,25 @@ export default function ShopPage() {
     setMaxPrice(priceCeiling)
     setMinRating(0)
     setQuery('')
+    setSort('default')
   }
 
+  const cycleSort = () => {
+    setSort((prev) => (prev === 'default' ? 'name-asc' : prev === 'name-asc' ? 'name-desc' : 'default'))
+  }
+
+  const sortLabel =
+    sort === 'name-asc' ? 'A → Z' : sort === 'name-desc' ? 'Z → A' : 'Sort'
+
   const sidebar = (
-    <aside className="flex w-full flex-col gap-3 lg:w-[260px] lg:shrink-0 lg:self-start lg:sticky lg:top-24">
+    <aside
+      className="flex w-full flex-col lg:w-[248px] lg:shrink-0 lg:self-start lg:sticky lg:top-[4.5rem] lg:max-h-[calc(100svh-4.5rem)] lg:overflow-y-auto"
+      style={{
+        backgroundColor: PANEL,
+        borderRight: `1px solid ${BORDER}`,
+        boxShadow: '8px 0 28px -24px rgba(10,46,34,0.35)',
+      }}
+    >
       <FilterBox title="Product categories">
         <ul className="m-0 flex list-none flex-col gap-2 p-0">
           {CATEGORIES.map((cat) => (
@@ -126,10 +230,7 @@ export default function ShopPage() {
           className="w-full cursor-pointer accent-[#b8860b]"
           aria-label="Maximum price"
         />
-        <p
-          className="mt-2 m-0 text-[0.8rem]"
-          style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
-        >
+        <p className="mt-2 m-0 text-[0.8rem]" style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}>
           ₹0 – ₹{maxPrice}
         </p>
       </FilterBox>
@@ -160,19 +261,21 @@ export default function ShopPage() {
         </ul>
       </FilterBox>
 
-      <button
-        type="button"
-        onClick={clearFilters}
-        className="cursor-pointer rounded-xl border px-3 py-2.5 text-[0.72rem] font-semibold tracking-[0.12em] uppercase transition hover:bg-white/60"
-        style={{
-          color: INK,
-          borderColor: BORDER,
-          backgroundColor: PANEL,
-          fontFamily: 'Inter, sans-serif',
-        }}
-      >
-        Clear filters
-      </button>
+      <div className="px-4 py-4">
+        <button
+          type="button"
+          onClick={clearFilters}
+          className="w-full cursor-pointer rounded-xl border px-3 py-2.5 text-[0.72rem] font-semibold tracking-[0.12em] uppercase transition hover:bg-white/60"
+          style={{
+            color: INK,
+            borderColor: BORDER,
+            backgroundColor: 'rgba(255,255,255,0.55)',
+            fontFamily: 'Inter, sans-serif',
+          }}
+        >
+          Clear filters
+        </button>
+      </div>
     </aside>
   )
 
@@ -194,105 +297,117 @@ export default function ShopPage() {
           className="absolute inset-0"
           style={{
             background: `
-              linear-gradient(180deg, rgba(247,241,228,0.88) 0%, rgba(243,230,200,0.55) 48%, rgba(247,241,228,0.92) 100%),
+              linear-gradient(180deg, rgba(242,244,245,0.88) 0%, rgba(242,244,245,0.55) 48%, rgba(242,244,245,0.92) 100%),
               radial-gradient(ellipse 70% 45% at 80% 0%, rgba(255,252,245,0.65) 0%, transparent 60%)
             `,
           }}
         />
       </div>
 
-      <div className="relative z-10">
+      <div className="relative z-10 flex min-h-svh flex-col">
         <Navbar />
 
-        <main className="mx-auto w-full max-w-7xl px-4 pt-6 pb-16 sm:px-8 lg:px-10" aria-label="Shop">
-          <div className="mb-8 flex flex-col gap-5 lg:mb-10 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <p
-                className="m-0 text-[0.62rem] font-semibold tracking-[0.18em] uppercase"
-                style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}
-              >
-                Full range
-              </p>
-              <h1
-                className="mt-1 m-0 uppercase"
-                style={{
-                  color: INK,
-                  fontFamily: 'Anton, Impact, sans-serif',
-                  fontSize: 'clamp(2.2rem, 6vw, 3.6rem)',
-                  letterSpacing: '0.04em',
-                  lineHeight: 0.95,
-                }}
-              >
-                Shop
-              </h1>
-            </div>
+        <main className="flex flex-1 flex-col pt-0 pb-0" aria-label="Shop">
+          <ShopBanner />
 
-            <div className="relative w-full max-w-md">
-              <label htmlFor="shop-search" className="sr-only">
-                Search products
-              </label>
-              <span
-                className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2"
-                style={{ color: MUTED }}
-                aria-hidden
-              >
-                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="M20 20l-3.5-3.5" strokeLinecap="round" />
-                </svg>
-              </span>
-              <input
-                id="shop-search"
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search mukhwas, paan, seeds…"
-                className="w-full rounded-xl border py-3 pr-4 pl-10 text-[0.9rem] outline-none transition placeholder:opacity-45 focus:border-[#b8860b]/70"
-                style={{
-                  color: INK,
-                  backgroundColor: 'rgba(255,252,247,0.9)',
-                  borderColor: BORDER,
-                  fontFamily: 'Inter, sans-serif',
-                  boxShadow: '0 10px 28px -22px rgba(10,46,34,0.3)',
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="mb-4 flex items-center justify-between gap-3 lg:hidden">
-            <button
-              type="button"
-              onClick={() => setFiltersOpen((v) => !v)}
-              className="cursor-pointer rounded-xl border px-4 py-2 text-[0.75rem] font-semibold tracking-[0.12em] uppercase"
-              style={{
-                color: INK,
-                borderColor: BORDER,
-                backgroundColor: PANEL,
-                fontFamily: 'Inter, sans-serif',
-              }}
+          <div className="flex flex-1 items-start">
+            <div
+              className={`${filtersOpen ? 'fixed inset-0 z-40 lg:static lg:inset-auto lg:z-auto' : 'hidden lg:block'}`}
             >
-              {filtersOpen ? 'Hide filters' : 'Filters'}
-            </button>
-            <p className="m-0 text-[0.78rem]" style={{ color: MUTED }}>
-              {filtered.length} products
-            </p>
-          </div>
+              {filtersOpen && (
+                <button
+                  type="button"
+                  className="absolute inset-0 cursor-pointer border-0 bg-[rgba(6,14,11,0.35)] lg:hidden"
+                  aria-label="Close filters"
+                  onClick={() => setFiltersOpen(false)}
+                />
+              )}
+              <div className="relative z-[1] h-full w-[min(280px,88vw)] max-h-[85svh] overflow-y-auto shadow-xl lg:h-auto lg:max-h-none lg:w-auto lg:overflow-visible lg:shadow-none">
+                {sidebar}
+              </div>
+            </div>
 
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
-            <div className={`${filtersOpen ? 'block' : 'hidden'} lg:block`}>{sidebar}</div>
+            <div className="min-w-0 flex-1">
+              <div
+                className="flex flex-wrap items-center gap-3 border-b px-3 py-3 sm:px-5"
+                style={{ borderColor: BORDER, backgroundColor: 'rgba(248,249,250,0.72)' }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setFiltersOpen((v) => !v)}
+                  className="cursor-pointer rounded-lg border px-3 py-2 text-[0.72rem] font-semibold tracking-[0.12em] uppercase lg:hidden"
+                  style={{
+                    color: INK,
+                    borderColor: BORDER,
+                    backgroundColor: PANEL,
+                    fontFamily: 'Inter, sans-serif',
+                  }}
+                >
+                  {filtersOpen ? 'Hide filters' : 'Filters'}
+                </button>
 
-            <section className="min-w-0 flex-1">
-              <div className="mb-4 hidden items-center justify-between lg:flex">
-                <p className="m-0 text-[0.8rem]" style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}>
-                  Showing <span style={{ color: GOLD, fontWeight: 600 }}>{filtered.length}</span> of{' '}
+                <p
+                  className="m-0 shrink-0 text-[0.78rem] whitespace-nowrap sm:text-[0.82rem]"
+                  style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
+                >
+                  Showing <span style={{ color: GOLD, fontWeight: 600 }}>{sorted.length}</span> of{' '}
                   {products.length} products
                 </p>
+
+                <div className="flex min-w-0 flex-1 items-center gap-2 sm:max-w-lg">
+                  <div className="relative min-w-0 flex-1 sm:min-w-[220px]">
+                    <label htmlFor="shop-search" className="sr-only">
+                      Search products
+                    </label>
+                    <span
+                      className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2"
+                      style={{ color: MUTED }}
+                      aria-hidden
+                    >
+                      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="11" cy="11" r="7" />
+                        <path d="M20 20l-3.5-3.5" strokeLinecap="round" />
+                      </svg>
+                    </span>
+                    <input
+                      id="shop-search"
+                      type="search"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      placeholder="Search mukhwas, paan, seeds…"
+                      className="w-full rounded-xl border py-2.5 pr-3 pl-9 text-[0.86rem] outline-none transition placeholder:opacity-45 focus:border-[#b8860b]/70"
+                      style={{
+                        color: INK,
+                        backgroundColor: 'rgba(255,255,255,0.88)',
+                        borderColor: BORDER,
+                        fontFamily: 'Inter, sans-serif',
+                      }}
+                    />
+                  </div>
+
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={cycleSort}
+                      className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border transition hover:bg-white/70"
+                      style={{ borderColor: BORDER, color: INK, backgroundColor: PANEL }}
+                      aria-label={`Sort products${sort !== 'default' ? `: ${sortLabel}` : ''}`}
+                      title={sort === 'default' ? 'Sort A → Z' : sort === 'name-asc' ? 'Sort Z → A' : 'Clear sort'}
+                    >
+                      <SortIcon mode={sort === 'name-desc' ? 'name-desc' : 'name-asc'} />
+                    </button>
+                    {sort !== 'default' && (
+                      <span className="hidden text-[0.72rem] font-semibold tracking-wide sm:inline" style={{ color: GOLD }}>
+                        {sortLabel}
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
 
+              <section className="px-3 py-5 sm:px-5 sm:py-6 lg:px-8">
               {loading ? (
-                <p className="m-0 py-16 text-center text-[0.95rem]" style={{ color: MUTED }}>
-                  Loading products…
-                </p>
+                <ProductCardSkeletonGrid count={8} className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4" />
               ) : error ? (
                 <div
                   className="rounded-2xl border px-6 py-16 text-center"
@@ -305,7 +420,7 @@ export default function ShopPage() {
                     Make sure the API is running and MongoDB is connected.
                   </p>
                 </div>
-              ) : filtered.length === 0 ? (
+              ) : sorted.length === 0 ? (
                 <div
                   className="rounded-2xl border px-6 py-16 text-center"
                   style={{ borderColor: BORDER, backgroundColor: PANEL }}
@@ -323,16 +438,34 @@ export default function ShopPage() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                  {filtered.map((product) => (
-                    <ShopProductCard key={product.id} product={product} />
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4">
+                  {sorted.map((product, index) => (
+                    <ShopProductCard
+                      key={product.id}
+                      product={product}
+                      revealIndex={index}
+                      promoLabel={promoForProduct(product.id, product.category)}
+                      onOpenDetail={() => setDetailProduct(product)}
+                    />
                   ))}
                 </div>
               )}
-            </section>
+              </section>
+            </div>
           </div>
         </main>
+
+        <SiteFooter />
+        <FloatingActions />
       </div>
+
+      <ProductDetailModal
+        product={detailProduct}
+        promoLabel={
+          detailProduct ? promoForProduct(detailProduct.id, detailProduct.category) : undefined
+        }
+        onClose={() => setDetailProduct(null)}
+      />
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { transactionsApi, type AdminTransaction } from '../../lib/services'
+import { ordersApi, transactionsApi, type AdminTransaction } from '../../lib/services'
 
 const INK = '#0a2e22'
 const GOLD = '#b8860b'
@@ -118,19 +118,20 @@ export default function AdminTransactions() {
               <th className="px-4 py-3 font-semibold">Amount</th>
               <th className="px-4 py-3 font-semibold">Status</th>
               <th className="px-4 py-3 font-semibold">Date</th>
+              <th className="px-4 py-3 font-semibold">Invoice</th>
             </tr>
           </thead>
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={7} className="px-4 py-6" style={{ color: MUTED }}>
+                <td colSpan={8} className="px-4 py-6" style={{ color: MUTED }}>
                   Loading…
                 </td>
               </tr>
             )}
             {!loading && rows.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-6" style={{ color: MUTED }}>
+                <td colSpan={8} className="px-4 py-6" style={{ color: MUTED }}>
                   No transactions found
                 </td>
               </tr>
@@ -170,6 +171,16 @@ export default function AdminTransactions() {
                     </td>
                     <td className="px-4 py-3" style={{ color: MUTED }}>
                       {t.date}
+                    </td>
+                    <td className="px-4 py-3">
+                      <button
+                        type="button"
+                        onClick={() => void ordersApi.downloadInvoice(t.orderId, `${t.invoice}.pdf`)}
+                        className="cursor-pointer border-0 bg-transparent p-0 text-[0.78rem] font-semibold underline"
+                        style={{ color: GOLD }}
+                      >
+                        PDF
+                      </button>
                     </td>
                   </tr>
                 )

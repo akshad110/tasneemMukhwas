@@ -9,7 +9,7 @@ type HeroProps = {
 
 export default function Hero({ active }: HeroProps) {
   return (
-    <section className="relative min-h-screen w-full overflow-hidden">
+    <section className="relative -mt-[3.75rem] min-h-screen w-full overflow-hidden pt-[3.75rem] md:-mt-[8rem] md:pt-[8rem]">
       <img
         src={HERO_BACKGROUND}
         alt=""

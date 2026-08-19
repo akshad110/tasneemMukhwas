@@ -3,11 +3,12 @@ import { useEffect, useId, useState, type FormEvent } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { ApiRequestError } from '../lib/api'
 import { APP_ROUTES, navigateApp } from '../lib/appRoutes'
+import { scrollAppToTop } from '../lib/scrollControl'
 import BrandLogo from '../components/shared/BrandLogo'
 import BrandNameLockup from '../components/shared/BrandNameLockup'
 
 const INK = '#0a2e22'
-const CREAM = '#f3e6c8'
+const CREAM = '#f2f4f5'
 const GOLD = '#b8860b'
 const TEXTURE = '/image.png_2K_202608092240.jpeg'
 
@@ -59,7 +60,7 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
   }, [initialMode])
 
   useEffect(() => {
-    window.scrollTo(0, 0)
+    scrollAppToTop(true)
     document.documentElement.style.overflow = 'hidden'
     document.body.style.overflow = 'hidden'
     return () => {
@@ -335,7 +336,7 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                   style={{
                     borderColor: 'rgba(184,134,11,0.35)',
                     background:
-                      'linear-gradient(145deg, rgba(184,134,11,0.12), rgba(243,230,200,0.5))',
+                      'linear-gradient(145deg, rgba(184,134,11,0.12), rgba(242,244,245,0.5))',
                   }}
                 >
                   <p

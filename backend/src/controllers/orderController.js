@@ -4,7 +4,13 @@ import { Product } from '../models/Product.js'
 import { Customer } from '../models/Customer.js'
 import { Order } from '../models/Order.js'
 import { Transaction } from '../models/Transaction.js'
+import { env } from '../config/env.js'
 import { ApiError, asyncHandler, sendSuccess } from '../utils/asyncHandler.js'
+import { decrementOrderStock } from './paymentController.js'
+import { getRazorpay, isRazorpayConfigured, toPaise } from '../services/razorpay.js'
+import { canDownloadInvoice } from '../services/invoicePdf.js'
+import { validateCouponForCheckout, redeemCoupon } from '../services/couponService.js'
+import { notifyOrderPlaced, notifyOrderStatusChange } from '../services/notificationService.js'
 
 const FLOW = ['pending', 'processing', 'shipped', 'completed']
 
@@ -19,6 +25,7 @@ export const createOrderSchema = z.object({
   postal: z.string().trim().min(3).max(20),
   payment: z.enum(['cod', 'razorpay']),
   deliveryFee: z.number().min(0).optional().default(49),
+  couponCode: z.string().trim().max(12).optional(),
   items: z
     .array(
       z.object({
@@ -86,6 +93,10 @@ export const listMyOrders = asyncHandler(async (req, res) => {
 
   const orders = await Order.find(filter).sort({ createdAt: -1 }).limit(100)
 
+  const orderNumbers = orders.map((o) => o.orderNumber)
+  const txns = await Transaction.find({ orderNumber: { $in: orderNumbers } })
+  const txnByOrder = new Map(txns.map((t) => [t.orderNumber, t]))
+
   const { Review } = await import('../models/Review.js')
   const orderIds = orders.map((o) => o._id)
   const myReviews = await Review.find({
@@ -98,6 +109,7 @@ export const listMyOrders = asyncHandler(async (req, res) => {
     data: {
       items: orders.map((o) => {
         const json = o.toPublicJSON()
+        const txn = txnByOrder.get(o.orderNumber)
         const lineItems = (o.items || []).map((item) => {
           const plain = typeof item.toObject === 'function' ? item.toObject() : { ...item }
           return {
@@ -105,7 +117,13 @@ export const listMyOrders = asyncHandler(async (req, res) => {
             reviewed: reviewedKey.has(`${o.orderNumber}::${item.productId}`),
           }
         })
-        return { ...json, lineItems }
+        return {
+          ...json,
+          lineItems,
+          invoice: txn?.invoice,
+          invoiceAvailable: txn ? canDownloadInvoice(o, txn) : false,
+          transactionStatus: txn?.status,
+        }
       }),
       reviews: myReviews.map((r) => r.toPublicJSON()),
     },
@@ -166,7 +184,25 @@ export const createOrder = asyncHandler(async (req, res) => {
   }
 
   const deliveryFee = body.deliveryFee ?? 49
-  const total = subtotal + deliveryFee
+  let discountAmount = 0
+  let couponCode = ''
+  let appliedCoupon = null
+
+  if (body.couponCode) {
+    const validation = await validateCouponForCheckout({
+      code: body.couponCode,
+      email: body.email.toLowerCase(),
+      userId: req.user?._id,
+      subtotal,
+      lineItems: body.items,
+      productsById: byId,
+    })
+    discountAmount = validation.discountAmount
+    couponCode = validation.code
+    appliedCoupon = validation.coupon
+  }
+
+  const total = Math.max(0, subtotal - discountAmount + deliveryFee)
   const customerName = `${body.firstName} ${body.lastName}`.trim()
   const today = new Date().toISOString().slice(0, 10)
 
@@ -203,6 +239,12 @@ export const createOrder = asyncHandler(async (req, res) => {
   await customer.save()
 
   const orderNumber = await nextOrderNumber()
+  const isRazorpay = body.payment === 'razorpay'
+
+  if (isRazorpay && !isRazorpayConfigured()) {
+    throw new ApiError(503, 'Online payment is not configured. Please choose Cash on Delivery.')
+  }
+
   const order = await Order.create({
     orderNumber,
     customer: customer._id,
@@ -217,27 +259,30 @@ export const createOrder = asyncHandler(async (req, res) => {
     itemCount,
     subtotal,
     deliveryFee,
+    discountAmount,
+    couponCode,
     total,
     status: 'pending',
     payment: body.payment,
+    paymentStatus: isRazorpay ? 'pending' : 'pending',
   })
 
-  for (const line of body.items) {
-    await Product.findByIdAndUpdate(line.productId, {
-      $inc: { stock: -line.qty, sales: line.qty },
-      $set: {},
-    })
-    const p = await Product.findById(line.productId)
-    if (p && p.stock <= 0) {
-      p.outOfStock = true
-      p.stock = 0
-      await p.save()
+  if (!isRazorpay) {
+    await decrementOrderStock(body.items)
+    if (appliedCoupon && discountAmount > 0) {
+      await redeemCoupon({
+        coupon: appliedCoupon,
+        email: body.email.toLowerCase(),
+        userId: req.user?._id,
+        orderNumber,
+        discountAmount,
+      })
     }
   }
 
   const txnNumber = await nextTxnNumber()
   const invoice = `INV-${new Date().getFullYear()}-${orderNumber.replace('TM-', '')}`
-  const txnStatus = body.payment === 'cod' ? 'pending' : 'paid'
+  const txnStatus = isRazorpay ? 'pending' : 'pending'
 
   const txn = await Transaction.create({
     txnNumber,
@@ -251,12 +296,55 @@ export const createOrder = asyncHandler(async (req, res) => {
     invoice,
   })
 
+  void notifyOrderPlaced({
+    order: order.toObject ? order.toObject() : order,
+    paymentMethod: body.payment,
+    userId: req.user?._id,
+    orderDoc: order,
+    transaction: txn,
+  }).catch((err) => console.error('[notify] order placed', err))
+
+  let razorpayCheckout = null
+
+  if (isRazorpay) {
+    const rzp = getRazorpay()
+    const rzpOrder = await rzp.orders.create({
+      amount: toPaise(total),
+      currency: 'INR',
+      receipt: orderNumber,
+      notes: {
+        orderNumber,
+        customerEmail: body.email.toLowerCase(),
+      },
+    })
+
+    order.razorpayOrderId = rzpOrder.id
+    await order.save()
+    txn.razorpayOrderId = rzpOrder.id
+    await txn.save()
+
+    razorpayCheckout = {
+      keyId: env.razorpayKeyId,
+      orderId: rzpOrder.id,
+      amount: rzpOrder.amount,
+      currency: rzpOrder.currency,
+      name: 'Tasneem Mukhwas',
+      description: `Order ${orderNumber}`,
+      prefill: {
+        name: customerName,
+        email: body.email.toLowerCase(),
+        contact: body.phone,
+      },
+    }
+  }
+
   return sendSuccess(res, {
     status: 201,
-    message: 'Order placed successfully',
+    message: isRazorpay ? 'Order created — complete payment to confirm' : 'Order placed successfully',
     data: {
       order: order.toPublicJSON(),
       transaction: txn.toPublicJSON(),
+      razorpay: razorpayCheckout,
     },
   })
 })
@@ -278,11 +366,22 @@ export const advanceOrderStatus = asyncHandler(async (req, res) => {
   }
   await order.save()
 
+  const customer = order.customer ? await Customer.findById(order.customer) : null
+  void notifyOrderStatusChange({
+    order,
+    userId: customer?.user,
+    newStatus: order.status,
+  }).catch((err) => console.error('[notify] status change', err))
+
   if (order.status === 'completed') {
     await Transaction.findOneAndUpdate(
       { orderNumber: order.orderNumber, status: 'pending' },
       { status: 'paid' },
     )
+    if (order.payment === 'cod') {
+      order.paymentStatus = 'paid'
+      await order.save()
+    }
   }
 
   return sendSuccess(res, {

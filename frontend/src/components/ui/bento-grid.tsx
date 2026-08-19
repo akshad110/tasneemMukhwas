@@ -67,9 +67,9 @@ export const BentoGridShowcase = ({
       whileInView="visible"
       viewport={{ once: true, amount: 0.15 }}
       className={cn(
-        'grid w-full grid-cols-1 gap-3 md:grid-cols-3 md:gap-3',
+        'grid w-full grid-cols-1 gap-3 md:grid-cols-3 md:gap-3.5',
         'md:grid-rows-[repeat(3,minmax(0,1fr))]',
-        'auto-rows-[minmax(110px,auto)] md:auto-rows-fr md:h-[min(420px,58vh)]',
+        'auto-rows-[minmax(120px,auto)] md:auto-rows-fr md:h-[min(440px,56vh)]',
         className,
       )}
     >

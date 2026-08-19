@@ -7,9 +7,11 @@ import {
   type FormEvent,
 } from 'react'
 import { CONTACT_PHONE_DISPLAY, CONTACT_WHATSAPP } from '../../lib/contact'
+import { scrollAppToTopSmooth } from '../../lib/scrollControl'
+import { useLenisLock } from '../scroll/SmoothScroll'
 
 const INK = '#0a2e22'
-const CREAM = '#f3e6c8'
+const CREAM = '#f2f4f5'
 const GOLD = '#b8860b'
 const WA_NUMBER = CONTACT_WHATSAPP
 const TEXTURE = '/image.png_2K_202608092240.jpeg'
@@ -129,20 +131,15 @@ export default function FloatingActions() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  useLenisLock(step !== 'idle')
+
   useEffect(() => {
-    if (step === 'idle') {
-      document.body.style.removeProperty('overflow')
-      return
-    }
-    document.body.style.overflow = 'hidden'
+    if (step === 'idle') return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') closeAll()
     }
     window.addEventListener('keydown', onKey)
-    return () => {
-      document.body.style.removeProperty('overflow')
-      window.removeEventListener('keydown', onKey)
-    }
+    return () => window.removeEventListener('keydown', onKey)
   }, [step])
 
   const closeAll = () => {
@@ -175,7 +172,7 @@ export default function FloatingActions() {
   }
 
   const goTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    scrollAppToTopSmooth()
   }
 
   const isBulk = intent === 'bulk'

@@ -6,11 +6,12 @@ import { AuthProvider } from './context/AuthContext.tsx'
 import { CartProvider } from './context/CartContext.tsx'
 import { CatalogProvider } from './context/CatalogContext.tsx'
 import { WishlistProvider } from './context/WishlistContext.tsx'
+import { scrollAppToTop } from './lib/scrollControl'
 
 if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual'
 }
-window.scrollTo(0, 0)
+scrollAppToTop(true)
 
 createRoot(document.getElementById('root')!).render(
   <AuthProvider>

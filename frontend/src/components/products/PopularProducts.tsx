@@ -2,7 +2,7 @@ import type { MouseEvent } from 'react'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 import ProductAccordion from './ProductAccordion'
 
-const CREAM = '#f3e6c8'
+const CREAM = '#f2f4f5'
 const INK = '#0a2e22'
 const SECTION_TEXTURE = '/image.png_2K_202608092240.jpeg'
 
@@ -19,7 +19,7 @@ export default function PopularProducts() {
   return (
     <section
       id="products"
-      className="relative w-full overflow-x-clip px-4 pb-16 pt-12 md:px-8 md:pb-24 md:pt-16 lg:px-10"
+      className="relative w-full overflow-x-clip px-4 pb-12 pt-10 md:px-8 md:pb-16 md:pt-12 lg:px-10"
       style={{ backgroundColor: INK }}
       aria-label="Popular products"
     >
@@ -41,35 +41,35 @@ export default function PopularProducts() {
         />
       </div>
 
-      <div className="relative z-10 mx-auto mb-10 max-w-7xl text-center md:mb-14">
+      <div className="relative z-10 mx-auto mb-6 max-w-7xl text-center md:mb-8">
         <h2
           className="m-0 uppercase"
           style={{
             color: CREAM,
             fontFamily: 'Anton, Impact, sans-serif',
-            fontSize: 'clamp(2.75rem, 9vw, 7rem)',
+            fontSize: 'clamp(1.5rem, 3.8vw, 2.65rem)',
             fontWeight: 400,
-            letterSpacing: '0.04em',
-            lineHeight: 0.95,
+            letterSpacing: '0.06em',
+            lineHeight: 1.05,
           }}
         >
           Popular Products
         </h2>
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-[calc(72rem-16px)] overflow-hidden rounded-sm">
+      <div className="relative z-10 mx-auto w-full max-w-[calc(72rem-16px)] overflow-hidden">
         <ProductAccordion />
       </div>
 
-      <div className="relative z-10 mx-auto mt-8 flex justify-center md:mt-10">
+      <div className="relative z-10 mx-auto mt-6 flex justify-center md:mt-8">
         <a
           href="/shop"
           onClick={goShop}
-          className="cursor-pointer rounded-full border px-7 py-2.5 text-[0.78rem] font-semibold tracking-[0.14em] uppercase no-underline transition-colors hover:bg-[#f3e6c8] hover:text-[#0a2e22]"
+          className="cursor-pointer rounded-full border px-7 py-2.5 text-[0.78rem] font-semibold tracking-[0.14em] uppercase no-underline transition-colors hover:bg-[#f2f4f5] hover:text-[#0a2e22]"
           style={{
             fontFamily: 'Inter, sans-serif',
             color: CREAM,
-            borderColor: 'rgba(243,230,200,0.45)',
+            borderColor: 'rgba(242,244,245,0.45)',
             backgroundColor: 'transparent',
           }}
         >

@@ -2,12 +2,11 @@ import type { ReactNode } from 'react'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 
 const INK = '#0a2e22'
-const CREAM = '#f3e6c8'
+const CREAM = '#f2f4f5'
 const GOLD = '#b8860b'
-const PAGE = '#f7f1e4'
+const PAGE = '#f2f4f5'
 const TEXTURE = '/image.png_2K_202608092240.jpeg'
 const MUTED = 'rgba(10,46,34,0.58)'
-const LINE = 'rgba(10,46,34,0.12)'
 
 function CheckIcon({ className = '' }: { className?: string }) {
   return (
@@ -19,7 +18,7 @@ function CheckIcon({ className = '' }: { className?: string }) {
 
 export type CheckoutFlowStep = 1 | 2 | 3
 
-/** Cart → Review → Checkout progress (sharp squares, brand colors). */
+/** Cart → Review → Checkout progress — circles, gold border, label below. */
 export function CheckoutFlowStepper({ step }: { step: CheckoutFlowStep }) {
   const steps = [
     { n: 1 as const, label: 'Cart', path: APP_ROUTES.cart },
@@ -28,48 +27,58 @@ export function CheckoutFlowStepper({ step }: { step: CheckoutFlowStep }) {
   ]
 
   return (
-    <ol className="flex flex-wrap items-center justify-center gap-2 sm:gap-3" aria-label="Checkout progress">
+    <ol className="flex w-full max-w-lg items-start justify-between" aria-label="Checkout progress">
       {steps.map((s, i) => {
         const done = step > s.n
         const active = step === s.n
+        const prevDone = i > 0 && step > steps[i - 1]!.n
 
         return (
-          <li key={s.label} className="flex items-center gap-2 sm:gap-3">
-            {i > 0 && (
+          <li key={s.label} className="flex min-w-0 flex-1 flex-col items-center">
+            <div className="flex w-full items-center">
               <span
-                className="hidden h-px w-6 sm:block sm:w-10"
-                style={{ backgroundColor: step > s.n - 1 ? GOLD : 'rgba(10,46,34,0.18)' }}
+                className="h-px flex-1"
+                style={{
+                  backgroundColor: i === 0 ? 'transparent' : prevDone ? GOLD : 'rgba(10,46,34,0.18)',
+                }}
                 aria-hidden
               />
-            )}
-            <button
-              type="button"
-              onClick={() => navigateApp(s.path)}
-              className="inline-flex cursor-pointer items-center gap-2 border-0 bg-transparent p-0"
-              aria-current={active ? 'step' : undefined}
+              <button
+                type="button"
+                onClick={() => navigateApp(s.path)}
+                className="flex shrink-0 cursor-pointer flex-col items-center border-0 bg-transparent p-0"
+                aria-current={active ? 'step' : undefined}
+              >
+                <span
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-[0.78rem] font-bold transition"
+                  style={{
+                    backgroundColor: done ? INK : 'transparent',
+                    color: done ? CREAM : active ? INK : MUTED,
+                    border: `2px solid ${active || done ? GOLD : 'rgba(184,134,11,0.45)'}`,
+                    boxShadow: active ? '0 0 0 3px rgba(184,134,11,0.18)' : undefined,
+                  }}
+                >
+                  {done ? <CheckIcon className="h-4 w-4 text-[#f2f4f5]" /> : s.n}
+                </span>
+              </button>
+              <span
+                className="h-px flex-1"
+                style={{
+                  backgroundColor:
+                    i === steps.length - 1 ? 'transparent' : step > s.n ? GOLD : 'rgba(10,46,34,0.18)',
+                }}
+                aria-hidden
+              />
+            </div>
+            <span
+              className="mt-2 text-center text-[0.72rem] font-semibold sm:text-[0.78rem]"
+              style={{
+                color: active || done ? INK : MUTED,
+                fontFamily: 'Inter, sans-serif',
+              }}
             >
-              <span
-                className="flex h-7 w-7 items-center justify-center text-[0.72rem] font-bold"
-                style={{
-                  borderRadius: 0,
-                  backgroundColor: done || active ? INK : 'transparent',
-                  color: done || active ? CREAM : MUTED,
-                  border: done || active ? 'none' : `1.5px solid ${LINE}`,
-                  boxShadow: active ? `0 0 0 2px rgba(184,134,11,0.45)` : undefined,
-                }}
-              >
-                {done ? <CheckIcon className="h-3.5 w-3.5" /> : s.n}
-              </span>
-              <span
-                className="text-[0.78rem] font-semibold"
-                style={{
-                  color: active || done ? INK : MUTED,
-                  fontFamily: 'Inter, sans-serif',
-                }}
-              >
-                {s.label}
-              </span>
-            </button>
+              {s.label}
+            </span>
           </li>
         )
       })}
@@ -79,14 +88,8 @@ export function CheckoutFlowStepper({ step }: { step: CheckoutFlowStep }) {
 
 export function CheckoutFlowStepperBar({ step }: { step: CheckoutFlowStep }) {
   return (
-    <div
-      className="border-b"
-      style={{
-        borderColor: LINE,
-        backgroundColor: 'rgba(255,252,247,0.72)',
-      }}
-    >
-      <div className="mx-auto flex max-w-6xl justify-center px-4 py-3.5 sm:px-6 lg:px-8">
+    <div style={{ backgroundColor: 'transparent' }}>
+      <div className="mx-auto flex max-w-6xl justify-center px-4 py-4 sm:px-6 lg:px-8">
         <CheckoutFlowStepper step={step} />
       </div>
     </div>
@@ -113,7 +116,7 @@ export function CheckoutFlowShell({ children }: { children: ReactNode }) {
         className="pointer-events-none absolute inset-0"
         style={{
           background: `
-            linear-gradient(180deg, rgba(247,241,228,0.88) 0%, rgba(243,230,200,0.55) 48%, rgba(247,241,228,0.92) 100%),
+            linear-gradient(180deg, rgba(242,244,245,0.88) 0%, rgba(242,244,245,0.55) 48%, rgba(242,244,245,0.92) 100%),
             radial-gradient(ellipse 70% 45% at 80% 0%, rgba(255,252,245,0.65) 0%, transparent 60%)
           `,
         }}

@@ -1,104 +1,25 @@
-import { memo, useState } from 'react'
+import { useState } from 'react'
 import {
   CONTACT_ADDRESS,
-  CONTACT_COORDINATES,
   CONTACT_EMAIL,
   CONTACT_PHONE_DISPLAY,
   CONTACT_PHONE_TEL,
 } from '../../lib/contact'
-import OrbitDotGlobe from '../framer/OrbitDotGlobe.js'
+import { BRAND_BRANCHES } from '../../lib/brandBranches'
+import ContactGlobe from './ContactGlobe'
 
-const PAGE = '#f7f1e4'
+const PAGE = '#f2f4f5'
 const INK = '#0a2e22'
 const GOLD = '#b8860b'
-const GOLD_SHINE = '#f5d76e'
 const MUTED = 'rgba(10,46,34,0.68)'
 const SECTION_TEXTURE = '/image.png_2K_202608092240.jpeg'
-const GLOBE_OCEAN = '#0a100e'
-const GLOBE_LAND = '#e2c878'
-
-type Brand = {
-  id: string
-  name: string
-  short: string
-  description: string
-  about: string
-}
-
-const BRANDS: Brand[] = [
-  {
-    id: 'furat-gruh',
-    name: 'FURAT GRUH UDHYOG',
-    short: 'Furat Gruh',
-    description: 'Our parent manufacturing house for mukhwas, seeds, and traditional mouth fresheners.',
-    about:
-      'Rooted in Chhapi, Banaskantha — the home unit behind Tasneem Mukhwas packing, quality checks, and bulk dispatch.',
-  },
-  {
-    id: 'master-paan',
-    name: 'MASTER PAAN',
-    short: 'Master Paan',
-    description: 'Sister brand for paan-inspired flavours and festive mouth-freshener mixes.',
-    about:
-      'Crafted under the same hygiene standards — ideal for retail counters, gift packs, and HORECA partners.',
-  },
-  {
-    id: 'patel-mukhwas',
-    name: 'PATEL MUKHWAS',
-    short: 'Patel Mukhwas',
-    description: 'Classic Patel-line mukhwas blends trusted across Gujarat and beyond.',
-    about:
-      'Everyday digestive mixes and traditional recipes from the same Chhapi facility network.',
-  },
-  {
-    id: 'furat-agarbatti',
-    name: 'FURAT AGARBATTI',
-    short: 'Furat Agarbatti',
-    description: 'Sister line for incense and fragrance products from the Furat family of brands.',
-    about:
-      'Complementary home fragrance range produced alongside our food craft legacy in Banaskantha.',
-  },
-]
-
-/** Single Gujarat HQ marker — all brands share one address. */
-const GLOBE_LOCATIONS = [
-  {
-    name: 'Chhapi',
-    coordinates: CONTACT_COORDINATES,
-    color: GOLD_SHINE,
-    pulse: true,
-    showLabel: true,
-    action: 'none' as const,
-  },
-]
-
-const ContactGlobe = memo(function ContactGlobe() {
-  return (
-    <div
-      className="relative mx-auto aspect-square w-full max-w-[480px] lg:max-w-none"
-      style={{ minHeight: 280 }}
-    >
-      <OrbitDotGlobe
-        oceanColor={GLOBE_OCEAN}
-        landColor={GLOBE_LAND}
-        dotSize={1.9}
-        dotDensity={3}
-        autoRotate
-        labelStyle="auto"
-        showQuickStart={false}
-        locations={GLOBE_LOCATIONS}
-        style={{ width: '100%', height: '100%', touchAction: 'pan-y' }}
-      />
-    </div>
-  )
-})
 
 /**
  * Contact — OrbitDot Globe + parent company / sister brand panel.
  */
 export default function ContactSection() {
-  const [activeId, setActiveId] = useState(BRANDS[0].id)
-  const active = BRANDS.find((b) => b.id === activeId) ?? BRANDS[0]
+  const [activeId, setActiveId] = useState(BRAND_BRANCHES[0].id)
+  const active = BRAND_BRANCHES.find((b) => b.id === activeId) ?? BRAND_BRANCHES[0]
 
   return (
     <section
@@ -123,7 +44,7 @@ export default function ContactSection() {
           className="absolute inset-0"
           style={{
             background: `
-              linear-gradient(180deg, rgba(247,241,228,0.82) 0%, rgba(243,230,200,0.55) 45%, rgba(247,241,228,0.88) 100%),
+              linear-gradient(180deg, rgba(242,244,245,0.82) 0%, rgba(242,244,245,0.55) 45%, rgba(242,244,245,0.88) 100%),
               radial-gradient(ellipse 60% 50% at 50% 40%, rgba(255,252,245,0.5) 0%, transparent 70%)
             `,
           }}
@@ -164,7 +85,7 @@ export default function ContactSection() {
           </p>
 
           <div className="flex flex-wrap gap-2">
-            {BRANDS.map((brand) => {
+            {BRAND_BRANCHES.map((brand) => {
               const selected = brand.id === activeId
               return (
                 <button
@@ -189,7 +110,7 @@ export default function ContactSection() {
           <article
             className="rounded-2xl px-5 py-5 sm:px-6 sm:py-6"
             style={{
-              backgroundColor: 'rgba(255,252,247,0.72)',
+              backgroundColor: 'rgba(248,249,250,0.72)',
               border: '1px solid rgba(10,46,34,0.1)',
               backdropFilter: 'blur(6px)',
               boxShadow: '0 12px 40px -28px rgba(10,46,34,0.35)',

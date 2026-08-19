@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 
-const CREAM = '#f3e6c8'
+const CREAM = '#f2f4f5'
 const WHITE = '#ffffff'
 
 const ease = [0.22, 1, 0.36, 1] as const

@@ -57,4 +57,4 @@ export const CATEGORIES = [
   'Mouth Freshener',
 ] as const
 
-export const BRANDS = ['Tasneem', 'Furat Gruh', 'Patel Mukhwas', 'Master Paan'] as const
+export const BRANDS = ['Tasneem', 'Tasneem Mukhwas', 'Patel Mukhwas', 'Master Paan'] as const

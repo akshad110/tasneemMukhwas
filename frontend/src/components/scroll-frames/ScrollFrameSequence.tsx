@@ -303,7 +303,7 @@ export default function ScrollFrameSequence({
         />
 
         {!isReady ? (
-          <div className="pointer-events-none absolute bottom-6 left-1/2 z-[2] -translate-x-1/2 text-xs tracking-wide text-[#f3e6c8]/50">
+          <div className="pointer-events-none absolute bottom-6 left-1/2 z-[2] -translate-x-1/2 text-xs tracking-wide text-[#f2f4f5]/50">
             Loading {Math.min(readyCount, total)}/{total}
           </div>
         ) : null}

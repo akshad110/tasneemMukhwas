@@ -7,6 +7,7 @@ import { connectDB } from './config/db.js'
 import { env } from './config/env.js'
 import apiRoutes from './routes/index.js'
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js'
+import { startNotificationCleanupJob } from './services/notificationCleanup.js'
 
 const app = express()
 
@@ -16,6 +17,7 @@ app.use(
   cors({
     origin: env.clientUrl,
     credentials: true,
+    exposedHeaders: ['Content-Disposition', 'Content-Type', 'Content-Length'],
   }),
 )
 app.use(express.json({ limit: '12mb' }))
@@ -39,6 +41,7 @@ app.use(errorHandler)
 
 async function start() {
   await connectDB()
+  startNotificationCleanupJob()
   app.listen(env.port, () => {
     console.log(`API running on http://localhost:${env.port}`)
   })

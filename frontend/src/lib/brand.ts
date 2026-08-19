@@ -1,8 +1,16 @@
 /** Official Tasneem Mukhwas logo (public/). */
 export const BRAND_LOGO_SRC = '/TASNEEM_MUKHWAS_LOGO__1__page-0001-removebg-preview.png'
 
+/** Brand palette */
+export const BRAND_INK = '#0a2e22'
+export const BRAND_GOLD = '#b8860b'
+/** Cool grey-white base — light textured page surfaces (replaces warm cream tones). */
+export const BRAND_CREAM = '#f2f4f5'
+export const BRAND_SURFACE = '#f8f9fa'
+export const BRAND_TEXTURE = '/image.png_2K_202608092240.jpeg'
+
 /**
- * Shiny gold gradient — kept dark enough for legibility on cream (#f3e6c8).
+ * Shiny gold gradient — kept dark enough for legibility on light surfaces (#f2f4f5).
  * Highlight peaks at mid-gold, never near-white (which vanishes on the navbar).
  */
 export const BRAND_GOLD_GRADIENT =

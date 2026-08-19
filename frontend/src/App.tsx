@@ -1,17 +1,28 @@
-import { useCallback, useEffect, useState } from 'react'
-import SmoothScroll from './components/scroll/SmoothScroll'
+import { useEffect, useState } from 'react'
+import { useAuth } from './context/AuthContext'
+import SmoothScroll, { RouteScrollReset } from './components/scroll/SmoothScroll'
 import {
   isAdminPath,
   isAppPagePath,
   isAuthPath,
   isCartPath,
   isCheckoutPath,
+  isContactPath,
+  isHomeSectionScrollPath,
   isKnowMorePath,
   isMyOrdersPath,
   isProfilePath,
+  isPublicPath,
+  isSettingsPath,
   isShopPath,
+  isWholesalePath,
   isWishlistPath,
+  navigateApp,
+  APP_ROUTES,
+  clearPersistRoute,
+  getPersistRoute,
 } from './lib/appRoutes'
+import { scrollAppToTop } from './lib/scrollControl'
 import { resetPathToHome } from './lib/sectionNav'
 import AdminPage from './pages/AdminPage'
 import AuthPage from './pages/AuthPage'
@@ -19,30 +30,56 @@ import CartPage from './pages/CartPage'
 import CheckoutPage from './pages/CheckoutPage'
 import Home from './pages/Home'
 import KnowMorePage from './pages/KnowMorePage'
-import Loader from './pages/Loader'
+import ContactPage from './pages/ContactPage'
+import WholesalePage from './pages/WholesalePage'
 import MyOrdersPage from './pages/MyOrdersPage'
 import ProfilePage from './pages/ProfilePage'
+import SettingsPage from './pages/SettingsPage'
 import ShopPage from './pages/ShopPage'
 import WishlistPage from './pages/WishlistPage'
+import DiscountPromoPopup from './components/shared/DiscountPromoPopup'
 
-function scrollToTop() {
-  window.scrollTo(0, 0)
-  document.documentElement.scrollTop = 0
-  document.body.scrollTop = 0
+function AppRoutes({ path }: { path: string }) {
+  const { user, loading } = useAuth()
+  const auth = isAuthPath(path)
+  const shop = isShopPath(path)
+  const cart = isCartPath(path)
+  const checkout = isCheckoutPath(path)
+  const profile = isProfilePath(path)
+  const settings = isSettingsPath(path)
+  const myOrders = isMyOrdersPath(path)
+  const wishlist = isWishlistPath(path)
+  const knowMore = isKnowMorePath(path)
+  const wholesale = isWholesalePath(path)
+  const contact = isContactPath(path)
+  const admin = isAdminPath(path)
+  const authMode = path === '/signup' ? 'signup' : 'login'
+
+  if (loading) return <Home ready={false} />
+
+  if (!user && !isPublicPath(path)) {
+    return <AuthPage initialMode="login" />
+  }
+
+  if (auth) return <AuthPage initialMode={authMode} />
+  if (shop) return <ShopPage />
+  if (cart) return <CartPage />
+  if (checkout) return <CheckoutPage />
+  if (profile) return <ProfilePage />
+  if (settings) return <SettingsPage />
+  if (myOrders) return <MyOrdersPage />
+  if (wishlist) return <WishlistPage />
+  if (knowMore) return <KnowMorePage />
+  if (wholesale) return <WholesalePage />
+  if (contact) return <ContactPage />
+  if (admin) return <AdminPage />
+
+  return <Home ready />
 }
 
 function App() {
-  const [loading, setLoading] = useState(true)
+  const { user, loading } = useAuth()
   const [path, setPath] = useState(() => window.location.pathname)
-
-  const handleLoaderComplete = useCallback(() => {
-    scrollToTop()
-    if (!isAppPagePath(window.location.pathname)) {
-      resetPathToHome()
-      setPath('/')
-    }
-    setLoading(false)
-  }, [])
 
   useEffect(() => {
     const onPop = () => setPath(window.location.pathname)
@@ -50,106 +87,43 @@ function App() {
     return () => window.removeEventListener('popstate', onPop)
   }, [])
 
-  // Always start each route at the top (Lenis / prior scroll must not carry over)
   useEffect(() => {
-    scrollToTop()
-    const id = window.requestAnimationFrame(scrollToTop)
-    return () => window.cancelAnimationFrame(id)
-  }, [path])
+    if (loading) return
+    const current = window.location.pathname
+    if (!user && !isPublicPath(current)) {
+      navigateApp(APP_ROUTES.login)
+      setPath(APP_ROUTES.login)
+    }
+  }, [user, loading])
 
-  // Refresh: keep standalone app pages; section URLs reset to /
+  // Refresh: keep intentional app pages; scroll-sync section URLs return home
   useEffect(() => {
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual'
     }
     const current = window.location.pathname
-    if (isAppPagePath(current)) {
+    const persist = getPersistRoute()
+    const keepPage =
+      (isAppPagePath(current) && !isHomeSectionScrollPath(current)) ||
+      (persist === current && isHomeSectionScrollPath(current))
+
+    if (keepPage) {
       setPath(current)
-      scrollToTop()
+      scrollAppToTop(true)
       return
     }
     resetPathToHome()
+    clearPersistRoute()
     setPath('/')
-    scrollToTop()
+    scrollAppToTop(true)
   }, [])
 
-  useEffect(() => {
-    scrollToTop()
-    if (!loading) {
-      document.documentElement.style.removeProperty('overflow')
-      document.body.style.removeProperty('overflow')
-      return
-    }
-
-    document.documentElement.style.overflow = 'hidden'
-    document.body.style.overflow = 'hidden'
-    scrollToTop()
-
-    return () => {
-      document.documentElement.style.removeProperty('overflow')
-      document.body.style.removeProperty('overflow')
-      scrollToTop()
-    }
-  }, [loading])
-
-  const auth = isAuthPath(path)
-  const shop = isShopPath(path)
-  const cart = isCartPath(path)
-  const checkout = isCheckoutPath(path)
-  const profile = isProfilePath(path)
-  const myOrders = isMyOrdersPath(path)
-  const wishlist = isWishlistPath(path)
-  const knowMore = isKnowMorePath(path)
-  const admin = isAdminPath(path)
-  const authMode = path === '/signup' ? 'signup' : 'login'
-
   return (
-    <>
-      {loading && <Loader onComplete={handleLoaderComplete} />}
-      {auth ? (
-        <div style={{ visibility: loading ? 'hidden' : 'visible' }}>
-          <AuthPage initialMode={authMode} />
-        </div>
-      ) : shop ? (
-        <div style={{ visibility: loading ? 'hidden' : 'visible' }}>
-          <ShopPage />
-        </div>
-      ) : cart ? (
-        <div style={{ visibility: loading ? 'hidden' : 'visible' }}>
-          <CartPage />
-        </div>
-      ) : checkout ? (
-        <div style={{ visibility: loading ? 'hidden' : 'visible' }}>
-          <CheckoutPage />
-        </div>
-      ) : profile ? (
-        <div style={{ visibility: loading ? 'hidden' : 'visible' }}>
-          <ProfilePage />
-        </div>
-      ) : myOrders ? (
-        <div style={{ visibility: loading ? 'hidden' : 'visible' }}>
-          <MyOrdersPage />
-        </div>
-      ) : wishlist ? (
-        <div style={{ visibility: loading ? 'hidden' : 'visible' }}>
-          <WishlistPage />
-        </div>
-      ) : knowMore ? (
-        <div style={{ visibility: loading ? 'hidden' : 'visible' }}>
-          <KnowMorePage />
-        </div>
-      ) : admin ? (
-        <div style={{ visibility: loading ? 'hidden' : 'visible' }}>
-          <AdminPage />
-        </div>
-      ) : (
-        <SmoothScroll enabled={!loading}>
-          <div style={{ visibility: loading ? 'hidden' : 'visible' }}>
-            <Home ready={!loading} />
-          </div>
-        </SmoothScroll>
-      )}
-    </>
+    <SmoothScroll enabled>
+      <RouteScrollReset routeKey={path} />
+      <AppRoutes path={path} />
+      <DiscountPromoPopup />
+    </SmoothScroll>
   )
 }
 

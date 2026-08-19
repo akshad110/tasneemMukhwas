@@ -1,4 +1,4 @@
-import { apiRequest } from './api'
+import { ApiRequestError, apiDownload, apiRequest } from './api'
 import type { ShopProduct } from './shopCatalog'
 
 export type AuthUser = {
@@ -23,9 +23,15 @@ export type AdminOrder = {
   total: number
   status: 'pending' | 'processing' | 'shipped' | 'completed' | 'cancelled'
   payment: 'cod' | 'razorpay'
+  paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded'
   date: string
   city: string
   tracking?: string
+  invoice?: string
+  invoiceAvailable?: boolean
+  transactionStatus?: 'paid' | 'pending' | 'refunded' | 'failed'
+  discountAmount?: number
+  couponCode?: string
   subtotal?: number
   deliveryFee?: number
   lineItems?: {
@@ -82,12 +88,23 @@ export type DashboardData = {
 }
 
 export const authApi = {
-  login: (email: string, password: string) =>
-    apiRequest<{ token: string; user: AuthUser }>('/auth/login', {
-      method: 'POST',
-      body: { email, password },
-      auth: false,
-    }),
+  login: async (email: string, password: string) => {
+    const attempt = () =>
+      apiRequest<{ token: string; user: AuthUser }>('/auth/login', {
+        method: 'POST',
+        body: { email, password },
+        auth: false,
+      })
+    try {
+      return await attempt()
+    } catch (err) {
+      if (err instanceof ApiRequestError && err.status === 0) {
+        await new Promise((r) => setTimeout(r, 600))
+        return attempt()
+      }
+      throw err
+    }
+  },
   register: (payload: { name: string; email: string; password: string; phone?: string }) =>
     apiRequest<{ token: string; user: AuthUser }>('/auth/register', {
       method: 'POST',
@@ -123,11 +140,25 @@ export const productsApi = {
   remove: (id: string) => apiRequest<{ id: string }>(`/products/${id}`, { method: 'DELETE' }),
 }
 
+export type RazorpayCheckoutPayload = {
+  keyId: string
+  orderId: string
+  amount: number
+  currency: string
+  name: string
+  description: string
+  prefill?: { name?: string; email?: string; contact?: string }
+}
+
 export const ordersApi = {
   list: () =>
     apiRequest<{ items: AdminOrder[]; counts: Record<string, number> }>('/orders'),
   create: (body: Record<string, unknown>) =>
-    apiRequest<{ order: AdminOrder; transaction: AdminTransaction }>('/orders', {
+    apiRequest<{
+      order: AdminOrder
+      transaction: AdminTransaction
+      razorpay?: RazorpayCheckoutPayload | null
+    }>('/orders', {
       method: 'POST',
       body,
     }),
@@ -135,6 +166,30 @@ export const ordersApi = {
     apiRequest<{ items: AdminOrder[]; reviews: ProductReview[] }>('/orders/mine'),
   advance: (id: string) =>
     apiRequest<AdminOrder>(`/orders/${id}/advance`, { method: 'PATCH' }),
+  downloadInvoice: async (orderId: string, filename?: string) => {
+    const safeName = filename || `Invoice-${orderId}.pdf`
+    await apiDownload(`/orders/${encodeURIComponent(orderId)}/invoice`, safeName)
+  },
+}
+
+export const paymentsApi = {
+  verifyRazorpay: (body: {
+    orderNumber: string
+    razorpay_order_id: string
+    razorpay_payment_id: string
+    razorpay_signature: string
+    email?: string
+  }) =>
+    apiRequest<{ order: AdminOrder; transaction: AdminTransaction }>('/payments/razorpay/verify', {
+      method: 'POST',
+      body,
+    }),
+  cancelRazorpay: (orderNumber: string) =>
+    apiRequest<{ order: AdminOrder }>('/payments/razorpay/cancel', {
+      method: 'POST',
+      body: { orderNumber },
+      auth: false,
+    }),
 }
 
 export type ProductReview = {
@@ -229,4 +284,106 @@ export const transactionsApi = {
 
 export const dashboardApi = {
   get: () => apiRequest<DashboardData>('/dashboard'),
+}
+
+export type CouponRecord = {
+  id: string
+  code?: string
+  title: string
+  description?: string
+  scope: 'global' | 'product' | 'category'
+  productId?: string
+  category?: string
+  discountType: 'percent' | 'fixed'
+  value: number
+  expiresAt: string
+  maxRedemptions: number
+  redemptionCount: number
+  maxRedemptionsPerUser: number
+  minOrderValue: number
+  maxDiscountAmount?: number
+  autoApply: boolean
+  isActive: boolean
+  createdAt?: string
+}
+
+export type CampaignRecord = {
+  id: string
+  title: string
+  message: string
+  couponId?: string
+  coupon?: CouponRecord
+  channel: 'email'
+  recipientFilter: 'all' | 'active'
+  status: 'draft' | 'sending' | 'sent' | 'failed'
+  stats: { total: number; sent: number; failed: number }
+  sentAt?: string
+  createdAt?: string
+}
+
+export type AppNotification = {
+  id: string
+  type: string
+  title: string
+  body: string
+  channel: string
+  emailStatus?: string
+  orderNumber?: string
+  couponCode?: string
+  read: boolean
+  meta?: Record<string, unknown>
+  createdAt?: string
+}
+
+export const couponsApi = {
+  list: () => apiRequest<{ items: CouponRecord[] }>('/coupons'),
+  create: (body: Partial<CouponRecord> & { expiresAt: string; title: string; scope: CouponRecord['scope']; discountType: CouponRecord['discountType']; value: number }) =>
+    apiRequest<CouponRecord>('/coupons', { method: 'POST', body }),
+  update: (id: string, body: Partial<CouponRecord>) =>
+    apiRequest<CouponRecord>(`/coupons/${id}`, { method: 'PATCH', body }),
+  remove: (id: string) => apiRequest<unknown>(`/coupons/${id}`, { method: 'DELETE' }),
+  regenerateCode: (id: string) =>
+    apiRequest<CouponRecord>(`/coupons/${id}/regenerate-code`, { method: 'POST' }),
+  validate: (body: { code: string; email: string; subtotal: number; items: { productId: string; qty: number }[] }) =>
+    apiRequest<{ code: string; discountAmount: number; label: string; title: string; newTotal: number }>(
+      '/coupons/validate',
+      { method: 'POST', body, auth: false },
+    ),
+  activePromos: () =>
+    apiRequest<{
+      items: {
+        id: string
+        scope: string
+        productId?: string
+        category?: string
+        discountType: string
+        value: number
+        title: string
+        label: string
+        productName?: string
+        productImage?: string
+        expiresAt?: string
+      }[]
+    }>('/coupons/active', { auth: false }),
+}
+
+export const campaignsApi = {
+  list: () => apiRequest<{ items: CampaignRecord[]; mailConfigured: boolean }>('/campaigns'),
+  previewRecipients: (filter: 'all' | 'active' = 'all') =>
+    apiRequest<{ count: number; sample: { name: string; email: string }[] }>(
+      `/campaigns/preview-recipients?filter=${filter}`,
+    ),
+  create: (body: { title: string; message: string; couponId: string; recipientFilter?: 'all' | 'active' }) =>
+    apiRequest<CampaignRecord>('/campaigns', { method: 'POST', body }),
+  send: (id: string) => apiRequest<CampaignRecord>(`/campaigns/${id}/send`, { method: 'POST' }),
+}
+
+export const notificationsApi = {
+  mine: () => apiRequest<{ items: AppNotification[]; unread: number; mailConfigured: boolean }>('/notifications/mine'),
+  readAll: () => apiRequest<unknown>('/notifications/mine/read-all', { method: 'PATCH' }),
+  markRead: (id: string) => apiRequest<AppNotification>(`/notifications/${id}/read`, { method: 'PATCH' }),
+  adminList: (type = 'all') =>
+    apiRequest<{ items: AppNotification[]; counts: Record<string, number>; mailConfigured: boolean }>(
+      `/notifications/admin?type=${encodeURIComponent(type)}`,
+    ),
 }

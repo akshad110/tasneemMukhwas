@@ -53,6 +53,81 @@ type RequestOptions = {
   signal?: AbortSignal
 }
 
+function filenameFromDisposition(header: string | null) {
+  if (!header) return null
+  const utf8 = /filename\*=UTF-8''([^;]+)/i.exec(header)
+  if (utf8?.[1]) {
+    try {
+      return decodeURIComponent(utf8[1].trim())
+    } catch {
+      return utf8[1].trim()
+    }
+  }
+  const plain = /filename="?([^";]+)"?/i.exec(header)
+  return plain?.[1]?.trim() || null
+}
+
+function triggerBlobDownload(blob: Blob, filename: string) {
+  const objectUrl = URL.createObjectURL(blob)
+  const safeName = filename.endsWith('.pdf') ? filename : `${filename}.pdf`
+
+  try {
+    const link = document.createElement('a')
+    link.href = objectUrl
+    link.download = safeName
+    link.rel = 'noopener'
+    link.style.display = 'none'
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+  } catch {
+    window.open(objectUrl, '_blank', 'noopener,noreferrer')
+  }
+
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 120_000)
+}
+
+/** Download a binary file (e.g. invoice PDF) with auth token. */
+export async function apiDownload(path: string, filename: string) {
+  const token = getToken()
+  if (!token) {
+    throw new ApiRequestError(401, 'Please sign in to download your invoice.')
+  }
+
+  const headers: Record<string, string> = {
+    Accept: 'application/pdf, application/octet-stream, */*',
+    Authorization: `Bearer ${token}`,
+  }
+
+  const res = await fetch(`${apiBase()}${path.startsWith('/') ? path : `/${path}`}`, {
+    headers,
+    credentials: 'include',
+  })
+
+  if (!res.ok) {
+    let message = res.statusText
+    try {
+      const json = await res.json()
+      message = json.message || message
+    } catch {
+      try {
+        message = (await res.text()).slice(0, 200) || message
+      } catch {
+        /* ignore */
+      }
+    }
+    throw new ApiRequestError(res.status, message)
+  }
+
+  const blob = await res.blob()
+  if (!blob.size) {
+    throw new ApiRequestError(500, 'Downloaded file was empty.')
+  }
+
+  const serverName = filenameFromDisposition(res.headers.get('content-disposition'))
+  triggerBlobDownload(blob, serverName || filename)
+}
+
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = {
     Accept: 'application/json',
@@ -67,12 +142,17 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     if (token) headers.Authorization = `Bearer ${token}`
   }
 
-  const res = await fetch(`${apiBase()}${path.startsWith('/') ? path : `/${path}`}`, {
-    method: options.method || (options.body !== undefined ? 'POST' : 'GET'),
-    headers,
-    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
-    signal: options.signal,
-  })
+  let res: Response
+  try {
+    res = await fetch(`${apiBase()}${path.startsWith('/') ? path : `/${path}`}`, {
+      method: options.method || (options.body !== undefined ? 'POST' : 'GET'),
+      headers,
+      body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+      signal: options.signal,
+    })
+  } catch {
+    throw new ApiRequestError(0, 'Could not reach the server. Wait a moment and try again.')
+  }
 
   let json: { success?: boolean; message?: string; data?: T; errors?: ApiErrorBody['errors'] } = {}
   try {

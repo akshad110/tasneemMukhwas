@@ -5,10 +5,9 @@ import BrandLogo from '../shared/BrandLogo'
 import BrandNameLockup from '../shared/BrandNameLockup'
 
 const INK = '#0a2e22'
-const CREAM = '#f3e6c8'
 const GOLD = '#b8860b'
 const SIDEBAR_BG = '#f3f8f4'
-const PAGE_BG = '#eef3ef'
+const PAGE_BG = '#f2f4f5'
 const MUTED = 'rgba(10,46,34,0.55)'
 
 const NAV: { id: AdminSection; label: string; icon: ReactNode }[] = [
@@ -78,6 +77,26 @@ const NAV: { id: AdminSection; label: string; icon: ReactNode }[] = [
     ),
   },
   {
+    id: 'discounts',
+    label: 'Discounts',
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
+        <path d="M20 12v8H4V4h8" strokeLinecap="round" />
+        <path d="m14 4 6 6M10 14l4-4" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
+    id: 'notifications',
+    label: 'Notifications',
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
+        <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
     id: 'settings',
     label: 'Account & Settings',
     icon: (
@@ -111,14 +130,14 @@ export default function AdminLayout({
       >
         <button
           type="button"
-          onClick={() => navigateApp(APP_ROUTES.home)}
-          className="mb-6 flex cursor-pointer items-center gap-2.5 border-0 bg-transparent px-2 text-left"
-          aria-label="Tasneem Mukhwas home"
+          onClick={() => navigateApp(APP_ROUTES.admin)}
+          className="mb-6 flex w-full min-w-0 cursor-pointer items-center gap-2 border-0 bg-transparent px-2 text-left"
+          aria-label="Admin dashboard"
         >
-          <BrandLogo className="h-11 w-9 shrink-0 object-contain" />
-          <span>
-            <BrandNameLockup size="sm" />
-            <span className="mt-1 block text-[0.68rem]" style={{ color: MUTED }}>
+          <BrandLogo className="h-9 w-7 shrink-0 object-contain" />
+          <span className="min-w-0 flex-1">
+            <BrandNameLockup size="xs" wrap className="leading-snug" />
+            <span className="mt-0.5 block text-[0.62rem]" style={{ color: MUTED }}>
               Admin panel
             </span>
           </span>
@@ -156,6 +175,27 @@ export default function AdminLayout({
             )
           })}
         </nav>
+
+        <button
+          type="button"
+          onClick={() => {
+            logout()
+            navigateApp(APP_ROUTES.login)
+          }}
+          className="admin-sidebar-logout mt-auto flex w-full cursor-pointer items-center gap-3 rounded-xl border-0 px-3 py-2.5 text-left text-[0.86rem] font-medium transition"
+          style={{ backgroundColor: 'transparent', color: INK }}
+        >
+          <span style={{ color: MUTED }}>
+            <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" strokeLinecap="round" />
+              <path d="M16 17l5-5-5-5M21 12H9" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
+          <span className="flex-1">Log out</span>
+          <span className="text-[0.75rem] opacity-35" aria-hidden>
+            ›
+          </span>
+        </button>
       </aside>
 
       <div className="min-w-0 flex-1 overflow-x-hidden">
@@ -170,34 +210,13 @@ export default function AdminLayout({
           <p className="m-0 text-[0.78rem]" style={{ color: MUTED }}>
             Admin / <span style={{ color: INK }}>{NAV.find((n) => n.id === section)?.label}</span>
           </p>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => navigateApp(APP_ROUTES.shop)}
-              className="cursor-pointer rounded-lg border-0 px-3 py-1.5 text-[0.75rem] font-semibold transition hover:brightness-110"
-              style={{ backgroundColor: INK, color: CREAM }}
-            >
-              View shop
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                logout()
-                navigateApp(APP_ROUTES.login)
-              }}
-              className="cursor-pointer rounded-lg border px-3 py-1.5 text-[0.75rem] font-semibold"
-              style={{ borderColor: 'rgba(10,46,34,0.15)', backgroundColor: 'transparent', color: INK }}
-            >
-              Log out
-            </button>
-            <div
-              className="flex h-9 w-9 items-center justify-center rounded-full text-[0.75rem] font-bold"
-              style={{ backgroundColor: GOLD, color: INK }}
-              title={user?.email || 'Admin'}
-              aria-hidden
-            >
-              {initials}
-            </div>
+          <div
+            className="flex h-9 w-9 items-center justify-center rounded-full text-[0.75rem] font-bold"
+            style={{ backgroundColor: GOLD, color: INK }}
+            title={user?.email || 'Admin'}
+            aria-label={user?.name ? `Signed in as ${user.name}` : 'Admin account'}
+          >
+            {initials}
           </div>
         </header>
         <div className="px-6 py-6">{children}</div>

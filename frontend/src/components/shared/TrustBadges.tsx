@@ -1,5 +1,5 @@
 const INK = '#0a2e22'
-const CREAM = '#f3e6c8'
+const CREAM = '#f2f4f5'
 const GOLD = '#b8860b'
 
 const BADGES = [

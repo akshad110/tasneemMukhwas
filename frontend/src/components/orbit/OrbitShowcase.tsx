@@ -2,7 +2,7 @@ import OrbitProject from '../framer/OrbitProject.js'
 import LayoutIsland from '../../utils/LayoutIsland'
 import { ORBIT_ITEMS, SECTION_TEXTURE } from '../../lib/products'
 
-const CREAM = '#f3e6c8'
+const CREAM = '#f2f4f5'
 const SECTION_FALLBACK = '#0a2e22'
 
 /**
@@ -103,7 +103,7 @@ export default function OrbitShowcase() {
             depthOpacity: 28,
             depthScale: 78,
             renderQuality: 1,
-            labelColor: 'rgba(243, 230, 200, 0.55)',
+            labelColor: 'rgba(247, 241, 228, 0.55)',
             labelFont: {
               fontFamily: 'Inter, sans-serif',
               fontSize: 14,

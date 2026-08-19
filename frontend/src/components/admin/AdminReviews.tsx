@@ -3,7 +3,7 @@ import { reviewsApi, type AdminReview } from '../../lib/services'
 
 const INK = '#0a2e22'
 const GOLD = '#b8860b'
-const CREAM = '#f3e6c8'
+const CREAM = '#f2f4f5'
 const MUTED = 'rgba(10,46,34,0.55)'
 const CARD = '#ffffff'
 const LINE = 'rgba(10,46,34,0.08)'

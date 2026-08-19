@@ -352,7 +352,7 @@ function AnimatedScrollZoom(props) {
             flexShrink: 0,
             zIndex: 1,
             willChange: 'width, height, border-radius',
-            background: '#ffffff',
+            background: hasStory ? 'transparent' : '#ffffff',
           },
           children: [
             /* @__PURE__ */ _jsx(motion.img, {
@@ -367,12 +367,26 @@ function AnimatedScrollZoom(props) {
                 minWidth: '100%',
                 minHeight: '100%',
                 objectFit: 'cover',
+                filter: hasStory ? 'brightness(0.96) saturate(0.98)' : undefined,
                 transform: 'translate(-50%, -50%)',
                 opacity: isPlaying ? 0 : 1,
                 transition: 'opacity 0.4s ease',
-                background: '#ffffff',
+                background: hasStory ? 'transparent' : '#ffffff',
               },
             }),
+            hasStory
+              ? /* @__PURE__ */ _jsx('div', {
+                  'aria-hidden': true,
+                  style: {
+                    position: 'absolute',
+                    inset: 0,
+                    zIndex: 5,
+                    pointerEvents: 'none',
+                    background:
+                      'linear-gradient(180deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.16) 100%)',
+                  },
+                })
+              : null,
             videoUrl
               ? /* @__PURE__ */ _jsx('video', {
                   ref: videoRef,

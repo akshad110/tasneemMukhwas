@@ -1,5 +1,5 @@
-import { AnimatePresence, motion } from 'framer-motion'
-import { useMemo, useState } from 'react'
+import { motion } from 'framer-motion'
+import { useMemo, useState, type MouseEvent } from 'react'
 import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
 import { useWishlist } from '../../context/WishlistContext'
@@ -12,17 +12,17 @@ import {
 } from '../../lib/shopCatalog'
 
 const INK = '#0a2e22'
-const CREAM = '#f3e6c8'
+const CREAM = '#f2f4f5'
 const GOLD = '#b8860b'
-const CARD_BG = '#fffcf7'
+const CARD_BG = '#f8f9fa'
 const CARD_PANEL = '#f3ebe0'
 const MUTED = 'rgba(10,46,34,0.58)'
 const BORDER = 'rgba(10,46,34,0.1)'
+const REVEAL_EASE = [0.22, 1, 0.36, 1] as const
 
-function Stars({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'md' }) {
-  const cls = size === 'md' ? 'text-[0.85rem]' : 'text-[0.72rem]'
+function Stars({ rating }: { rating: number }) {
   return (
-    <span className={`inline-flex gap-0.5 ${cls}`} aria-label={`${rating} out of 5 stars`}>
+    <span className="inline-flex gap-0.5 text-[0.62rem]" aria-label={`${rating} out of 5 stars`}>
       {Array.from({ length: 5 }, (_, i) => (
         <span key={i} style={{ color: i < rating ? GOLD : 'rgba(10,46,34,0.18)' }}>
           ★
@@ -34,42 +34,69 @@ function Stars({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'md' }) 
 
 type ShopProductCardProps = {
   product: ShopProduct
+  revealIndex?: number
+  promoLabel?: string
+  onOpenDetail?: () => void
 }
 
-/** Light commerce card — image, wishlist, gallery, price, qty. */
-export default function ShopProductCard({ product }: ShopProductCardProps) {
+function stop(e: MouseEvent) {
+  e.stopPropagation()
+}
+
+export default function ShopProductCard({
+  product,
+  revealIndex = 0,
+  promoLabel,
+  onOpenDetail,
+}: ShopProductCardProps) {
   const images = useMemo(() => getProductImages(product), [product])
-  const [imageIndex, setImageIndex] = useState(0)
+  const [imageIndex] = useState(0)
   const { user } = useAuth()
   const { isWishlisted, toggle } = useWishlist()
   const liked = isWishlisted(product.id)
   const [wishBusy, setWishBusy] = useState(false)
-  const { getQty, setQty, addItem } = useCart()
+  const [imageHovered, setImageHovered] = useState(false)
+  const { addItem, clearCart, getQty, setQty } = useCart()
 
   const activeImage = images[Math.min(imageIndex, Math.max(0, images.length - 1))] ?? product.image
   const variantId = product.variants[0]?.id ?? 'default'
-  const qty = getQty(product.id, variantId)
-  const inCart = qty > 0
+  const cartQty = getQty(product.id, variantId)
   const sellPrice = getSellPrice(product)
   const comparePrice = getComparePrice(product)
-  const total = sellPrice * qty
   const outOfStock = Boolean(product.outOfStock)
 
-  const addToCart = () => {
-    if (outOfStock) return
-    addItem(product.id, variantId, 1)
-  }
-  const dec = () => setQty(product.id, variantId, qty - 1)
-  const inc = () => {
-    if (outOfStock) return
-    setQty(product.id, variantId, qty + 1)
+  const requireAuth = () => {
+    if (user) return true
+    navigateApp(APP_ROUTES.login)
+    return false
   }
 
-  const toggleWishlist = async () => {
-    if (!user) {
-      navigateApp(APP_ROUTES.login)
-      return
-    }
+  const addToCart = (e: MouseEvent) => {
+    stop(e)
+    if (outOfStock) return
+    if (!requireAuth()) return
+    setQty(product.id, variantId, 1)
+  }
+
+  const changeQty = (e: MouseEvent, delta: number) => {
+    stop(e)
+    if (outOfStock) return
+    if (!requireAuth()) return
+    setQty(product.id, variantId, cartQty + delta)
+  }
+
+  const payNow = (e: MouseEvent) => {
+    stop(e)
+    if (outOfStock) return
+    if (!requireAuth()) return
+    clearCart()
+    addItem(product.id, variantId, 1)
+    navigateApp(APP_ROUTES.checkout)
+  }
+
+  const toggleWishlist = async (e: MouseEvent) => {
+    stop(e)
+    if (!requireAuth()) return
     if (wishBusy) return
     setWishBusy(true)
     try {
@@ -82,99 +109,109 @@ export default function ShopProductCard({ product }: ShopProductCardProps) {
   return (
     <motion.article
       layout
-      className="flex flex-col overflow-hidden rounded-2xl border p-4"
+      role={onOpenDetail ? 'button' : undefined}
+      tabIndex={onOpenDetail ? 0 : undefined}
+      onClick={onOpenDetail}
+      onKeyDown={
+        onOpenDetail
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                onOpenDetail()
+              }
+            }
+          : undefined
+      }
+      className={`flex flex-col overflow-hidden rounded-xl border p-2.5 sm:p-3 transition ${
+        onOpenDetail
+          ? 'cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_22px_44px_-28px_rgba(10,46,34,0.45)]'
+          : ''
+      }`}
       style={{
         backgroundColor: CARD_BG,
         borderColor: BORDER,
         boxShadow: '0 18px 40px -28px rgba(10,46,34,0.35)',
       }}
-      initial={{ opacity: 0, y: 18 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35 }}
+      transition={{
+        duration: 0.48,
+        ease: REVEAL_EASE,
+        delay: Math.min(revealIndex * 0.07, 0.42),
+      }}
     >
       <div
-        className="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-xl"
+        className="relative flex aspect-[4/3] max-h-[148px] items-end justify-center overflow-hidden rounded-lg sm:max-h-[160px]"
         style={{ backgroundColor: CARD_PANEL }}
+        onMouseEnter={() => setImageHovered(true)}
+        onMouseLeave={() => setImageHovered(false)}
       >
-        <AnimatePresence mode="wait">
-          <motion.img
-            key={activeImage}
-            src={activeImage}
-            alt={product.name}
-            loading="lazy"
-            decoding="async"
-            className="relative z-[1] h-[78%] w-auto max-w-[85%] object-contain drop-shadow-[0_14px_22px_rgba(10,46,34,0.18)]"
-            draggable={false}
-            initial={{ opacity: 0, scale: 0.94 }}
-            animate={{ opacity: outOfStock ? 0.45 : 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.96 }}
-            transition={{ duration: 0.25 }}
-          />
-        </AnimatePresence>
+        <motion.img
+          src={activeImage}
+          alt={product.name}
+          loading="lazy"
+          decoding="async"
+          className="relative z-[1] h-[72%] w-auto max-w-[82%] origin-bottom object-contain"
+          draggable={false}
+          animate={{
+            y: imageHovered && !outOfStock ? -14 : 0,
+            scale: imageHovered && !outOfStock ? 1.1 : 1,
+            opacity: outOfStock ? 0.45 : 1,
+          }}
+          transition={{ duration: 0.38, ease: REVEAL_EASE }}
+          style={{
+            filter: imageHovered && !outOfStock
+              ? 'drop-shadow(0 18px 24px rgba(10,46,34,0.28))'
+              : 'drop-shadow(0 10px 16px rgba(10,46,34,0.16))',
+          }}
+        />
 
         {outOfStock && (
           <span
-            className="absolute top-2.5 left-2.5 z-10 rounded-full px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-wide"
+            className="absolute top-2 left-2 z-10 rounded-full px-2 py-0.5 text-[0.55rem] font-semibold uppercase tracking-wide"
             style={{ backgroundColor: 'rgba(163,32,32,0.92)', color: CREAM }}
           >
             Out of stock
           </span>
         )}
 
+        {promoLabel && !outOfStock && (
+          <span
+            className="absolute top-2 left-2 z-10 rounded-full px-2 py-0.5 text-[0.55rem] font-semibold uppercase tracking-wide"
+            style={{ backgroundColor: GOLD, color: INK }}
+          >
+            {promoLabel}
+          </span>
+        )}
+
         <button
           type="button"
-          onClick={() => void toggleWishlist()}
+          onClick={(e) => void toggleWishlist(e)}
           disabled={wishBusy}
-          className="absolute top-2.5 right-2.5 z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-0 transition hover:scale-105 disabled:opacity-70"
+          className="absolute top-2 right-2 z-10 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-0 transition hover:scale-105 disabled:opacity-70"
           style={{
             backgroundColor: liked ? GOLD : 'rgba(255,255,255,0.85)',
-            color: liked ? INK : INK,
+            color: INK,
             boxShadow: '0 4px 12px -6px rgba(10,46,34,0.35)',
           }}
           aria-label={liked ? 'Remove from wishlist' : 'Add to wishlist'}
           aria-pressed={liked}
         >
-          <svg viewBox="0 0 24 24" className="h-4 w-4" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" aria-hidden>
+          <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" aria-hidden>
             <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
       </div>
 
-      {images.length > 1 && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {images.map((src, i) => {
-            const selected = i === imageIndex
-            return (
-              <button
-                key={`${src}-${i}`}
-                type="button"
-                onClick={() => setImageIndex(i)}
-                className="h-10 w-10 cursor-pointer overflow-hidden rounded-lg border-2 p-0.5 transition"
-                style={{
-                  borderColor: selected ? GOLD : 'rgba(10,46,34,0.12)',
-                  backgroundColor: CARD_PANEL,
-                }}
-                aria-label={`Image ${i + 1}`}
-                aria-pressed={selected}
-              >
-                <span className="flex h-full w-full items-center justify-center rounded-md">
-                  <img src={src} alt="" className="h-7 w-auto object-contain" draggable={false} loading="lazy" decoding="async" />
-                </span>
-              </button>
-            )
-          })}
-        </div>
-      )}
-
       <h3
-        className="mt-3 m-0 text-[1.05rem] font-semibold tracking-tight"
+        className="mt-2 m-0 line-clamp-2 text-[0.88rem] font-semibold leading-snug tracking-tight sm:text-[0.92rem]"
         style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
       >
         {product.name}
       </h3>
 
       <span
-        className="mt-1.5 inline-flex w-fit rounded-full border px-2.5 py-0.5 text-[0.62rem] font-semibold tracking-[0.12em] uppercase"
+        className="mt-1 inline-flex w-fit rounded-full border px-2 py-0.5 text-[0.55rem] font-semibold tracking-[0.1em] uppercase"
         style={{
           color: GOLD,
           borderColor: 'rgba(184,134,11,0.45)',
@@ -185,107 +222,96 @@ export default function ShopProductCard({ product }: ShopProductCardProps) {
         {product.category}
       </span>
 
-      <div className="mt-2 flex items-center gap-2">
+      <div className="mt-1.5 flex items-center gap-1.5">
         <Stars rating={product.rating} />
-        <span className="text-[0.72rem]" style={{ color: MUTED }}>
+        <span className="text-[0.65rem]" style={{ color: MUTED }}>
           ({product.reviews})
         </span>
       </div>
 
-      <div className="mt-2.5 flex items-baseline gap-2">
-        <span
-          className="text-[1.2rem] font-bold"
-          style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
-        >
+      <div className="mt-1.5 flex items-baseline gap-1.5">
+        <span className="text-[1rem] font-bold sm:text-[1.05rem]" style={{ color: INK, fontFamily: 'Inter, sans-serif' }}>
           ₹{sellPrice}
         </span>
         {comparePrice != null && comparePrice > sellPrice && (
-          <span
-            className="text-[0.85rem] line-through"
-            style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
-          >
+          <span className="text-[0.75rem] line-through" style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}>
             ₹{comparePrice}
           </span>
         )}
       </div>
 
-      <div className="mt-4 flex min-h-[40px] items-center justify-between gap-3">
+      <div className="mt-2.5 grid grid-cols-2 gap-1.5">
         {outOfStock ? (
           <button
             type="button"
             disabled
-            className="w-full cursor-not-allowed rounded-lg border-0 py-2.5 text-[0.75rem] font-semibold tracking-wide uppercase opacity-70"
-            style={{
-              backgroundColor: 'rgba(10,46,34,0.12)',
-              color: INK,
-              fontFamily: 'Inter, sans-serif',
-            }}
+            onClick={stop}
+            className="col-span-2 cursor-not-allowed rounded-md border-0 py-2 text-[0.62rem] font-semibold tracking-wide uppercase opacity-70"
+            style={{ backgroundColor: 'rgba(10,46,34,0.12)', color: INK, fontFamily: 'Inter, sans-serif' }}
           >
             Out of stock
           </button>
-        ) : !inCart ? (
-          <button
-            type="button"
-            onClick={addToCart}
-            className="w-full cursor-pointer rounded-lg border-0 py-2.5 text-[0.75rem] font-semibold tracking-wide uppercase transition hover:brightness-110"
-            style={{
-              backgroundColor: INK,
-              color: CREAM,
-              fontFamily: 'Inter, sans-serif',
-            }}
-          >
-            Add to Cart
-          </button>
         ) : (
           <>
-            <div className="flex items-center gap-2">
+            {cartQty > 0 ? (
+              <div
+                className="flex items-center justify-between rounded-md border px-2 py-1.5"
+                style={{ borderColor: INK, backgroundColor: 'rgba(255,255,255,0.88)' }}
+                onClick={stop}
+              >
+                <button
+                  type="button"
+                  onClick={(e) => changeQty(e, -1)}
+                  className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border-0 text-[1rem] leading-none transition hover:bg-[rgba(10,46,34,0.06)]"
+                  style={{ color: INK }}
+                  aria-label="Decrease quantity"
+                >
+                  −
+                </button>
+                <span
+                  className="min-w-[1.25rem] text-center text-[0.78rem] font-bold tabular-nums"
+                  style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
+                  aria-live="polite"
+                >
+                  {cartQty}
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => changeQty(e, 1)}
+                  className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border-0 text-[1rem] leading-none transition hover:bg-[rgba(10,46,34,0.06)]"
+                  style={{ color: INK }}
+                  aria-label="Increase quantity"
+                >
+                  +
+                </button>
+              </div>
+            ) : (
               <button
                 type="button"
-                onClick={dec}
-                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border-0 text-lg font-semibold transition hover:brightness-110"
-                style={{ backgroundColor: INK, color: CREAM }}
-                aria-label="Decrease quantity"
-              >
-                −
-              </button>
-              <span
-                className="min-w-[1.5rem] text-center text-[0.95rem] font-semibold"
-                style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
-              >
-                {qty}
-              </span>
-              <button
-                type="button"
-                onClick={inc}
-                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border-0 text-lg font-semibold transition hover:brightness-110"
-                style={{ backgroundColor: INK, color: CREAM }}
-                aria-label="Increase quantity"
-              >
-                +
-              </button>
-            </div>
-            <div className="flex flex-col items-end gap-0.5">
-              <button
-                type="button"
-                onClick={() => navigateApp(APP_ROUTES.cart)}
-                className="cursor-pointer border-0 bg-transparent p-0 text-[0.7rem] font-semibold tracking-wide uppercase underline-offset-2 transition hover:underline"
+                onClick={addToCart}
+                className="cursor-pointer rounded-md border py-2 text-[0.62rem] font-semibold tracking-wide uppercase transition hover:bg-white sm:text-[0.65rem]"
                 style={{
+                  borderColor: INK,
                   color: INK,
+                  backgroundColor: 'transparent',
                   fontFamily: 'Inter, sans-serif',
                 }}
               >
-                View Cart
+                Add to Cart
               </button>
-              <p
-                className="m-0 text-[0.95rem] font-bold tracking-tight"
-                style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}
-              >
-                <span className="mr-1 text-[0.72rem] font-semibold tracking-wide uppercase opacity-80">
-                  Total :
-                </span>
-                ₹{total}
-              </p>
-            </div>
+            )}
+            <button
+              type="button"
+              onClick={payNow}
+              className="cursor-pointer rounded-md border-0 py-2 text-[0.62rem] font-semibold tracking-wide uppercase transition hover:brightness-110 sm:text-[0.65rem]"
+              style={{
+                backgroundColor: INK,
+                color: CREAM,
+                fontFamily: 'Inter, sans-serif',
+              }}
+            >
+              Pay Now
+            </button>
           </>
         )}
       </div>

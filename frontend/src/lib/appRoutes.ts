@@ -8,11 +8,14 @@ export const APP_ROUTES = {
   checkout: '/checkout',
   admin: '/admin',
   profile: '/profile',
+  settings: '/settings',
   myOrders: '/my-orders',
   /** Alias requested for the same page */
   myOrderPage: '/myorderpage',
   knowMore: '/know-more',
   wishlist: '/wishlist',
+  wholesale: '/wholesale',
+  contact: '/contact',
 } as const
 
 export type AppRoute = (typeof APP_ROUTES)[keyof typeof APP_ROUTES]
@@ -24,7 +27,52 @@ export type AdminSection =
   | 'transactions'
   | 'orders'
   | 'reviews'
+  | 'discounts'
+  | 'notifications'
   | 'settings'
+
+/** In-page section URLs while scrolling on the home experience. */
+const HOME_SECTION_PATHS = ['/about', '/products'] as const
+
+/** Soft URLs synced while scrolling home — must not load standalone pages on refresh. */
+export const HOME_SECTION_SCROLL_PATHS = [
+  '/about',
+  '/products',
+  '/contact',
+  '/wholesale',
+] as const
+
+export function isHomeSectionScrollPath(pathname: string) {
+  return (HOME_SECTION_SCROLL_PATHS as readonly string[]).includes(pathname)
+}
+
+const PERSIST_ROUTE_KEY = 'tm-persist-route'
+
+export function markRoutePersistOnRefresh(pathname: string) {
+  sessionStorage.setItem(PERSIST_ROUTE_KEY, pathname)
+}
+
+export function clearPersistRoute() {
+  sessionStorage.removeItem(PERSIST_ROUTE_KEY)
+}
+
+export function getPersistRoute() {
+  return sessionStorage.getItem(PERSIST_ROUTE_KEY)
+}
+
+export function isHomeScrollPath(pathname: string) {
+  return pathname === APP_ROUTES.home || HOME_SECTION_PATHS.includes(pathname as (typeof HOME_SECTION_PATHS)[number])
+}
+
+/** Routes reachable without signing in. */
+export function isPublicPath(pathname: string) {
+  return (
+    isAuthPath(pathname) ||
+    isHomeScrollPath(pathname) ||
+    isWholesalePath(pathname) ||
+    isContactPath(pathname)
+  )
+}
 
 export function isAuthPath(pathname: string) {
   return pathname === APP_ROUTES.login || pathname === APP_ROUTES.signup
@@ -46,6 +94,10 @@ export function isProfilePath(pathname: string) {
   return pathname === APP_ROUTES.profile
 }
 
+export function isSettingsPath(pathname: string) {
+  return pathname === APP_ROUTES.settings
+}
+
 export function isMyOrdersPath(pathname: string) {
   return pathname === APP_ROUTES.myOrders || pathname === APP_ROUTES.myOrderPage
 }
@@ -56,6 +108,14 @@ export function isKnowMorePath(pathname: string) {
 
 export function isWishlistPath(pathname: string) {
   return pathname === APP_ROUTES.wishlist
+}
+
+export function isWholesalePath(pathname: string) {
+  return pathname === APP_ROUTES.wholesale
+}
+
+export function isContactPath(pathname: string) {
+  return pathname === APP_ROUTES.contact
 }
 
 export function isAdminPath(pathname: string) {
@@ -73,6 +133,8 @@ export function adminSectionFromPath(pathname: string): AdminSection {
     'transactions',
     'orders',
     'reviews',
+    'discounts',
+    'notifications',
     'settings',
   ]
   return (allowed.includes(seg as AdminSection) ? seg : 'dashboard') as AdminSection
@@ -86,25 +148,52 @@ export function isAppPagePath(pathname: string) {
     isCartPath(pathname) ||
     isCheckoutPath(pathname) ||
     isProfilePath(pathname) ||
+    isSettingsPath(pathname) ||
     isMyOrdersPath(pathname) ||
     isWishlistPath(pathname) ||
+    isWholesalePath(pathname) ||
+    isContactPath(pathname) ||
     isKnowMorePath(pathname) ||
     isAdminPath(pathname)
   )
 }
 
-/** Client navigate without full reload. */
+/** App pages where no primary nav item should appear active (cart, checkout, etc.). */
+export function isNavNeutralAppPath(pathname: string) {
+  return isAppPagePath(pathname) && !isKnowMorePath(pathname) && !isShopPath(pathname) && !isWholesalePath(pathname) && !isContactPath(pathname)
+}
+
+/** Client navigate without full reload. Path may include a hash (e.g. `/profile#settings`). */
 export function navigateApp(path: string) {
-  if (window.location.pathname === path && !window.location.hash) {
+  const normalized = path.startsWith('/') ? path : `/${path}`
+  const hashIdx = normalized.indexOf('#')
+  const pathname = hashIdx >= 0 ? normalized.slice(0, hashIdx) : normalized
+  const hash = hashIdx >= 0 ? normalized.slice(hashIdx) : ''
+  const target = `${pathname}${hash}`
+
+  if (
+    isShopPath(pathname) ||
+    isCartPath(pathname) ||
+    isCheckoutPath(pathname) ||
+    isProfilePath(pathname) ||
+    isSettingsPath(pathname) ||
+    isMyOrdersPath(pathname) ||
+    isWishlistPath(pathname) ||
+    isKnowMorePath(pathname) ||
+    isWholesalePath(pathname) ||
+    isContactPath(pathname) ||
+    isAdminPath(pathname) ||
+    isAuthPath(pathname)
+  ) {
+    markRoutePersistOnRefresh(pathname)
+  } else if (pathname === APP_ROUTES.home || isHomeSectionScrollPath(pathname)) {
+    clearPersistRoute()
+  }
+
+  if (window.location.pathname + window.location.hash === target && !window.location.search) {
     window.dispatchEvent(new PopStateEvent('popstate'))
-    window.scrollTo(0, 0)
-    document.documentElement.scrollTop = 0
-    document.body.scrollTop = 0
     return
   }
-  window.history.pushState(null, '', path)
+  window.history.pushState(null, '', target)
   window.dispatchEvent(new PopStateEvent('popstate'))
-  window.scrollTo(0, 0)
-  document.documentElement.scrollTop = 0
-  document.body.scrollTop = 0
 }

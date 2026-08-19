@@ -2,11 +2,11 @@ import { motion } from 'framer-motion'
 import { CONTACT_EMAIL, CONTACT_PHONE_DISPLAY, CONTACT_PHONE_TEL, WHATSAPP_BULK_URL } from '../../lib/contact'
 
 const INK = '#0a2e22'
-const CREAM = '#f3e6c8'
+const CREAM = '#f2f4f5'
 const GOLD = '#b8860b'
 const TEXTURE = '/image.png_2K_202608092240.jpeg'
-const MUTED = 'rgba(243,230,200,0.72)'
-const LINE = 'rgba(243,230,200,0.22)'
+const MUTED = 'rgba(242,244,245,0.72)'
+const LINE = 'rgba(242,244,245,0.22)'
 
 const ease = [0.22, 1, 0.36, 1] as const
 
@@ -44,12 +44,12 @@ const CHANNELS = [
 const STEPS = [
   { n: '01', title: 'Share requirement', body: 'Volume, SKUs, packing, and destination.' },
   { n: '02', title: 'Quote & samples', body: 'Pricing, lead time, and taste samples if needed.' },
-  { n: '03', title: 'Confirm & pack', body: 'PO locked — hygienic packing at Furat Gruh.' },
+  { n: '03', title: 'Confirm & pack', body: 'PO locked — hygienic packing at Tasneem Mukhwas.' },
   { n: '04', title: 'Dispatch', body: 'Domestic courier or export documentation.' },
 ] as const
 
 const IMPORT_EXPORT = [
-  { label: 'Parent unit', value: 'Furat Gruh Udhyog · Chhapi, Gujarat' },
+  { label: 'Parent unit', value: 'Tasneem Mukhwas · Chhapi, Gujarat' },
   { label: 'IEC', value: 'AAEFF9922C (DGFT)' },
   { label: 'MSME', value: 'UDYAM-GJ-04-0047609 · Micro manufacturing' },
   { label: 'WHO-GMP', value: 'Certified manufacturing & packing' },
@@ -286,7 +286,7 @@ export default function B2BBanner() {
                 <div
                   key={row.label}
                   className="grid gap-1 border-b px-4 py-3.5 last:border-b-0 sm:grid-cols-[minmax(0,0.42fr)_minmax(0,0.58fr)] sm:gap-4 sm:px-5"
-                  style={{ borderColor: LINE, backgroundColor: i % 2 === 0 ? 'rgba(243,230,200,0.04)' : 'transparent' }}
+                  style={{ borderColor: LINE, backgroundColor: i % 2 === 0 ? 'rgba(242,244,245,0.04)' : 'transparent' }}
                 >
                   <dt
                     className="m-0 text-[0.72rem] font-semibold tracking-[0.1em] uppercase"
@@ -363,7 +363,7 @@ export default function B2BBanner() {
         {/* Bottom CTA bar */}
         <motion.div
           className="mt-14 flex flex-col items-start justify-between gap-5 border px-5 py-6 sm:flex-row sm:items-center sm:px-7 sm:py-7"
-          style={{ borderColor: LINE, backgroundColor: 'rgba(243,230,200,0.05)' }}
+          style={{ borderColor: LINE, backgroundColor: 'rgba(242,244,245,0.05)' }}
           initial={{ opacity: 0, y: 22 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: false, amount: 0.4 }}

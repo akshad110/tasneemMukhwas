@@ -1,95 +1,47 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import {
+  formatOrderDate,
+  HubNav,
+  LayerCard,
+  orderStatusTone,
+  ProfileSidebarCard,
+  ShortcutRow,
+  StatLayerCard,
+} from '../components/account/AccountDashboard'
 import Navbar from '../components/nav/Navbar'
 import { useAuth } from '../context/AuthContext'
+import { useWishlist } from '../context/WishlistContext'
 import { ApiRequestError } from '../lib/api'
+import { ACCOUNT_CREAM, ACCOUNT_EASE, ACCOUNT_GOLD, ACCOUNT_MUTED } from '../lib/accountTheme'
 import { APP_ROUTES, navigateApp } from '../lib/appRoutes'
+import { scrollAppToTop } from '../lib/scrollControl'
+import { ordersApi, type AdminOrder } from '../lib/services'
 
-const INK = '#0a2e22'
-const CREAM = '#f3e6c8'
-const GOLD = '#b8860b'
-const PAGE_BG = '#eef3ef'
-const MUTED = 'rgba(10,46,34,0.55)'
-const LINE = 'rgba(10,46,34,0.08)'
-const CARD = '#f7faf8'
+type ProfileTab = 'identity' | 'activity' | 'shortcuts'
 
-function DetailRow({
-  label,
-  value,
-  last = false,
-}: {
-  label: string
-  value: ReactNode
-  last?: boolean
-}) {
-  return (
-    <div
-      className={`grid gap-1 py-3.5 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] sm:items-center sm:gap-4 ${
-        last ? '' : 'border-b'
-      }`}
-      style={{ borderColor: LINE }}
-    >
-      <p className="m-0 text-[0.78rem]" style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}>
-        {label}
-      </p>
-      <div className="text-[0.92rem] font-medium" style={{ color: INK, fontFamily: 'Inter, sans-serif' }}>
-        {value}
-      </div>
-    </div>
-  )
-}
-
-function Toggle({
-  checked,
-  onChange,
-  label,
-}: {
-  checked: boolean
-  onChange: (v: boolean) => void
-  label: string
-}) {
-  return (
-    <label className="flex cursor-pointer items-center justify-between gap-3 py-3">
-      <span className="text-[0.9rem]" style={{ color: INK, fontFamily: 'Inter, sans-serif' }}>
-        {label}
-      </span>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className="relative h-6 w-11 shrink-0 cursor-pointer rounded-full border-0 transition"
-        style={{ backgroundColor: checked ? '#9b7235' : '#d8d8d8' }}
-      >
-        <span
-          className="absolute top-0.5 left-0.5 h-5 w-5 rounded-full shadow-sm transition-transform"
-          style={{
-            backgroundColor: checked ? '#0e291f' : '#ffffff',
-            transform: checked ? 'translateX(20px)' : 'translateX(0)',
-          }}
-        />
-      </button>
-    </label>
-  )
-}
+const MAIN_TABS: { id: ProfileTab; label: string }[] = [
+  { id: 'identity', label: 'Identity' },
+  { id: 'activity', label: 'Activity' },
+  { id: 'shortcuts', label: 'Shortcuts' },
+]
 
 export default function ProfilePage() {
-  const { user, loading, updateProfile, changePassword, logout, isAdmin } = useAuth()
-  const [notifyOrders, setNotifyOrders] = useState(true)
-  const [notifyLowStock, setNotifyLowStock] = useState(true)
-  const [notifyReviews, setNotifyReviews] = useState(false)
-  const [notifSaving, setNotifSaving] = useState(false)
-  const [notifMsg, setNotifMsg] = useState('')
+  const { user, loading, updateProfile, isAdmin } = useAuth()
+  const { count: wishlistCount } = useWishlist()
+  const [orders, setOrders] = useState<AdminOrder[]>([])
+  const [ordersLoading, setOrdersLoading] = useState(true)
+  const [tab, setTab] = useState<ProfileTab>('identity')
 
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [pwSaving, setPwSaving] = useState(false)
-  const [pwMsg, setPwMsg] = useState('')
-  const [pwError, setPwError] = useState('')
+  const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [profileSaving, setProfileSaving] = useState(false)
+  const [profileMsg, setProfileMsg] = useState('')
+  const [profileError, setProfileError] = useState('')
 
   useEffect(() => {
     document.title = 'Profile · Tasneem Mukhwas'
-    window.scrollTo(0, 0)
+    scrollAppToTop(true)
     return () => {
       document.title = 'Tasneem Mukhwas'
     }
@@ -101,304 +53,308 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!user) return
-    setNotifyOrders(Boolean(user.notifyOrders))
-    setNotifyLowStock(Boolean(user.notifyLowStock))
-    setNotifyReviews(Boolean(user.notifyReviews))
+    setName(user.name)
+    setPhone(user.phone || '')
   }, [user])
 
-  const initial = (user?.name?.trim()?.[0] || 'U').toUpperCase()
-  const roleLabel = isAdmin ? 'Super Admin' : 'Customer'
-  const badgeLabel = isAdmin ? 'Admin account' : 'Tasneem member'
-
-  const saveNotifications = async () => {
+  useEffect(() => {
     if (!user) return
-    setNotifSaving(true)
-    setNotifMsg('')
-    try {
-      await updateProfile({ notifyOrders, notifyLowStock, notifyReviews })
-      setNotifMsg('Notification preferences saved')
-      window.setTimeout(() => setNotifMsg(''), 2000)
-    } catch (err) {
-      setNotifMsg(err instanceof ApiRequestError ? err.message : 'Could not save')
-    } finally {
-      setNotifSaving(false)
+    let cancelled = false
+    setOrdersLoading(true)
+    ordersApi
+      .mine()
+      .then((data) => {
+        if (!cancelled) setOrders(data.items)
+      })
+      .catch(() => {
+        if (!cancelled) setOrders([])
+      })
+      .finally(() => {
+        if (!cancelled) setOrdersLoading(false)
+      })
+    return () => {
+      cancelled = true
     }
-  }
+  }, [user])
 
-  const onChangePassword = async (e: FormEvent) => {
+  const stats = useMemo(() => {
+    const active = orders.filter((o) => o.status !== 'completed' && o.status !== 'cancelled').length
+    const spent = orders.reduce((sum, o) => sum + (o.total || 0), 0)
+    return { total: orders.length, active, spent }
+  }, [orders])
+
+  const recentOrders = useMemo(() => orders.slice(0, 5), [orders])
+
+  const onSaveProfile = async (e: FormEvent) => {
     e.preventDefault()
-    setPwError('')
-    setPwMsg('')
-    if (newPassword.length < 6) {
-      setPwError('New password must be at least 6 characters')
-      return
-    }
-    if (newPassword !== confirmPassword) {
-      setPwError('New passwords do not match')
-      return
-    }
-    setPwSaving(true)
+    if (!user) return
+    setProfileSaving(true)
+    setProfileMsg('')
+    setProfileError('')
     try {
-      await changePassword({ currentPassword, newPassword })
-      setPwMsg('Password updated')
-      setCurrentPassword('')
-      setNewPassword('')
-      setConfirmPassword('')
-      window.setTimeout(() => setPwMsg(''), 2500)
+      await updateProfile({ name: name.trim(), phone: phone.trim() })
+      setProfileMsg('Profile updated')
+      window.setTimeout(() => setProfileMsg(''), 2200)
     } catch (err) {
-      setPwError(err instanceof ApiRequestError ? err.message : 'Could not change password')
+      setProfileError(err instanceof ApiRequestError ? err.message : 'Could not save profile')
     } finally {
-      setPwSaving(false)
+      setProfileSaving(false)
     }
   }
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen" style={{ backgroundColor: PAGE_BG }}>
-        <Navbar />
-        <p className="m-0 px-6 py-20 text-center text-[0.95rem]" style={{ color: MUTED }}>
-          Loading…
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: ACCOUNT_CREAM }}>
+        <p className="m-0 text-[0.95rem]" style={{ color: ACCOUNT_MUTED }}>
+          Loading your profile…
         </p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: PAGE_BG }}>
+    <div className="settings-dash">
       <Navbar />
-      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
-        {/* Top: identity + details */}
-        <div className="grid gap-4 lg:grid-cols-[0.85fr_1.35fr]">
-          <section
-            className="flex flex-col rounded-[22px] border px-6 py-7"
-            style={{
-              backgroundColor: CARD,
-              borderColor: LINE,
-              boxShadow: '0 12px 32px -24px rgba(10,46,34,0.28)',
-            }}
-          >
-            <h1
-              className="m-0 text-[1.65rem] font-bold tracking-tight sm:text-[1.85rem]"
-              style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
-            >
-              {user.name}
-            </h1>
-            <p
-              className="mt-1.5 m-0 text-[0.82rem] font-semibold"
-              style={{ color: '#1b7a3e', fontFamily: 'Inter, sans-serif' }}
-            >
-              {badgeLabel}
-            </p>
 
-            <div className="mt-8 flex flex-1 items-center justify-center py-4">
-              <div
-                className="flex h-14 w-14 items-center justify-center rounded-full text-[1.15rem] font-bold"
-                style={{
-                  backgroundColor: GOLD,
-                  color: INK,
-                  boxShadow: '0 0 0 5px rgba(184,134,11,0.16)',
-                }}
-                aria-hidden
-              >
-                {initial}
-              </div>
+      <div className="settings-dash__inner">
+        <HubNav active="profile" />
+
+        <div className="settings-dash__grid">
+          <ProfileSidebarCard
+            name={user.name}
+            email={user.email}
+            phone={user.phone}
+            timezone={user.timezone}
+            isAdmin={isAdmin}
+            ctaLabel="Account settings"
+            onCta={() => navigateApp(APP_ROUTES.settings)}
+            onEdit={() => setTab('identity')}
+          />
+
+          <div className="settings-stats-row">
+            <StatLayerCard
+              value={ordersLoading ? '…' : stats.total}
+              label="Lifetime orders"
+              bars={[30, 48, 42, 58, 65, 72, 85]}
+              onClick={() => navigateApp(APP_ROUTES.myOrders)}
+              delay={0.05}
+            />
+            <StatLayerCard
+              value={ordersLoading ? '…' : stats.active}
+              label="In progress"
+              bars={[22, 38, 45, 52, 48, 60, 68]}
+              onClick={() => navigateApp(APP_ROUTES.myOrders)}
+              delay={0.1}
+            />
+            <StatLayerCard
+              value={ordersLoading ? '…' : `₹${stats.spent.toLocaleString('en-IN')}`}
+              label="Total spent"
+              bars={[40, 55, 62, 70, 78, 88, 100]}
+              lift
+              accentLast
+              delay={0.15}
+            />
+          </div>
+
+          <LayerCard className="settings-main-card">
+            <div className="settings-main-card__tabs" role="tablist">
+              {MAIN_TABS.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === t.id}
+                  onClick={() => setTab(t.id)}
+                  className={`settings-main-card__tab ${tab === t.id ? 'settings-main-card__tab--active' : ''}`}
+                >
+                  {t.label}
+                </button>
+              ))}
             </div>
-          </section>
 
-          <section
-            className="rounded-[22px] border px-5 py-5 sm:px-7 sm:py-6"
-            style={{
-              backgroundColor: CARD,
-              borderColor: LINE,
-              boxShadow: '0 12px 32px -24px rgba(10,46,34,0.28)',
-            }}
-          >
-            <h2
-              className="m-0 text-[1.05rem] font-semibold"
-              style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
-            >
-              Bio & other details
-            </h2>
+            <div className="settings-main-card__toolbar">
+              <p className="m-0 text-[0.82rem]" style={{ color: ACCOUNT_MUTED }}>
+                {tab === 'identity' && 'Update how we address you on orders and receipts'}
+                {tab === 'activity' && 'Your latest orders at a glance'}
+                {tab === 'shortcuts' && 'Jump to orders, wishlist, and settings'}
+              </p>
+              {tab === 'activity' ? (
+                <button
+                  type="button"
+                  className="settings-soft-btn settings-soft-btn--ghost"
+                  onClick={() => navigateApp(APP_ROUTES.myOrders)}
+                >
+                  View all
+                </button>
+              ) : null}
+              {tab === 'identity' ? (
+                <span className="settings-status-badge settings-status-badge--on">{wishlistCount} saved</span>
+              ) : null}
+            </div>
 
-            <div className="mt-2">
-              <DetailRow label="My role" value={roleLabel} />
-              <DetailRow label="Email" value={user.email} />
-              <DetailRow label="Phone" value={user.phone?.trim() || '—'} />
-              <DetailRow label="Store" value={user.store || 'Tasneem Mukhwas'} />
-              <DetailRow label="Timezone" value={user.timezone || 'Asia/Kolkata'} />
-              <DetailRow
-                label="Account status"
-                value={
-                  <span
-                    className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[0.78rem] font-semibold"
-                    style={{
-                      borderColor: 'rgba(27,122,62,0.25)',
-                      backgroundColor: '#e9f5ee',
-                      color: '#1b7a3e',
-                    }}
+            <div className="settings-main-card__body">
+              <AnimatePresence mode="wait">
+                {tab === 'identity' && (
+                  <motion.div
+                    key="identity"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.3, ease: ACCOUNT_EASE }}
                   >
-                    <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: '#1b7a3e' }} />
-                    Active
-                  </span>
-                }
-              />
-              <DetailRow
-                label="Badges"
-                value={isAdmin ? 'Store Admin' : 'Verified Shopper'}
-                last
-              />
-            </div>
+                    <form onSubmit={(e) => void onSaveProfile(e)} className="settings-form-stack">
+                      <label>
+                        <span className="settings-soft-label">Display name</span>
+                        <input
+                          className="settings-soft-input"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          required
+                        />
+                      </label>
+                      <label>
+                        <span className="settings-soft-label">Phone</span>
+                        <input
+                          className="settings-soft-input"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          placeholder="+91 …"
+                        />
+                      </label>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="settings-inset-field">
+                          <span className="settings-inset-field__label">Email</span>
+                          <span className="settings-inset-field__value">{user.email}</span>
+                        </div>
+                        <div className="settings-inset-field">
+                          <span className="settings-inset-field__label">Timezone</span>
+                          <span className="settings-inset-field__value">{user.timezone || 'Asia/Kolkata'}</span>
+                        </div>
+                      </div>
+                      {profileError ? (
+                        <p className="m-0 text-[0.78rem]" style={{ color: '#a32020' }} role="alert">
+                          {profileError}
+                        </p>
+                      ) : null}
+                      {profileMsg ? (
+                        <p className="m-0 text-[0.78rem]" style={{ color: '#1b7a3e' }}>
+                          {profileMsg}
+                        </p>
+                      ) : null}
+                      <button type="submit" className="settings-soft-btn" disabled={profileSaving}>
+                        {profileSaving ? 'Saving…' : 'Save profile'}
+                      </button>
+                    </form>
+                  </motion.div>
+                )}
 
-            {isAdmin ? (
-              <button
-                type="button"
-                onClick={() => navigateApp(APP_ROUTES.admin)}
-                className="mt-4 cursor-pointer rounded-xl border-0 px-4 py-2.5 text-[0.8rem] font-semibold"
-                style={{ backgroundColor: GOLD, color: INK }}
-              >
-                Open admin panel
-              </button>
-            ) : null}
-          </section>
+                {tab === 'activity' && (
+                  <motion.div
+                    key="activity"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.3, ease: ACCOUNT_EASE }}
+                  >
+                    {ordersLoading ? (
+                      <div className="space-y-3 py-2">
+                        {[0, 1, 2].map((i) => (
+                          <div key={i} className="product-skeleton-block h-16 rounded-2xl" />
+                        ))}
+                      </div>
+                    ) : recentOrders.length === 0 ? (
+                      <p className="m-0 py-10 text-center text-[0.88rem]" style={{ color: ACCOUNT_MUTED }}>
+                        No orders yet — explore the shop and your first batch will show up here.
+                      </p>
+                    ) : (
+                      recentOrders.map((order) => {
+                        const { day, month } = formatOrderDate(order.date)
+                        const tone = orderStatusTone(order.status)
+                        return (
+                          <button
+                            key={order.id}
+                            type="button"
+                            className="settings-pref-row settings-shortcut-row"
+                            onClick={() => navigateApp(APP_ROUTES.myOrders)}
+                          >
+                            <div className="settings-pref-row__date">
+                              <strong>{day}</strong>
+                              <span>{month}</span>
+                            </div>
+                            <div className="text-left">
+                              <span className="settings-pref-row__title">
+                                Order #{order.id.slice(-6).toUpperCase()}
+                              </span>
+                              <span className="settings-pref-row__desc">
+                                {order.items} items · {order.date}
+                              </span>
+                            </div>
+                            <span className={`settings-status-badge settings-status-badge--${tone}`}>
+                              {order.status}
+                            </span>
+                            <span className="text-[0.95rem] font-bold" style={{ color: ACCOUNT_GOLD }}>
+                              ₹{order.total}
+                            </span>
+                          </button>
+                        )
+                      })
+                    )}
+                  </motion.div>
+                )}
+
+                {tab === 'shortcuts' && (
+                  <motion.div
+                    key="shortcuts"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.3, ease: ACCOUNT_EASE }}
+                  >
+                    <ShortcutRow
+                      day="01"
+                      month="Ord"
+                      title="Track my orders"
+                      desc="Live status, delivery tracker, and product reviews."
+                      badge="Open"
+                      badgeTone="on"
+                      onClick={() => navigateApp(APP_ROUTES.myOrders)}
+                    />
+                    <ShortcutRow
+                      day="02"
+                      month="Sav"
+                      title="Browse wishlist"
+                      desc="Jump back to flavours you saved for later."
+                      badge={String(wishlistCount)}
+                      badgeTone="neutral"
+                      onClick={() => navigateApp(APP_ROUTES.wishlist)}
+                    />
+                    <ShortcutRow
+                      day="03"
+                      month="Set"
+                      title="Account settings"
+                      desc="Password, alerts, and sign-out controls."
+                      badge="Go"
+                      badgeTone="neutral"
+                      onClick={() => navigateApp(APP_ROUTES.settings)}
+                    />
+                    {isAdmin ? (
+                      <ShortcutRow
+                        day="04"
+                        month="Adm"
+                        title="Admin command center"
+                        desc="Products, orders, reviews, and store controls."
+                        badge="Admin"
+                        badgeTone="on"
+                        onClick={() => navigateApp(APP_ROUTES.admin)}
+                      />
+                    ) : null}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </LayerCard>
         </div>
-
-        {/* Settings */}
-        <section
-          className="mt-4 rounded-[22px] border px-5 py-5 sm:px-7 sm:py-6"
-          style={{
-            backgroundColor: CARD,
-            borderColor: LINE,
-            boxShadow: '0 12px 32px -24px rgba(10,46,34,0.28)',
-          }}
-        >
-          <h2
-            className="m-0 text-[1.05rem] font-semibold"
-            style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
-          >
-            Settings
-          </h2>
-
-          <div className="mt-5 grid gap-6 lg:grid-cols-2">
-            <form onSubmit={onChangePassword} className="space-y-3">
-              <p
-                className="m-0 text-[0.78rem] font-semibold tracking-wide uppercase"
-                style={{ color: GOLD }}
-              >
-                Change password
-              </p>
-              <input
-                type="password"
-                placeholder="Current password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                required
-                className="w-full rounded-xl border px-3 py-2.5 text-[0.9rem] outline-none"
-                style={{ borderColor: LINE, color: INK, backgroundColor: '#ffffff' }}
-              />
-              <input
-                type="password"
-                placeholder="New password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-                minLength={6}
-                className="w-full rounded-xl border px-3 py-2.5 text-[0.9rem] outline-none"
-                style={{ borderColor: LINE, color: INK, backgroundColor: '#ffffff' }}
-              />
-              <input
-                type="password"
-                placeholder="Confirm new password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                minLength={6}
-                className="w-full rounded-xl border px-3 py-2.5 text-[0.9rem] outline-none"
-                style={{ borderColor: LINE, color: INK, backgroundColor: '#ffffff' }}
-              />
-              {pwError ? (
-                <p className="m-0 text-[0.78rem]" style={{ color: '#a32020' }} role="alert">
-                  {pwError}
-                </p>
-              ) : null}
-              {pwMsg ? (
-                <p className="m-0 text-[0.78rem]" style={{ color: '#1b7a3e' }}>
-                  {pwMsg}
-                </p>
-              ) : null}
-              <button
-                type="submit"
-                disabled={pwSaving}
-                className="cursor-pointer rounded-xl border-0 px-4 py-2.5 text-[0.8rem] font-semibold disabled:opacity-60"
-                style={{ backgroundColor: INK, color: CREAM }}
-              >
-                {pwSaving ? 'Updating…' : 'Update password'}
-              </button>
-            </form>
-
-            <div>
-              <p
-                className="m-0 text-[0.78rem] font-semibold tracking-wide uppercase"
-                style={{ color: GOLD }}
-              >
-                Notifications
-              </p>
-              <div className="mt-1">
-                <Toggle
-                  label="Order updates"
-                  checked={notifyOrders}
-                  onChange={setNotifyOrders}
-                />
-                <div className="border-t" style={{ borderColor: LINE }}>
-                  <Toggle
-                    label="Low stock alerts"
-                    checked={notifyLowStock}
-                    onChange={setNotifyLowStock}
-                  />
-                </div>
-                <div className="border-t" style={{ borderColor: LINE }}>
-                  <Toggle
-                    label="Product review alerts"
-                    checked={notifyReviews}
-                    onChange={setNotifyReviews}
-                  />
-                </div>
-              </div>
-              {notifMsg ? (
-                <p className="mt-2 m-0 text-[0.78rem]" style={{ color: '#1b7a3e' }}>
-                  {notifMsg}
-                </p>
-              ) : null}
-              <button
-                type="button"
-                onClick={() => void saveNotifications()}
-                disabled={notifSaving}
-                className="mt-3 cursor-pointer rounded-xl border-0 px-4 py-2.5 text-[0.8rem] font-semibold disabled:opacity-60"
-                style={{ backgroundColor: INK, color: CREAM }}
-              >
-                {notifSaving ? 'Saving…' : 'Save notifications'}
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-8 border-t pt-5" style={{ borderColor: LINE }}>
-            <button
-              type="button"
-              onClick={() => {
-                logout()
-                navigateApp(APP_ROUTES.home)
-              }}
-              className="cursor-pointer rounded-xl border px-5 py-2.5 text-[0.82rem] font-semibold"
-              style={{
-                borderColor: 'rgba(163,32,32,0.28)',
-                backgroundColor: '#fff5f4',
-                color: '#a32020',
-              }}
-            >
-              Log out
-            </button>
-          </div>
-        </section>
-      </main>
+      </div>
     </div>
   )
 }

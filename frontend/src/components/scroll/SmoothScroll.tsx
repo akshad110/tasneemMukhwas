@@ -1,19 +1,19 @@
 import { ReactLenis, useLenis } from 'lenis/react'
 import type { LenisOptions } from 'lenis'
 import { useEffect, type ReactNode } from 'react'
+import { refreshScrollLayout, scrollAppToTop, setScrollController } from '../../lib/scrollControl'
 
-/** Cap a single wheel tick so fast flicks can't jump past scroll-driven sections. */
-const MAX_WHEEL_DELTA = 48
+/** Cap wheel delta so scroll-driven home sections stay readable without feeling sluggish site-wide. */
+const MAX_WHEEL_DELTA = 80
 
 const LENIS_OPTIONS: LenisOptions = {
   autoRaf: true,
   smoothWheel: true,
-  lerp: 0.08,
-  wheelMultiplier: 0.6,
-  touchMultiplier: 0.85,
-  syncTouch: false,
+  lerp: 0.12,
+  wheelMultiplier: 0.92,
+  touchMultiplier: 1,
+  syncTouch: true,
   respectReducedMotion: true,
-  // Prevent Lenis from fighting native overflow lock leftovers
   allowNestedScroll: true,
   virtualScroll: (data) => {
     if (Math.abs(data.deltaY) > MAX_WHEEL_DELTA) {
@@ -39,9 +39,9 @@ function KeepLenisHealthy() {
   useEffect(() => {
     if (!lenis) return
 
+    setScrollController(lenis)
     clearOverflowLocks()
     lenis.start()
-    lenis.scrollTo(0, { immediate: true })
     lenis.resize()
 
     const refresh = () => {
@@ -50,7 +50,6 @@ function KeepLenisHealthy() {
       lenis.resize()
     }
 
-    // Images / sticky sections change page height after mount — Lenis must remeasure
     const onLoad = () => refresh()
     window.addEventListener('load', onLoad)
     window.addEventListener('resize', refresh)
@@ -58,14 +57,6 @@ function KeepLenisHealthy() {
     const ro = new ResizeObserver(() => refresh())
     ro.observe(document.body)
 
-    // Periodic safety net if scroll feels frozen mid-page
-    const id = window.setInterval(() => {
-      if (document.body.style.overflow === 'hidden') return
-      if (lenis.isStopped) lenis.start()
-      lenis.resize()
-    }, 2500)
-
-    // Recover if wheel events fire but Lenis is stopped unexpectedly
     const onWheel = () => {
       if (document.body.style.overflow === 'hidden') return
       if (lenis.isStopped) {
@@ -77,14 +68,28 @@ function KeepLenisHealthy() {
     window.addEventListener('touchmove', onWheel, { passive: true })
 
     return () => {
+      setScrollController(null)
       window.removeEventListener('load', onLoad)
       window.removeEventListener('resize', refresh)
       window.removeEventListener('wheel', onWheel)
       window.removeEventListener('touchmove', onWheel)
       ro.disconnect()
-      window.clearInterval(id)
     }
   }, [lenis])
+
+  return null
+}
+
+/** Reset scroll position when SPA route changes. */
+export function RouteScrollReset({ routeKey }: { routeKey: string }) {
+  useEffect(() => {
+    scrollAppToTop(true)
+    const id = window.requestAnimationFrame(() => {
+      scrollAppToTop(true)
+      refreshScrollLayout()
+    })
+    return () => window.cancelAnimationFrame(id)
+  }, [routeKey])
 
   return null
 }
@@ -94,15 +99,13 @@ type SmoothScrollProps = {
   enabled?: boolean
 }
 
-/**
- * Page-wide smooth scroll — damps fast wheel/trackpad so Orbit / About zoom stay readable.
- */
-export default function SmoothScroll({
-  children,
-  enabled = true,
-}: SmoothScrollProps) {
+/** App-wide Lenis smooth scroll — wraps every page for consistent feel. */
+export default function SmoothScroll({ children, enabled = true }: SmoothScrollProps) {
   useEffect(() => {
-    if (!enabled) clearOverflowLocks()
+    if (!enabled) {
+      setScrollController(null)
+      clearOverflowLocks()
+    }
   }, [enabled])
 
   if (!enabled) return children
@@ -115,24 +118,25 @@ export default function SmoothScroll({
   )
 }
 
-/** Optional helper for modals that need to pause smooth scroll. */
+/** Pause smooth scroll while modals / drawers are open. */
 export function useLenisLock(locked: boolean) {
   const lenis = useLenis()
   useEffect(() => {
-    if (!lenis) {
-      if (locked) document.body.style.overflow = 'hidden'
-      else document.body.style.removeProperty('overflow')
-      return
-    }
-    if (locked) lenis.stop()
-    else {
+    if (locked) {
+      document.documentElement.style.overflow = 'hidden'
+      document.body.style.overflow = 'hidden'
+      lenis?.stop()
+    } else {
+      document.documentElement.style.removeProperty('overflow')
       document.body.style.removeProperty('overflow')
-      lenis.start()
-      lenis.resize()
+      lenis?.start()
+      lenis?.resize()
     }
     return () => {
+      document.documentElement.style.removeProperty('overflow')
       document.body.style.removeProperty('overflow')
-      lenis.start()
+      lenis?.start()
+      lenis?.resize()
     }
   }, [lenis, locked])
 }

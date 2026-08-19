@@ -5,16 +5,19 @@ import {
   CheckoutFlowStepperBar,
 } from '../components/checkout/CheckoutFlow'
 import Navbar from '../components/nav/Navbar'
+import BackToHomeButton from '../components/shared/BackToHomeButton'
 import ShopProductCard from '../components/shop/ShopProductCard'
+import ProductCardSkeleton from '../components/shop/ProductCardSkeleton'
 import { useCart, type CartResolvedItem } from '../context/CartContext'
 import { useCatalog } from '../context/CatalogContext'
 import { APP_ROUTES, navigateApp } from '../lib/appRoutes'
+import { scrollAppToTop } from '../lib/scrollControl'
 import { getSellPrice, type ShopProduct } from '../lib/shopCatalog'
 
 const INK = '#0a2e22'
-const CREAM = '#f3e6c8'
+const CREAM = '#f2f4f5'
 const GOLD = '#b8860b'
-const SURFACE = 'rgba(255,252,247,0.9)'
+const SURFACE = 'rgba(248,249,250,0.9)'
 const MUTED = 'rgba(10,46,34,0.58)'
 const LINE = 'rgba(10,46,34,0.12)'
 const PANEL = '#f3ebe0'
@@ -129,7 +132,7 @@ function CartLineRow({ item }: { item: CartResolvedItem }) {
 
 function SuggestedForYou() {
   const { items } = useCart()
-  const { products } = useCatalog()
+  const { products, loading: catalogLoading } = useCatalog()
   const [heldIds, setHeldIds] = useState<string[]>([])
   const prevCart = useRef<Set<string>>(new Set())
 
@@ -158,38 +161,50 @@ function SuggestedForYou() {
     return [...held, ...rest].slice(0, SUGGEST_VISIBLE)
   }, [heldIds, remaining, products])
 
-  if (items.length === 0 || visible.length === 0) return null
+  if (items.length === 0) return null
+
+  const sectionHeader = (
+    <div className="mb-6">
+      <p
+        className="m-0 text-[0.68rem] font-semibold tracking-[0.18em] uppercase"
+        style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}
+      >
+        You may also like
+      </p>
+      <h2
+        id="suggested-heading"
+        className="mt-1.5 m-0 text-[1.55rem] font-bold tracking-tight sm:text-[1.85rem]"
+        style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
+      >
+        Suggested for you
+      </h2>
+    </div>
+  )
+
+  if (catalogLoading) {
+    return (
+      <section className="mt-14 sm:mt-16" aria-labelledby="suggested-heading" aria-busy>
+        {sectionHeader}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: SUGGEST_VISIBLE }, (_, i) => (
+            <ProductCardSkeleton key={i} index={i} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  if (visible.length === 0) return null
 
   return (
     <section className="mt-14 sm:mt-16" aria-labelledby="suggested-heading">
-      <div className="mb-6">
-        <p
-          className="m-0 text-[0.68rem] font-semibold tracking-[0.18em] uppercase"
-          style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}
-        >
-          You may also like
-        </p>
-        <h2
-          id="suggested-heading"
-          className="mt-1.5 m-0 text-[1.55rem] font-bold tracking-tight sm:text-[1.85rem]"
-          style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
-        >
-          Suggested for you
-        </h2>
-      </div>
+      {sectionHeader}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <AnimatePresence mode="popLayout">
-          {visible.map((product) => (
-            <motion.div
-              key={product.id}
-              layout
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96 }}
-              transition={{ duration: 0.3 }}
-            >
-              <ShopProductCard product={product} />
+          {visible.map((product, index) => (
+            <motion.div key={product.id} layout>
+              <ShopProductCard product={product} revealIndex={index} />
             </motion.div>
           ))}
         </AnimatePresence>
@@ -207,7 +222,7 @@ export default function CartPage() {
 
   useEffect(() => {
     document.title = 'Cart · Tasneem Mukhwas'
-    window.scrollTo(0, 0)
+    scrollAppToTop(true)
     return () => {
       document.title = 'Tasneem Mukhwas'
     }
@@ -219,25 +234,7 @@ export default function CartPage() {
       <CheckoutFlowStepperBar step={1} />
 
       <main className="mx-auto max-w-6xl px-4 pb-20 pt-8 sm:px-6 lg:px-8">
-        <nav className="mb-4 text-[0.78rem]" style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }} aria-label="Breadcrumb">
-          <button
-            type="button"
-            onClick={() => navigateApp(APP_ROUTES.home)}
-            className="cursor-pointer border-0 bg-transparent p-0 hover:underline"
-            style={{ color: MUTED }}
-          >
-            Home
-          </button>
-          <span className="mx-1.5">/</span>
-          <span style={{ color: INK }}>Cart</span>
-        </nav>
-
-        <h1
-          className="m-0 text-[2rem] font-bold tracking-tight uppercase sm:text-[2.5rem]"
-          style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
-        >
-          Your Cart
-        </h1>
+        <BackToHomeButton className="mb-6" />
 
         {items.length === 0 ? (
           <motion.div

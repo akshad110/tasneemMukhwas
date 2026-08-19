@@ -20,6 +20,9 @@ const transactionSchema = new mongoose.Schema(
       index: true,
     },
     invoice: { type: String, required: true },
+    razorpayOrderId: { type: String, default: '' },
+    razorpayPaymentId: { type: String, default: '' },
+    razorpaySignature: { type: String, default: '' },
   },
   { timestamps: true },
 )
@@ -34,6 +37,8 @@ transactionSchema.methods.toPublicJSON = function toPublicJSON() {
     method: this.method,
     status: this.status,
     invoice: this.invoice,
+    razorpayOrderId: this.razorpayOrderId || undefined,
+    razorpayPaymentId: this.razorpayPaymentId || undefined,
     date: this.createdAt ? this.createdAt.toISOString().slice(0, 10) : '',
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,

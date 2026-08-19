@@ -6,7 +6,7 @@ const GOLD = '#b8860b'
 const MUTED = 'rgba(10,46,34,0.55)'
 const CARD = '#ffffff'
 const LINE = 'rgba(10,46,34,0.08)'
-const CREAM = '#f3e6c8'
+const CREAM = '#f2f4f5'
 
 const STATUS_STYLE: Record<string, { bg: string; fg: string }> = {
   shipped: { bg: '#d8f3e0', fg: '#1b7a3e' },
@@ -18,6 +18,83 @@ const STATUS_STYLE: Record<string, { bg: string; fg: string }> = {
 
 const FLOW: AdminOrder['status'][] = ['pending', 'processing', 'shipped', 'completed']
 
+function nextStatus(current: AdminOrder['status']): AdminOrder['status'] | null {
+  const i = FLOW.indexOf(current)
+  if (i < 0 || i >= FLOW.length - 1) return null
+  return FLOW[i + 1]
+}
+
+function AdvanceStatusDialog({
+  order,
+  advancing,
+  onCancel,
+  onConfirm,
+}: {
+  order: AdminOrder
+  advancing: boolean
+  onCancel: () => void
+  onConfirm: () => void
+}) {
+  const upcoming = nextStatus(order.status)
+  if (!upcoming) return null
+
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4"
+      role="dialog"
+      aria-modal
+      aria-labelledby="advance-status-title"
+      onClick={onCancel}
+    >
+      <div
+        className="w-full max-w-md rounded-2xl border p-5 sm:p-6"
+        style={{ backgroundColor: CARD, borderColor: LINE }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 id="advance-status-title" className="m-0 text-[1.2rem] font-bold" style={{ color: INK }}>
+          Advance order status?
+        </h2>
+        <p className="mt-2 m-0 text-[0.9rem] leading-relaxed" style={{ color: MUTED }}>
+          Move order <strong style={{ color: INK }}>{order.id}</strong> from{' '}
+          <strong style={{ color: INK }} className="capitalize">
+            {order.status}
+          </strong>{' '}
+          to{' '}
+          <strong style={{ color: INK }} className="capitalize">
+            {upcoming}
+          </strong>
+          ? This will update fulfillment for {order.customer}.
+        </p>
+        {upcoming === 'shipped' && !order.tracking && (
+          <p className="mt-3 m-0 text-[0.82rem] leading-relaxed" style={{ color: MUTED }}>
+            A tracking number will be generated automatically when the order is marked as shipped.
+          </p>
+        )}
+        <div className="mt-6 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            disabled={advancing}
+            onClick={onCancel}
+            className="cursor-pointer rounded-xl border px-4 py-2.5 text-[0.85rem] font-semibold transition hover:bg-black/[0.03] disabled:opacity-60"
+            style={{ borderColor: LINE, backgroundColor: CARD, color: INK }}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={advancing}
+            onClick={onConfirm}
+            className="cursor-pointer rounded-xl border-0 px-4 py-2.5 text-[0.85rem] font-semibold disabled:opacity-60"
+            style={{ backgroundColor: INK, color: CREAM }}
+          >
+            {advancing ? 'Updating…' : 'Yes, advance status'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function AdminOrders() {
   const [orders, setOrders] = useState<AdminOrder[]>([])
   const [counts, setCounts] = useState<Record<string, number>>({})
@@ -25,6 +102,7 @@ export default function AdminOrders() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [advancing, setAdvancing] = useState(false)
+  const [confirmAdvance, setConfirmAdvance] = useState<AdminOrder | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -60,6 +138,7 @@ export default function AdminOrders() {
       const next = await ordersApi.advance(id)
       setOrders((prev) => prev.map((o) => (o.id === id ? next : o)))
       setSelected(next)
+      setConfirmAdvance(null)
       setCounts((prev) => {
         const c = { ...prev }
         const prevOrder = orders.find((o) => o.id === id)
@@ -306,19 +385,39 @@ export default function AdminOrders() {
                 <button
                   type="button"
                   disabled={advancing}
-                  onClick={() => void advance(selected.id)}
+                  onClick={() => setConfirmAdvance(selected)}
                   className="mt-5 w-full cursor-pointer rounded-xl border-0 py-3 text-[0.85rem] font-semibold disabled:opacity-60"
                   style={{ backgroundColor: INK, color: CREAM }}
                 >
                   {advancing ? 'Updating…' : 'Advance status'}
                 </button>
               )}
+
+              <button
+                type="button"
+                onClick={() => void ordersApi.downloadInvoice(selected.id)}
+                className="mt-3 w-full cursor-pointer rounded-xl border py-3 text-[0.85rem] font-semibold transition hover:bg-black/[0.03]"
+                style={{ borderColor: LINE, backgroundColor: CARD, color: INK }}
+              >
+                Download invoice
+              </button>
             </>
           ) : (
             <p style={{ color: MUTED }}>{loading ? 'Loading…' : 'Select an order'}</p>
           )}
         </aside>
       </div>
+
+      {confirmAdvance && (
+        <AdvanceStatusDialog
+          order={confirmAdvance}
+          advancing={advancing}
+          onCancel={() => {
+            if (!advancing) setConfirmAdvance(null)
+          }}
+          onConfirm={() => void advance(confirmAdvance.id)}
+        />
+      )}
     </div>
   )
 }

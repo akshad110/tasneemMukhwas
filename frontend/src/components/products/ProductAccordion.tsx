@@ -87,8 +87,8 @@ type PanelProps = {
   onOpen: () => void
 }
 
-/** Break ingredient copy every ~4–5 words so it doesn’t stretch full width. */
-function formatIngredients(text: string, wordsPerLine = 4): string {
+/** ~4–5 words per line for narrow copy columns. */
+function wrapWords(text: string, wordsPerLine = 4): string {
   const words = text.trim().split(/\s+/)
   const lines: string[] = []
   for (let i = 0; i < words.length; i += wordsPerLine) {
@@ -98,13 +98,7 @@ function formatIngredients(text: string, wordsPerLine = 4): string {
 }
 
 function ProductPanel({ product, open, onOpen }: PanelProps) {
-  const ink = product.lightText ? '#f3e6c8' : '#111111'
-  const ingredientsBoxBg = product.lightText
-    ? 'rgba(243, 230, 200, 0.14)'
-    : 'rgba(0, 0, 0, 0.08)'
-  const ingredientsBorder = product.lightText
-    ? 'rgba(243, 230, 200, 0.35)'
-    : 'rgba(0, 0, 0, 0.12)'
+  const ink = product.lightText ? '#f2f4f5' : '#111111'
   const hasIngredients = Boolean(product.ingredients)
 
   return (
@@ -112,10 +106,10 @@ function ProductPanel({ product, open, onOpen }: PanelProps) {
       type="button"
       layout
       onClick={onOpen}
-      className="relative min-h-[240px] overflow-hidden border-0 p-0 text-left outline-none focus-visible:ring-2 focus-visible:ring-[#f3e6c8]/60 md:min-h-0 md:h-full"
+      className="relative min-h-[170px] overflow-hidden border-0 p-0 text-left outline-none focus-visible:ring-2 focus-visible:ring-[#f2f4f5]/60 md:min-h-0 md:h-full"
       style={{
         backgroundColor: product.fill,
-        flexGrow: open ? 2.35 : 0.72,
+        flexGrow: open ? 3.1 : 0.72,
         flexShrink: 1,
         flexBasis: 0,
         cursor: open ? 'default' : 'pointer',
@@ -139,8 +133,8 @@ function ProductPanel({ product, open, onOpen }: PanelProps) {
       <div
         className={`relative z-10 flex h-full min-h-0 w-full ${
           open
-            ? 'flex-col items-center justify-start px-3 pb-5 pt-3 md:px-4 md:pb-6 md:pt-4'
-            : 'flex-col items-center justify-end px-1 pb-5 pt-3'
+            ? 'flex-col items-stretch justify-start px-2 pb-3 pt-2 md:px-3 md:pb-4 md:pt-3'
+            : 'flex-col items-center justify-end px-1 pb-3 pt-2'
         }`}
       >
         {/* 1 — Product name */}
@@ -148,8 +142,8 @@ function ProductPanel({ product, open, onOpen }: PanelProps) {
           layout="position"
           className={`m-0 max-w-full shrink-0 text-center font-semibold uppercase ${
             open
-              ? 'mb-1.5 w-full px-1 text-[clamp(0.85rem,1.55vw,1.3rem)] leading-[1.15] tracking-wide'
-              : 'mb-0 text-[0.95rem] leading-none tracking-[0.12em] md:text-[1.15rem] lg:text-[1.3rem]'
+              ? 'mb-1 w-full px-1 text-[clamp(0.68rem,1.1vw,0.95rem)] leading-[1.15] tracking-wide'
+              : 'mb-0 text-[0.72rem] leading-none tracking-[0.1em] md:text-[0.82rem] lg:text-[0.9rem]'
           }`}
           style={{
             color: ink,
@@ -168,59 +162,51 @@ function ProductPanel({ product, open, onOpen }: PanelProps) {
           {open && (
             <motion.div
               key="body"
-              initial={{ opacity: 0, y: 14 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
+              exit={{ opacity: 0, y: 8 }}
               transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-              className="flex min-h-0 w-full max-w-[17.5rem] flex-1 flex-col items-center"
+              className="grid min-h-0 w-full flex-1 grid-cols-[minmax(0,52%)_minmax(0,1fr)] items-stretch gap-2 px-0.5 pb-1 pt-1 md:gap-2.5 md:px-1 md:pb-2 md:pt-1.5"
             >
-              {/* 2 — Product image — fills middle space */}
-              <div className="relative flex min-h-0 w-full flex-1 items-center justify-center py-1">
+              {/* Image — left column */}
+              <div className="flex min-h-[190px] min-w-0 items-center justify-center self-stretch md:min-h-[260px]">
                 <img
                   src={product.image}
                   alt=""
                   loading="lazy"
                   decoding="async"
-                  className="h-full max-h-[300px] w-auto max-w-[min(94%,280px)] object-contain drop-shadow-lg"
+                  className="h-full max-h-[210px] w-auto max-w-[min(100%,195px)] object-contain object-center drop-shadow-lg md:max-h-[290px] md:max-w-[min(100%,250px)]"
                   draggable={false}
                 />
               </div>
 
-              {/* 3 — Description + ingredients — always kept above the bottom edge */}
-              <div className="mt-auto w-full shrink-0 px-2 pb-1 pt-2 text-center">
+              {/* Copy — right column */}
+              <div className="flex min-w-0 flex-col justify-center gap-1.5 pr-0.5 text-left md:gap-2 md:pr-1">
                 <p
-                  className="m-0 text-[0.72rem] leading-snug md:text-[0.8rem]"
+                  className="m-0 text-[0.52rem] leading-[1.45] md:text-[0.58rem]"
                   style={{
                     color: ink,
                     fontFamily: 'Poppins, Inter, sans-serif',
-                    opacity: 0.92,
+                    opacity: 0.9,
+                    whiteSpace: 'pre-line',
                   }}
                 >
-                  {product.description}
+                  {wrapWords(product.description, 5)}
                 </p>
                 {hasIngredients && (
-                  <div
-                    className="mx-auto mt-2 max-w-[10.5rem] rounded-sm px-2 py-1.5"
+                  <p
+                    className="m-0 text-[0.48rem] leading-[1.45] md:text-[0.52rem]"
                     style={{
-                      backgroundColor: ingredientsBoxBg,
-                      border: `1px solid ${ingredientsBorder}`,
                       color: ink,
                       fontFamily: 'Poppins, Inter, sans-serif',
+                      opacity: 0.88,
+                      whiteSpace: 'pre-line',
                     }}
                   >
-                    <p className="m-0 text-[0.62rem] font-semibold uppercase tracking-[0.12em] md:text-[0.66rem]">
-                      Ingredients
-                    </p>
-                    <p
-                      className="m-0 mt-1 text-[0.64rem] leading-[1.4] md:text-[0.68rem]"
-                      style={{
-                        whiteSpace: 'pre-line',
-                        opacity: 0.95,
-                      }}
-                    >
-                      {formatIngredients(product.ingredients!, 4)}
-                    </p>
-                  </div>
+                    <span className="font-semibold uppercase tracking-[0.06em]">Ingredients:</span>
+                    {'\n'}
+                    {wrapWords(product.ingredients!, 4)}
+                  </p>
                 )}
               </div>
             </motion.div>
@@ -240,7 +226,7 @@ export default function ProductAccordion() {
 
   return (
     <div
-      className="flex w-full flex-col overflow-hidden md:aspect-[1.82] md:min-h-[480px] md:flex-row md:flex-nowrap"
+      className="flex w-full flex-col overflow-hidden md:h-[min(420px,42vw)] md:min-h-[320px] md:max-h-[440px] md:flex-row md:flex-nowrap"
       role="list"
       aria-label="Product showcase"
     >

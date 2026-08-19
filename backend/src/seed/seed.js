@@ -88,7 +88,7 @@ const SEED_PRODUCTS = [
     name: 'Alsi Til Mukhwas',
     description: 'Nutty alsi-til seed mix with traditional digestive balance.',
     category: 'Seed Mix',
-    brand: 'Furat Gruh',
+    brand: 'Tasneem Mukhwas',
     fill: '#4b1916',
     lightText: true,
     image: '/products/alsi-til-mukhwas.png',
@@ -225,7 +225,39 @@ async function seed() {
   await connectDB()
 
   const adminEmail = env.adminEmail.toLowerCase()
+  const legacyAdminEmails = [
+    'admin@tasneemmukhwas.com',
+    process.env.ADMIN_FUTURE_EMAIL,
+    'akshavengurlekar35@gmail.com',
+    'akshadvengurlekar35@gmail.com',
+  ]
+    .filter(Boolean)
+    .map((e) => String(e).trim().toLowerCase())
+    .filter((e, i, arr) => arr.indexOf(e) === i && e !== adminEmail)
+
+  for (const email of legacyAdminEmails) {
+    const legacyUser = await User.findOne({ email })
+    if (legacyUser && legacyUser.role !== 'admin') {
+      await User.deleteOne({ _id: legacyUser._id })
+      console.log(`Removed legacy customer user: ${email}`)
+    }
+  }
+
+  const customerUsingAdminEmail = await User.findOne({ email: adminEmail, role: { $ne: 'admin' } })
+  if (customerUsingAdminEmail) {
+    await User.deleteOne({ _id: customerUsingAdminEmail._id })
+    console.log(`Removed customer account using admin email: ${adminEmail}`)
+  }
+
   let admin = await User.findOne({ email: adminEmail })
+  if (!admin) {
+    const legacyAdmin = await User.findOne({ email: { $in: legacyAdminEmails }, role: 'admin' })
+    if (legacyAdmin) {
+      console.log(`Migrating admin ${legacyAdmin.email} → ${adminEmail}`)
+      legacyAdmin.email = adminEmail
+      admin = legacyAdmin
+    }
+  }
   if (!admin) {
     admin = await User.create({
       name: env.adminName,
@@ -238,9 +270,16 @@ async function seed() {
   } else {
     admin.role = 'admin'
     admin.name = env.adminName
+    if (env.adminPassword) admin.password = env.adminPassword
     if (env.adminPhone) admin.phone = env.adminPhone
     await admin.save()
     console.log(`Admin ensured: ${adminEmail}`)
+  }
+
+  const staleAdmins = await User.find({ role: 'admin', email: { $ne: adminEmail } })
+  for (const stale of staleAdmins) {
+    await User.deleteOne({ _id: stale._id })
+    console.log(`Removed stale admin: ${stale.email}`)
   }
 
   // Demo storefront users (customers)

@@ -24,7 +24,7 @@ export function TestimonialsSection({
   return (
     <section
       id="testimonials"
-      className={cn('bg-[#f7f1e4] text-foreground', 'px-0 py-12 sm:py-20 md:py-24', className)}
+      className={cn('bg-[#f2f4f5] text-foreground', 'px-0 py-12 sm:py-20 md:py-24', className)}
     >
       <div className="mx-auto flex max-w-container flex-col items-center gap-4 text-center sm:gap-14">
         <div className="flex flex-col items-center gap-4 px-4 sm:gap-6">
@@ -44,8 +44,8 @@ export function TestimonialsSection({
             </div>
           </div>
 
-          <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-1/4 bg-gradient-to-r from-[#f7f1e4] sm:block" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/4 bg-gradient-to-l from-[#f7f1e4] sm:block" />
+          <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-1/4 bg-gradient-to-r from-[#f2f4f5] sm:block" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/4 bg-gradient-to-l from-[#f2f4f5] sm:block" />
         </div>
       </div>
     </section>

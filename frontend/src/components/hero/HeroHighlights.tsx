@@ -71,7 +71,7 @@ function HighlightCard({
             : { opacity: 0, y: 20, x: fromX }
         }
         transition={{ duration: 0.65, ease, delay: active ? delay : 0 }}
-        className="permanent-marker-regular m-0 text-[1.35rem] leading-[1.15] tracking-wide text-[#f3e6c8] md:text-[1.5rem]"
+        className="permanent-marker-regular m-0 text-[1.35rem] leading-[1.15] tracking-wide text-[#f2f4f5] md:text-[1.5rem]"
         style={{ textAlign: isRight ? 'right' : 'left' }}
       >
         {item.title}

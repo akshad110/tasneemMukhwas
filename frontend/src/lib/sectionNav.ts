@@ -55,7 +55,7 @@ export function scrollToSection(id: SectionId, lenis?: ScrollTarget | null) {
   setSectionPath(path)
 
   if (id === 'home') {
-    if (lenis) lenis.scrollTo(0, { duration: 1.1 })
+    if (lenis) lenis.scrollTo(0, { duration: 0.85 })
     else window.scrollTo({ top: 0, behavior: 'smooth' })
     return
   }
@@ -63,7 +63,7 @@ export function scrollToSection(id: SectionId, lenis?: ScrollTarget | null) {
   const el = document.getElementById(id)
   if (!el) return
 
-  if (lenis) lenis.scrollTo(el, { offset: -96, duration: 1.1 })
+  if (lenis) lenis.scrollTo(el, { offset: -96, duration: 0.85 })
   else {
     const top = el.getBoundingClientRect().top + window.scrollY - 96
     window.scrollTo({ top, behavior: 'smooth' })
@@ -79,7 +79,6 @@ export function getActiveSectionId(): SectionId {
   const order: Exclude<SectionId, 'home'>[] = [
     'about',
     'products',
-    'wholesale',
     'contact',
   ]
 

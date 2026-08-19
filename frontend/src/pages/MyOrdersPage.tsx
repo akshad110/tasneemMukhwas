@@ -4,6 +4,7 @@ import Navbar from '../components/nav/Navbar'
 import { useAuth } from '../context/AuthContext'
 import { ApiRequestError } from '../lib/api'
 import { APP_ROUTES, navigateApp } from '../lib/appRoutes'
+import { scrollAppToTop } from '../lib/scrollControl'
 import {
   ordersApi,
   reviewsApi,
@@ -12,8 +13,8 @@ import {
 
 const INK = '#0a2e22'
 const GOLD = '#b8860b'
-const CREAM = '#f3e6c8'
-const PAGE = '#f4f7f5'
+const CREAM = '#f2f4f5'
+const PAGE = '#f2f4f5'
 const CARD = '#ffffff'
 const MUTED = 'rgba(10,46,34,0.55)'
 const LINE = 'rgba(10,46,34,0.08)'
@@ -270,7 +271,7 @@ export default function MyOrdersPage() {
 
   useEffect(() => {
     document.title = 'My Orders · Tasneem Mukhwas'
-    window.scrollTo(0, 0)
+    scrollAppToTop(true)
     return () => {
       document.title = 'Tasneem Mukhwas'
     }
@@ -462,7 +463,7 @@ export default function MyOrdersPage() {
                         >
                           <div
                             className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border"
-                            style={{ borderColor: LINE, backgroundColor: '#f7f1e4' }}
+                            style={{ borderColor: LINE, backgroundColor: '#f2f4f5' }}
                           >
                             {item.image ? (
                               <img src={item.image} alt="" className="h-[80%] w-auto object-contain" />
@@ -528,6 +529,27 @@ export default function MyOrdersPage() {
                       </dd>
                     </div>
                   </dl>
+
+                  {(selected.invoiceAvailable || selected.invoice || selected.paymentStatus === 'paid') && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void ordersApi
+                          .downloadInvoice(selected.id, `Invoice-${selected.invoice || selected.id}.pdf`)
+                          .catch((err) => {
+                            alert(
+                              err instanceof ApiRequestError
+                                ? err.message
+                                : 'Could not download invoice. Please try again.',
+                            )
+                          })
+                      }}
+                      className="mt-5 w-full cursor-pointer rounded-xl border px-4 py-2.5 text-[0.8rem] font-semibold transition hover:bg-black/[0.03]"
+                      style={{ borderColor: LINE, color: INK, backgroundColor: PAGE }}
+                    >
+                      Download invoice{selected.invoice ? ` (${selected.invoice})` : ''}
+                    </button>
+                  )}
                 </>
               ) : (
                 <p className="m-0" style={{ color: MUTED }}>

@@ -18,7 +18,24 @@ export const env = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
   adminName: process.env.ADMIN_NAME || 'Admin Tasneem',
-  adminEmail: process.env.ADMIN_EMAIL || 'admin@tasneemmukhwas.com',
+  adminEmail: process.env.ADMIN_EMAIL || '',
   adminPassword: process.env.ADMIN_PASSWORD || 'Admin@12345',
   adminPhone: process.env.ADMIN_PHONE || '',
+  razorpayKeyId:
+    process.env.RAZORPAY_KEY_ID ||
+    process.env.RAZORPAY_API_KEY ||
+    process.env.RAZOPAY_API_KEY ||
+    '',
+  razorpayKeySecret:
+    process.env.RAZORPAY_KEY_SECRET ||
+    process.env.RAZORPAY_SECRET_KEY ||
+    '',
+  resendApiKey: process.env.RESEND_API_KEY || '',
+  mailFrom: process.env.MAIL_FROM || 'Tasneem Mukhwas <onboarding@resend.dev>',
+  /**
+   * Resend sandbox (onboarding@resend.dev) only delivers to the account owner's email.
+   * Set RESEND_SANDBOX_TO to that address in development.
+   */
+  resendSandboxTo: process.env.RESEND_SANDBOX_TO || '',
+  mailTestTo: process.env.MAIL_TEST_TO || '',
 }

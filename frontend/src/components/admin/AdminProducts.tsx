@@ -3,7 +3,7 @@ import { useCatalog } from '../../context/CatalogContext'
 import { CATEGORIES, type ShopProduct } from '../../lib/shopCatalog'
 
 const INK = '#0a2e22'
-const CREAM = '#f3e6c8'
+const CREAM = '#f2f4f5'
 const GOLD = '#b8860b'
 const MUTED = 'rgba(10,46,34,0.55)'
 const CARD = '#ffffff'
@@ -320,7 +320,7 @@ export default function AdminProducts() {
                       </p>
                       <div
                         className="mb-2 flex h-20 items-center justify-center overflow-hidden rounded-lg"
-                        style={{ backgroundColor: '#eef3ef' }}
+                        style={{ backgroundColor: '#f2f4f5' }}
                       >
                         {form.images[i] ? (
                           <img src={form.images[i]} alt="" className="h-full w-full object-contain" />
