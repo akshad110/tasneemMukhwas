@@ -414,6 +414,7 @@ export default function Navbar() {
   }
 
   const { itemCount } = useCart()
+  const cartBadgeCount = user ? itemCount : 0
 
   const goTo = (id: SectionId) => {
     setMenuOpen(false)
@@ -608,7 +609,7 @@ export default function Navbar() {
             aria-label="Cart"
           >
             <CartIcon className="h-[1.2rem] w-[1.2rem]" />
-            <NavCountBadge count={itemCount} label="Cart items" ringColor={badgeRing} />
+            <NavCountBadge count={cartBadgeCount} label="Cart items" ringColor={badgeRing} />
           </button>
 
           <div className="group relative">
@@ -692,7 +693,7 @@ export default function Navbar() {
             aria-label="Cart"
           >
             <CartIcon className="h-5 w-5" />
-            <NavCountBadge count={itemCount} label="Cart items" ringColor={badgeRing} />
+            <NavCountBadge count={cartBadgeCount} label="Cart items" ringColor={badgeRing} />
           </button>
           <div className="group relative">
             <button

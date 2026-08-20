@@ -15,7 +15,13 @@ app.set('trust proxy', 1)
 app.use(helmet())
 app.use(
   cors({
-    origin: env.clientUrl,
+    origin(origin, callback) {
+      if (!origin || env.clientOrigins.includes(origin)) {
+        callback(null, true)
+        return
+      }
+      callback(null, false)
+    },
     credentials: true,
     exposedHeaders: ['Content-Disposition', 'Content-Type', 'Content-Length'],
   }),

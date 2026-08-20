@@ -44,4 +44,4 @@ After first deploy, from Render shell or locally against Atlas: `npm run seed:fo
 - **Rewrite:** `/*` → `/index.html`
 - **Env:** `VITE_API_URL=https://<your-api>.onrender.com/api`
 
-Set backend `CLIENT_URL` to your static site URL.
+Set backend `CLIENT_URL` to your static site URL (e.g. `https://tasneemmukhwas.onrender.com`). The API also allows that Render URL by default; set `CLIENT_URL` explicitly if you use a custom domain.
