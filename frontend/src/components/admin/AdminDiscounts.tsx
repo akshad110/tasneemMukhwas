@@ -216,24 +216,24 @@ export default function AdminDiscounts() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="admin-page-head">
         <div>
-          <h1 className="m-0 text-[1.85rem] font-bold" style={{ color: INK }}>
-            Discounts & campaigns
-          </h1>
-          <p className="mt-1 m-0 text-[0.88rem]" style={{ color: MUTED }}>
+          <h1 className="admin-page-title">Discounts & campaigns</h1>
+          <p className="admin-page-sub">
             Global codes, product/category promos, and email campaigns via Resend.
           </p>
         </div>
         {tab === 'coupons' ? (
-          <button
-            type="button"
-            onClick={openCreate}
-            className="cursor-pointer rounded-full border-0 px-4 py-2 text-[0.8rem] font-semibold"
-            style={{ backgroundColor: GOLD, color: INK }}
-          >
-            + New discount
-          </button>
+          <div className="admin-toolbar">
+            <button
+              type="button"
+              onClick={openCreate}
+              className="w-full cursor-pointer rounded-full border-0 px-4 py-2 text-[0.8rem] font-semibold sm:w-auto"
+              style={{ backgroundColor: GOLD, color: INK }}
+            >
+              + New discount
+            </button>
+          </div>
         ) : null}
       </div>
 

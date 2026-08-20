@@ -39,7 +39,7 @@ const SHOP_LINKS: FooterLink[] = [
   { label: 'WhatsApp Order', href: WHATSAPP_URL },
 ]
 
-const TICKER_TEXT = 'powered by Haiderali, phone no: 8780929056'
+const TICKER_TEXT = 'Powered by Haidarali , Phone: 8780929056'
 /** Per-segment repeats — enough to fill wide viewports without speeding up the crawl */
 const TICKER_ITEMS = Array.from({ length: 8 }, () => TICKER_TEXT)
 const TICKER_DURATION_S = 120
@@ -540,7 +540,7 @@ export default function SiteFooter() {
         </motion.div>
 
         <motion.div
-          className="mt-12 flex flex-col gap-3 border-t border-white/10 pt-6 sm:flex-row sm:items-center sm:justify-between"
+          className="mt-12 border-t border-white/10 pt-6"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: false, amount: 0.4 }}
@@ -552,20 +552,11 @@ export default function SiteFooter() {
           >
             © {new Date().getFullYear()} Tasneem Mukhwas. All rights reserved.
           </p>
-          <p
-            className="m-0 text-[0.72rem] tracking-wide opacity-55"
-            style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
-          >
-            Powered by{' '}
-            <span className="font-semibold" style={{ color: GOLD }}>
-              Haiderali
-            </span>
-          </p>
         </motion.div>
       </div>
 
       <div
-        className="relative z-10 overflow-hidden border-t border-white/10"
+        className="relative z-10 overflow-x-clip overflow-y-hidden border-t border-white/10"
         style={{ backgroundColor: 'rgba(4,20,14,0.72)' }}
       >
         <div className="footer-ticker flex w-max">

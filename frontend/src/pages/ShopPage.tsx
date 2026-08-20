@@ -106,7 +106,7 @@ function SortIcon({ mode }: { mode: SortMode }) {
 }
 
 export default function ShopPage() {
-  const { products, loading, error } = useCatalog()
+  const { products, loading, error, refresh } = useCatalog()
   const [query, setQuery] = useState('')
   const [categories, setCategories] = useState<string[]>([])
   const [maxPrice, setMaxPrice] = useState(1000)
@@ -139,6 +139,10 @@ export default function ShopPage() {
       document.title = 'Tasneem Mukhwas'
     }
   }, [])
+
+  useEffect(() => {
+    void refresh()
+  }, [refresh])
 
   const priceCeiling = useMemo(
     () => Math.max(...products.map((p) => getSellPrice(p)), 1000),
@@ -191,7 +195,7 @@ export default function ShopPage() {
 
   const sidebar = (
     <aside
-      className="flex w-full flex-col lg:w-[248px] lg:shrink-0 lg:self-start lg:sticky lg:top-[4.5rem] lg:max-h-[calc(100svh-4.5rem)] lg:overflow-y-auto"
+      className="shop-sidebar flex w-full flex-col lg:sticky lg:top-[calc(env(safe-area-inset-top,0px)+4rem)] lg:z-30 lg:w-[248px] lg:shrink-0 lg:self-start lg:max-h-[calc(100svh-env(safe-area-inset-top,0px)-4rem)] lg:overflow-y-auto lg:backdrop-blur-md"
       style={{
         backgroundColor: PANEL,
         borderRight: `1px solid ${BORDER}`,
@@ -312,7 +316,7 @@ export default function ShopPage() {
 
           <div className="flex flex-1 items-start">
             <div
-              className={`${filtersOpen ? 'fixed inset-0 z-40 lg:static lg:inset-auto lg:z-auto' : 'hidden lg:block'}`}
+              className={`${filtersOpen ? 'fixed inset-0 z-40 lg:static lg:inset-auto lg:z-auto' : 'hidden lg:block'} lg:self-stretch`}
             >
               {filtersOpen && (
                 <button
@@ -322,15 +326,19 @@ export default function ShopPage() {
                   onClick={() => setFiltersOpen(false)}
                 />
               )}
-              <div className="relative z-[1] h-full w-[min(280px,88vw)] max-h-[85svh] overflow-y-auto shadow-xl lg:h-auto lg:max-h-none lg:w-auto lg:overflow-visible lg:shadow-none">
+              <div className="relative z-[1] h-full w-[min(280px,88vw)] max-h-[85svh] overflow-y-auto shadow-xl lg:h-full lg:max-h-none lg:w-auto lg:overflow-visible lg:shadow-none">
                 {sidebar}
               </div>
             </div>
 
             <div className="min-w-0 flex-1">
               <div
-                className="flex flex-wrap items-center gap-3 border-b px-3 py-3 sm:px-5"
-                style={{ borderColor: BORDER, backgroundColor: 'rgba(248,249,250,0.72)' }}
+                className="shop-toolbar sticky top-[calc(env(safe-area-inset-top,0px)+3.75rem)] z-40 flex flex-wrap items-center gap-3 border-b px-3 py-3 backdrop-blur-md md:top-[calc(env(safe-area-inset-top,0px)+4rem)] sm:px-5"
+                style={{
+                  borderColor: BORDER,
+                  backgroundColor: 'rgba(248,249,250,0.92)',
+                  boxShadow: '0 1px 0 rgba(10,46,34,0.06)',
+                }}
               >
                 <button
                   type="button"
@@ -419,6 +427,14 @@ export default function ShopPage() {
                   <p className="mt-2 m-0 text-[0.8rem]" style={{ color: MUTED }}>
                     Make sure the API is running and MongoDB is connected.
                   </p>
+                  <button
+                    type="button"
+                    onClick={() => void refresh()}
+                    className="mt-5 cursor-pointer rounded-xl border-0 px-5 py-2.5 text-[0.85rem] font-semibold transition hover:brightness-110"
+                    style={{ backgroundColor: INK, color: '#f2f4f5', fontFamily: 'Inter, sans-serif' }}
+                  >
+                    Try again
+                  </button>
                 </div>
               ) : sorted.length === 0 ? (
                 <div

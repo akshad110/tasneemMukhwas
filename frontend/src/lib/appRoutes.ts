@@ -62,11 +62,27 @@ export function isHomeScrollPath(pathname: string) {
   return pathname === APP_ROUTES.home || HOME_SECTION_PATHS.includes(pathname as (typeof HOME_SECTION_PATHS)[number])
 }
 
+/** Routes that require a signed-in user. */
+export function requiresAuthPath(pathname: string) {
+  return (
+    isCartPath(pathname) ||
+    isCheckoutPath(pathname) ||
+    isAdminPath(pathname) ||
+    isProfilePath(pathname) ||
+    isSettingsPath(pathname) ||
+    isMyOrdersPath(pathname) ||
+    isWishlistPath(pathname)
+  )
+}
+
 /** Routes reachable without signing in. */
 export function isPublicPath(pathname: string) {
+  if (requiresAuthPath(pathname)) return false
   return (
     isAuthPath(pathname) ||
     isHomeScrollPath(pathname) ||
+    isShopPath(pathname) ||
+    isKnowMorePath(pathname) ||
     isWholesalePath(pathname) ||
     isContactPath(pathname)
   )

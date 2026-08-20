@@ -64,7 +64,20 @@ export default function HomeTestimonials() {
       .testimonials(20)
       .then((res) => {
         if (cancelled) return
-        setItems(res.items.length >= 2 ? res.items : FALLBACK)
+        const approved = res.items ?? []
+        if (approved.length === 0) {
+          setItems(FALLBACK)
+          return
+        }
+        // Approved reviews always show first; pad with samples only when marquee needs more cards
+        const merged = [...approved]
+        if (merged.length < 4) {
+          for (const sample of FALLBACK) {
+            if (merged.length >= 4) break
+            merged.push(sample)
+          }
+        }
+        setItems(merged)
       })
       .catch(() => {
         if (!cancelled) setItems(FALLBACK)

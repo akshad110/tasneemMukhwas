@@ -25,25 +25,23 @@ const STACKED = {
   nav: { top: '1.02rem', bottom: '0.58rem', topTrack: '0.08em', bottomTrack: '0.12em', gap: '0.125rem' },
 } as const
 
+/** Gold fill on glyphs only — no filter/box glow (drop-shadow paints the element bounds). */
 const goldTextStyle = {
   backgroundImage: BRAND_GOLD_GRADIENT,
   WebkitBackgroundClip: 'text',
   backgroundClip: 'text',
+  WebkitTextFillColor: 'transparent',
   color: 'transparent',
-  WebkitTextStroke: '0.35px rgba(74, 58, 28, 0.45)',
-  paintOrder: 'stroke fill',
-  filter: 'drop-shadow(0 1px 0 rgba(92, 74, 40, 0.35))',
+  textShadow: '0 1px 0 rgba(92, 74, 40, 0.28)',
 } as const
 
 const goldTextStyleBright = {
   backgroundImage: BRAND_GOLD_GRADIENT_BRIGHT,
   WebkitBackgroundClip: 'text',
   backgroundClip: 'text',
+  WebkitTextFillColor: 'transparent',
   color: 'transparent',
-  WebkitTextStroke: '0.45px rgba(255, 228, 150, 0.55)',
-  paintOrder: 'stroke fill',
-  filter:
-    'drop-shadow(0 0 14px rgba(255, 210, 90, 0.42)) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.28)) drop-shadow(0 1px 0 rgba(255, 235, 180, 0.35))',
+  textShadow: '0 1px 2px rgba(0, 0, 0, 0.35)',
 } as const
 
 /** Gold serif brand — single line or stacked Tasneem / Mukhwas */

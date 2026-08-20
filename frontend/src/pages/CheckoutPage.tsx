@@ -320,7 +320,7 @@ export default function CheckoutPage() {
   const onPayNow = (e: FormEvent) => {
     e.preventDefault()
     if (!validate()) return
-    setPayment(null)
+    setPayment('cod')
     setStep('pay')
   }
 
@@ -1053,7 +1053,7 @@ function OrderSummaryContent({
             <span className="font-semibold" style={{ color: INK }}>
               Secure checkout
             </span>{' '}
-            — COD or Razorpay. Card details never stored.
+            — Cash on Delivery or Online mode. Card details never stored.
           </p>
         </div>
       )}
@@ -1090,7 +1090,7 @@ function PaymentChooser({
         {(
           [
             { id: 'cod' as const, title: 'Cash on Delivery', hint: 'Pay when your order arrives' },
-            { id: 'razorpay' as const, title: 'Razorpay · Online', hint: 'UPI, cards & netbanking' },
+            { id: 'razorpay' as const, title: 'Online mode', hint: 'UPI, cards & netbanking' },
           ] as const
         ).map((opt) => {
           const on = payment === opt.id
@@ -1132,7 +1132,7 @@ function PaymentChooser({
         whileHover={{ scale: payment && !busy ? 1.01 : 1 }}
         whileTap={{ scale: payment && !busy ? 0.98 : 1 }}
       >
-        {busy ? 'Processing…' : `Confirm · ${payment === 'cod' ? 'COD' : payment === 'razorpay' ? 'Razorpay' : 'Select method'}`}
+        {busy ? 'Processing…' : `Confirm · ${payment === 'cod' ? 'Cash on Delivery' : payment === 'razorpay' ? 'Online mode' : 'Select method'}`}
       </motion.button>
     </div>
   )

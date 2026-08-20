@@ -26,7 +26,7 @@ const COUNTERS = [
   { label: 'Wholesale partners', value: 500, suffix: '+', decimals: 0 },
 ] as const
 
-function useCountUp(target: number, active: boolean, playKey: number, duration = 1600) {
+function useCountUp(target: number, active: boolean, playKey: number, duration = 1200) {
   const [value, setValue] = useState(0)
 
   useEffect(() => {

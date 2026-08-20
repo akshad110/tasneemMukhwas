@@ -27,3 +27,17 @@ export function buildFeedbackWhatsAppUrl(name: string, message: string) {
   ].join('\n')
   return `${WHATSAPP_URL}?text=${encodeURIComponent(text)}`
 }
+
+/** Pre-filled WhatsApp link for homepage quick product reviews. */
+export function buildReviewWhatsAppUrl(name: string, rating: number, comment: string) {
+  const stars = `${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}`
+  const text = [
+    'Hi Tasneem Mukhwas — Product Review',
+    '',
+    `Name: ${name.trim()}`,
+    `Rating: ${stars} (${rating}/5)`,
+    '',
+    comment.trim(),
+  ].join('\n')
+  return `${WHATSAPP_URL}?text=${encodeURIComponent(text)}`
+}

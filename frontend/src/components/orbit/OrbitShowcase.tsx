@@ -114,14 +114,14 @@ export default function OrbitShowcase() {
             },
           }}
           motion={{
-            scrollLength: 360,
+            scrollLength: 250,
             startOffset: 45,
-            smoothness: 22,
+            smoothness: 34,
             perspective: 1200,
             curveWidth: 520,
             curveHeight: 180,
             depth: 420,
-            rotation: 280,
+            rotation: 310,
             cardWidth: 340,
             offsetY: -24,
           }}

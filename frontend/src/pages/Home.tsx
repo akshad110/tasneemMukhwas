@@ -7,6 +7,7 @@ import Navbar from '../components/nav/Navbar'
 import OrbitShowcase from '../components/orbit/OrbitShowcase'
 import ContactSection from '../components/contact/ContactSection'
 import HomeTestimonials from '../components/testimonials/HomeTestimonials'
+import HomeReviewStrip from '../components/reviews/HomeReviewStrip'
 import PopularProducts from '../components/products/PopularProducts'
 import FloatingActions from '../components/shared/FloatingActions'
 import DiscountPromoPopup from '../components/shared/DiscountPromoPopup'
@@ -45,6 +46,7 @@ export default function Home({ ready = true }: HomeProps) {
       <PopularProducts />
       <ContactSection />
       <HomeTestimonials />
+      <HomeReviewStrip />
       <SiteFooter />
 
       <FloatingActions />

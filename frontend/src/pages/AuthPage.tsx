@@ -1,8 +1,9 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect, useId, useState, type FormEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { ApiRequestError, warmApi } from '../lib/api'
 import { APP_ROUTES, navigateApp } from '../lib/appRoutes'
+import { authApi } from '../lib/services'
 import { scrollAppToTop } from '../lib/scrollControl'
 import BrandLogo from '../components/shared/BrandLogo'
 import BrandNameLockup from '../components/shared/BrandNameLockup'
@@ -13,11 +14,13 @@ const GOLD = '#b8860b'
 const TEXTURE = '/image.png_2K_202608092240.jpeg'
 
 const FLOAT_PACKS = [
-  { src: '/products/shahi-mukhwas.png', alt: 'Shahi Mukhwas', x: '8%', y: '10%', rot: -18, scale: 1.05, delay: 0 },
-  { src: '/products/mango-slice-mukhwas.png', alt: 'Mango Slice', x: '58%', y: '6%', rot: 14, scale: 0.92, delay: 0.15 },
-  { src: '/products/paan-shots-mukhwas.png', alt: 'Paan Shots', x: '28%', y: '46%', rot: -8, scale: 1.12, delay: 0.28 },
-  { src: '/products/alsi-til-mukhwas.png', alt: 'Alsi Til', x: '62%', y: '50%', rot: 22, scale: 0.88, delay: 0.4 },
+  { src: '/products/shahi-mukhwas.png', alt: 'Shahi Mukhwas', x: '10%', y: '16%', rot: -16, scale: 0.68, delay: 0 },
+  { src: '/products/mango-slice-mukhwas.png', alt: 'Mango Slice', x: '54%', y: '10%', rot: 12, scale: 0.62, delay: 0.15 },
+  { src: '/products/paan-shots-mukhwas.png', alt: 'Paan Shots', x: '24%', y: '48%', rot: -6, scale: 0.72, delay: 0.28 },
+  { src: '/products/alsi-til-mukhwas.png', alt: 'Alsi Til', x: '56%', y: '52%', rot: 18, scale: 0.6, delay: 0.4 },
 ] as const
+
+const AUTH_PACK_WIDTH = '22%'
 
 export type AuthMode = 'login' | 'signup'
 
@@ -38,17 +41,26 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
   const [showPass, setShowPass] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [forgotOpen, setForgotOpen] = useState(false)
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [forgotSubmitting, setForgotSubmitting] = useState(false)
+  const [forgotError, setForgotError] = useState('')
+  const [forgotSuccess, setForgotSuccess] = useState('')
+  const loginFormRef = useRef<HTMLFormElement>(null)
 
   const compact = mode === 'signup'
   const fieldClass = compact
     ? 'w-full rounded-none border border-[#0a2e22]/20 bg-white/80 px-3 py-2 text-[0.84rem] outline-none transition focus:border-[#0a2e22] focus:bg-white'
-    : 'w-full rounded-none border border-[#0a2e22]/20 bg-white/80 px-3.5 py-2.5 text-[0.9rem] outline-none transition focus:border-[#0a2e22] focus:bg-white'
+    : 'w-full rounded-none border border-[#0a2e22]/20 bg-white/80 px-3.5 py-2 text-[0.9rem] outline-none transition focus:border-[#0a2e22] focus:bg-white'
 
   useEffect(() => {
     setMode(initialMode)
     setSubmitting(false)
     setShowPass(false)
     setError('')
+    setForgotOpen(false)
+    setForgotError('')
+    setForgotSuccess('')
     document.title =
       initialMode === 'signup'
         ? 'Sign up · Tasneem Mukhwas'
@@ -73,7 +85,53 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
 
   const switchMode = (next: AuthMode) => {
     setMode(next)
+    setForgotOpen(false)
+    setForgotError('')
+    setForgotSuccess('')
     navigateApp(next === 'signup' ? APP_ROUTES.signup : APP_ROUTES.login)
+  }
+
+  const openForgotPassword = () => {
+    const typedEmail = String(
+      loginFormRef.current?.querySelector<HTMLInputElement>('input[name="email"]')?.value || '',
+    ).trim()
+    setForgotEmail(typedEmail)
+    setForgotError('')
+    setForgotSuccess('')
+    setForgotOpen(true)
+  }
+
+  const onForgotSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setForgotError('')
+    setForgotSuccess('')
+
+    const email = forgotEmail.trim().toLowerCase()
+    if (!email) {
+      setForgotError('Enter your account email address.')
+      return
+    }
+
+    const typedLoginEmail = String(
+      loginFormRef.current?.querySelector<HTMLInputElement>('input[name="email"]')?.value || '',
+    )
+      .trim()
+      .toLowerCase()
+
+    if (typedLoginEmail && typedLoginEmail !== email) {
+      setForgotError('Use the same email address as your Tasneem Mukhwas account.')
+      return
+    }
+
+    setForgotSubmitting(true)
+    try {
+      await authApi.forgotPassword(email)
+      setForgotSuccess('A new login password has been sent to your email. Check your inbox.')
+    } catch (err) {
+      setForgotError(err instanceof ApiRequestError ? err.message : 'Could not send recovery email')
+    } finally {
+      setForgotSubmitting(false)
+    }
   }
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -122,9 +180,22 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
       style={{ backgroundColor: CREAM }}
       aria-label={mode === 'login' ? 'Login' : 'Sign up'}
     >
-      {/* —— Left: full-height brand stage —— */}
+      {/* —— Left: full-height brand stage with C-curve edge —— */}
+      <svg className="pointer-events-none absolute h-0 w-0" aria-hidden>
+        <defs>
+          <clipPath id="auth-left-curve" clipPathUnits="objectBoundingBox">
+            {/* Green panel — gentle C on the shared boundary */}
+            <path d="M 0 0 H 1 C 0.72 0.06 0.72 0.90 1 1 H 0 Z" />
+          </clipPath>
+          <clipPath id="auth-right-curve" clipPathUnits="objectBoundingBox">
+            {/* Form panel — mirrored left edge (no cream gap) */}
+            <path d="M 0 0 L 1 0 L 1 1 L 0 1 C -0.9 0.94 -0.7 0.06 0 0 Z" />
+          </clipPath>
+        </defs>
+      </svg>
+
       <motion.aside
-        className="relative hidden h-full w-1/2 shrink-0 overflow-hidden lg:block"
+        className="auth-split-visual relative z-10 hidden h-full w-1/2 shrink-0 overflow-hidden lg:block"
         style={{ backgroundColor: INK }}
         initial={{ opacity: 0, x: -24 }}
         animate={{ opacity: 1, x: 0 }}
@@ -159,7 +230,7 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
               style={{
                 left: pack.x,
                 top: pack.y,
-                width: '36%',
+                width: AUTH_PACK_WIDTH,
                 transformStyle: 'preserve-3d',
               }}
               initial={{ opacity: 0, y: 40, rotateZ: pack.rot }}
@@ -189,10 +260,10 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                 src={pack.src}
                 alt={pack.alt}
                 draggable={false}
-                className="h-auto w-full select-none drop-shadow-[0_28px_40px_rgba(0,0,0,0.55)]"
+                className="h-auto w-full select-none drop-shadow-[0_16px_24px_rgba(0,0,0,0.45)]"
                 style={{
                   transform: `scale(${pack.scale})`,
-                  filter: 'drop-shadow(0 18px 24px rgba(0,0,0,0.35))',
+                  filter: 'drop-shadow(0 10px 16px rgba(0,0,0,0.28))',
                 }}
               />
             </motion.div>
@@ -232,7 +303,7 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
 
       {/* —— Right: full-height form —— */}
       <motion.section
-        className="relative flex h-full w-full flex-col overflow-hidden lg:w-1/2"
+        className="auth-split-form relative z-[5] flex h-full w-full flex-col overflow-hidden lg:w-1/2"
         style={{ backgroundColor: CREAM }}
         initial={{ opacity: 0, x: 24 }}
         animate={{ opacity: 1, x: 0 }}
@@ -251,7 +322,7 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
         </button>
 
         <div
-          className={`flex h-full flex-col items-center justify-center px-5 sm:px-10 xl:px-14 ${
+          className={`flex h-full flex-col items-center justify-center px-5 sm:px-10 lg:px-8 xl:px-10 ${
             compact ? 'py-6' : 'py-8'
           }`}
         >
@@ -261,9 +332,9 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
             <BrandNameLockup size="sm" />
           </div>
 
-          {/* Segmented toggle — sliding ink block */}
+          {!forgotOpen && (
           <div
-            className={`relative grid w-full grid-cols-2 border border-[#0a2e22]/15 ${compact ? 'mb-4' : 'mb-6'}`}
+            className="relative mb-4 grid w-full grid-cols-2 border border-[#0a2e22]/15"
             style={{ backgroundColor: 'rgba(10,46,34,0.06)' }}
             role="tablist"
             aria-label="Auth mode"
@@ -285,7 +356,7 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                   role="tab"
                   aria-selected={active}
                   onClick={() => switchMode(m)}
-                  className="relative z-10 cursor-pointer border-0 bg-transparent py-2.5 text-[0.72rem] font-semibold tracking-wide uppercase transition-colors duration-200 sm:text-[0.78rem]"
+                  className="relative z-10 cursor-pointer border-0 bg-transparent py-2 text-[0.72rem] font-semibold tracking-wide uppercase transition-colors duration-200 sm:text-[0.78rem]"
                   style={{
                     color: active ? CREAM : INK,
                     fontFamily: 'Inter, sans-serif',
@@ -296,28 +367,120 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
               )
             })}
           </div>
+          )}
 
           <h2
             id={`${formId}-title`}
             className={`m-0 text-center leading-tight ${compact ? 'text-[1.45rem] sm:text-[1.7rem]' : 'text-[clamp(1.55rem,2.6vw,2rem)]'}`}
             style={{ color: INK, fontFamily: 'Anton, Impact, sans-serif' }}
           >
-            {mode === 'login' ? 'Welcome back' : 'Create account'}
+            {forgotOpen ? 'Forgot password' : mode === 'login' ? 'Welcome back' : 'Create account'}
           </h2>
           <p
-            className={`m-0 text-center leading-relaxed opacity-65 ${compact ? 'mt-1 text-[0.78rem]' : 'mt-1.5 text-[0.86rem]'}`}
+            className={`m-0 text-center leading-relaxed opacity-65 ${compact ? 'mt-1 text-[0.78rem]' : 'mt-1 text-[0.84rem]'}`}
             style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
           >
-            {mode === 'login'
-              ? 'Enter your details to continue shopping with Tasneem.'
-              : 'Join for wholesale updates, favourites, and faster checkout.'}
+            {forgotOpen
+              ? 'Enter your registered email. We will send a new login password to that inbox.'
+              : mode === 'login'
+                ? 'Enter your details to continue shopping with Tasneem.'
+                : 'Join for wholesale updates, favourites, and faster checkout.'}
           </p>
 
           <AnimatePresence mode="wait">
+            {forgotOpen && mode === 'login' ? (
+              <motion.form
+                key="forgot"
+                onSubmit={onForgotSubmit}
+                className="mt-3 grid w-full gap-2"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.22, ease }}
+              >
+                <label className="grid gap-1">
+                  <span
+                    className="text-[0.62rem] font-semibold tracking-[0.12em] uppercase opacity-55"
+                    style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
+                  >
+                    Account email
+                  </span>
+                  <input
+                    required
+                    type="email"
+                    name="forgot-email"
+                    autoComplete="email"
+                    placeholder="you@email.com"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    className={fieldClass}
+                    style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
+                  />
+                </label>
+
+                {forgotError ? (
+                  <p
+                    className="m-0 rounded-none border px-3 py-2 text-[0.78rem]"
+                    style={{
+                      color: '#a32020',
+                      borderColor: 'rgba(163,32,32,0.25)',
+                      backgroundColor: 'rgba(163,32,32,0.06)',
+                      fontFamily: 'Inter, sans-serif',
+                    }}
+                    role="alert"
+                  >
+                    {forgotError}
+                  </p>
+                ) : null}
+
+                {forgotSuccess ? (
+                  <p
+                    className="m-0 rounded-none border px-3 py-2 text-[0.78rem]"
+                    style={{
+                      color: '#1b7a3e',
+                      borderColor: 'rgba(27,122,62,0.25)',
+                      backgroundColor: 'rgba(27,122,62,0.08)',
+                      fontFamily: 'Inter, sans-serif',
+                    }}
+                    role="status"
+                  >
+                    {forgotSuccess}
+                  </p>
+                ) : null}
+
+                <button
+                  type="submit"
+                  disabled={forgotSubmitting}
+                  className="mt-0 flex w-full cursor-pointer items-center justify-center rounded-none py-2.5 text-[0.88rem] font-semibold tracking-wide transition hover:brightness-110 disabled:cursor-wait disabled:opacity-70"
+                  style={{
+                    backgroundColor: INK,
+                    color: CREAM,
+                    fontFamily: 'Inter, sans-serif',
+                    boxShadow: '0 16px 36px -16px rgba(10,46,34,0.7)',
+                  }}
+                >
+                  {forgotSubmitting ? 'Sending…' : 'Send password email'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForgotOpen(false)
+                    setForgotError('')
+                    setForgotSuccess('')
+                  }}
+                  className="m-0 cursor-pointer border-0 bg-transparent text-center text-[0.75rem] font-semibold opacity-60 hover:opacity-100"
+                  style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
+                >
+                  Back to login
+                </button>
+              </motion.form>
+            ) : (
             <motion.form
               key={mode}
+              ref={loginFormRef}
               onSubmit={onSubmit}
-              className={`grid w-full ${compact ? 'mt-4 gap-2.5' : 'mt-5 gap-3'}`}
+              className={`grid w-full ${compact ? 'mt-4 gap-2.5' : 'mt-3 gap-2'}`}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
@@ -423,10 +586,11 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                   </p>
                 ) : null}
 
-                {mode === 'login' && (
+                {mode === 'login' && !forgotOpen && (
                   <div className="flex justify-end">
                     <button
                       type="button"
+                      onClick={openForgotPassword}
                       className="cursor-pointer border-0 bg-transparent text-[0.72rem] font-medium opacity-60 hover:opacity-100"
                       style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
                     >
@@ -439,7 +603,7 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                   type="submit"
                   disabled={submitting}
                   className={`flex w-full cursor-pointer items-center justify-center rounded-none text-[0.88rem] font-semibold tracking-wide transition hover:brightness-110 disabled:cursor-wait disabled:opacity-70 ${
-                    compact ? 'mt-0.5 py-2.5' : 'mt-1 py-3'
+                    compact ? 'mt-0.5 py-2.5' : 'mt-0 py-2.5'
                   }`}
                   style={{
                     backgroundColor: INK,
@@ -456,7 +620,7 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                 </button>
 
                 <p
-                  className={`m-0 text-center opacity-55 ${compact ? 'mt-1 text-[0.7rem]' : 'mt-2 text-[0.75rem]'}`}
+                  className={`m-0 text-center opacity-55 ${compact ? 'mt-1 text-[0.7rem]' : 'mt-1 text-[0.75rem]'}`}
                   style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
                 >
                   {mode === 'login' ? (
@@ -486,6 +650,7 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                   )}
                 </p>
               </motion.form>
+            )}
           </AnimatePresence>
           </div>
         </div>

@@ -191,21 +191,17 @@ export default function AdminProducts() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="admin-page-head">
         <div>
-          <h1 className="m-0 text-[1.85rem] font-bold" style={{ color: INK }}>
-            Products
-          </h1>
-          <p className="mt-1 m-0 text-[0.88rem]" style={{ color: MUTED }}>
-            Create, edit, stock, and retire catalog items.
-          </p>
+          <h1 className="admin-page-title">Products</h1>
+          <p className="admin-page-sub">Create, edit, stock, and retire catalog items.</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="admin-toolbar">
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search products…"
-            className="rounded-xl border px-3 py-2.5 text-[0.85rem] outline-none"
+            className="w-full rounded-xl border px-3 py-2.5 text-[0.85rem] outline-none sm:w-auto"
             style={{ borderColor: LINE, backgroundColor: CARD, color: INK }}
           />
           <button
@@ -214,7 +210,7 @@ export default function AdminProducts() {
               setCreating(true)
               setEditing(blank())
             }}
-            className="cursor-pointer rounded-xl border-0 px-4 py-2.5 text-[0.82rem] font-semibold"
+            className="w-full cursor-pointer rounded-xl border-0 px-4 py-2.5 text-[0.82rem] font-semibold sm:w-auto"
             style={{ backgroundColor: GOLD, color: INK }}
           >
             + Add product
@@ -222,7 +218,7 @@ export default function AdminProducts() {
         </div>
       </div>
 
-      <div className="mt-5 overflow-hidden rounded-2xl border" style={{ backgroundColor: CARD, borderColor: LINE }}>
+      <div className="admin-table-wrap mt-5 overflow-hidden rounded-2xl border" style={{ backgroundColor: CARD, borderColor: LINE }}>
         <table className="w-full border-collapse text-left text-[0.85rem]">
           <thead>
             <tr style={{ backgroundColor: '#f3f8f4', color: MUTED }}>

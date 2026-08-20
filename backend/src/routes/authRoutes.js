@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import {
   changePassword,
+  forgotPassword,
   login,
   me,
   register,
@@ -14,6 +15,7 @@ const router = Router()
 
 router.post('/register', validate(registerSchemas.registerSchema), register)
 router.post('/login', validate(registerSchemas.loginSchema), login)
+router.post('/forgot-password', validate(registerSchemas.forgotPasswordSchema), forgotPassword)
 router.get('/me', authenticate, me)
 router.patch('/profile', authenticate, validate(registerSchemas.profileSchema), updateProfile)
 router.post(

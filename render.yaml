@@ -22,7 +22,7 @@ services:
       - key: RESEND_API_KEY
         sync: false
       - key: MAIL_FROM
-        value: Tasneem Mukhwas <support@tasneemmukhwas.com>
+        value: Tasneem Mukhwas <info@tasneemmukhwas.com>
 
   # ── Frontend (static) ────────────────────────────────────────
   - type: web

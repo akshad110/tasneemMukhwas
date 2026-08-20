@@ -111,7 +111,7 @@ const NAV: { id: AdminSection; label: string; icon: ReactNode }[] = [
 function AdminAvatarMenu() {
   const { user, logout } = useAuth()
   const [open, setOpen] = useState(false)
-  const wrapRef = useRef<HTMLDivElement>(null)
+  const closeTimer = useRef<number | null>(null)
 
   const initials = (user?.name || 'AT')
     .split(/\s+/)
@@ -120,14 +120,19 @@ function AdminAvatarMenu() {
     .slice(0, 2)
     .toUpperCase()
 
-  useEffect(() => {
-    if (!open) return
-    const onDoc = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false)
+  const clearCloseTimer = () => {
+    if (closeTimer.current != null) {
+      window.clearTimeout(closeTimer.current)
+      closeTimer.current = null
     }
-    document.addEventListener('mousedown', onDoc)
-    return () => document.removeEventListener('mousedown', onDoc)
-  }, [open])
+  }
+
+  const scheduleClose = () => {
+    clearCloseTimer()
+    closeTimer.current = window.setTimeout(() => setOpen(false), 120)
+  }
+
+  useEffect(() => () => clearCloseTimer(), [])
 
   const goSettings = () => {
     setOpen(false)
@@ -142,19 +147,18 @@ function AdminAvatarMenu() {
 
   const menuBtn =
     'flex w-full cursor-pointer items-center gap-2.5 border-0 bg-transparent px-3.5 py-2.5 text-left text-[0.82rem] font-semibold transition hover:bg-[rgba(10,46,34,0.06)]'
-  const menuVisible =
-    open ? 'visible translate-y-0 opacity-100' : 'invisible translate-y-1 opacity-0'
 
   return (
     <div
-      ref={wrapRef}
-      className="group relative"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      className="relative inline-flex shrink-0"
+      onMouseEnter={() => {
+        clearCloseTimer()
+        setOpen(true)
+      }}
+      onMouseLeave={scheduleClose}
     >
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
         className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border-0 text-[0.75rem] font-bold transition hover:brightness-95"
         style={{ backgroundColor: GOLD, color: INK }}
         title={user?.email || 'Admin'}
@@ -165,119 +169,116 @@ function AdminAvatarMenu() {
         {initials}
       </button>
 
-      <div className="absolute right-0 top-full z-50 min-w-[190px] pt-2">
+      {open ? (
         <div
-          className={`rounded-xl border py-1.5 shadow-lg transition duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 ${menuVisible}`}
+          className="absolute right-0 top-[calc(100%+4px)] z-[70] min-w-[190px] rounded-xl border py-1.5 shadow-lg"
           style={{
             backgroundColor: '#ffffff',
             borderColor: 'rgba(10,46,34,0.1)',
             boxShadow: '0 16px 36px -18px rgba(10,46,34,0.35)',
           }}
           role="menu"
+          onMouseEnter={clearCloseTimer}
+          onMouseLeave={scheduleClose}
         >
-        <button
-          type="button"
-          role="menuitem"
-          onClick={goSettings}
-          className={menuBtn}
-          style={{ color: INK }}
-        >
-          <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
-            <circle cx="12" cy="8" r="3.2" />
-            <path d="M5 19c1.2-3.2 3.6-5 7-5s5.8 1.8 7 5" strokeLinecap="round" />
-          </svg>
-          Profile
-        </button>
-        <div className="my-1 border-t" style={{ borderColor: 'rgba(10,46,34,0.08)' }} role="separator" />
-        <button
-          type="button"
-          role="menuitem"
-          onClick={handleLogout}
-          className={`${menuBtn} hover:bg-[rgba(163,32,32,0.08)]`}
-          style={{ color: '#a32020' }}
-        >
-          <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" strokeLinecap="round" />
-            <path d="M16 17l5-5-5-5M21 12H9" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Logout
-        </button>
+          <button type="button" role="menuitem" onClick={goSettings} className={menuBtn} style={{ color: INK }}>
+            <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
+              <circle cx="12" cy="8" r="3.2" />
+              <path d="M5 19c1.2-3.2 3.6-5 7-5s5.8 1.8 7 5" strokeLinecap="round" />
+            </svg>
+            Profile
+          </button>
+          <div className="my-1 border-t" style={{ borderColor: 'rgba(10,46,34,0.08)' }} role="separator" />
+          <button
+            type="button"
+            role="menuitem"
+            onClick={handleLogout}
+            className={`${menuBtn} hover:bg-[rgba(163,32,32,0.08)]`}
+            style={{ color: '#a32020' }}
+          >
+            <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" strokeLinecap="round" />
+              <path d="M16 17l5-5-5-5M21 12H9" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Logout
+          </button>
         </div>
-      </div>
+      ) : null}
     </div>
   )
 }
 
-export default function AdminLayout({
+function AdminBrandLockup({ onClick }: { onClick?: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="admin-brand flex min-w-0 cursor-pointer items-center gap-2 border-0 bg-transparent px-2 text-left"
+      aria-label="Admin dashboard"
+    >
+      <BrandLogo className="h-9 w-7 shrink-0 object-contain" />
+      <span className="min-w-0 flex-1">
+        <BrandNameLockup size="xs" wrap className="leading-snug" />
+        <span className="mt-0.5 block text-[0.62rem]" style={{ color: MUTED }}>
+          Admin panel
+        </span>
+      </span>
+    </button>
+  )
+}
+
+function AdminNav({
   section,
-  children,
+  onNavigate,
 }: {
   section: AdminSection
-  children: ReactNode
+  onNavigate?: () => void
 }) {
   const { logout } = useAuth()
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: PAGE_BG, fontFamily: 'Inter, sans-serif' }}>
-      <aside
-        className="sticky top-0 flex h-screen w-[250px] shrink-0 flex-col border-r px-3 py-5"
-        style={{ backgroundColor: SIDEBAR_BG, borderColor: 'rgba(10,46,34,0.08)' }}
-      >
-        <button
-          type="button"
-          onClick={() => navigateApp(APP_ROUTES.admin)}
-          className="mb-6 flex w-full min-w-0 cursor-pointer items-center gap-2 border-0 bg-transparent px-2 text-left"
-          aria-label="Admin dashboard"
-        >
-          <BrandLogo className="h-9 w-7 shrink-0 object-contain" />
-          <span className="min-w-0 flex-1">
-            <BrandNameLockup size="xs" wrap className="leading-snug" />
-            <span className="mt-0.5 block text-[0.62rem]" style={{ color: MUTED }}>
-              Admin panel
-            </span>
-          </span>
-        </button>
+    <>
+      <nav className="admin-nav flex flex-1 flex-col gap-1 overflow-y-auto overscroll-y-contain px-3 py-4" aria-label="Admin">
+        {NAV.map((item) => {
+          const active = section === item.id
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => {
+                onNavigate?.()
+                navigateApp(
+                  item.id === 'dashboard' ? APP_ROUTES.admin : `${APP_ROUTES.admin}/${item.id}`,
+                )
+              }}
+              className="flex cursor-pointer items-center gap-3 rounded-xl border-0 px-3 py-2.5 text-left text-[0.86rem] font-medium transition"
+              style={{
+                backgroundColor: active ? GOLD : 'transparent',
+                color: INK,
+                boxShadow: active ? '0 8px 20px -12px rgba(184,134,11,0.7)' : undefined,
+              }}
+            >
+              <span style={{ color: active ? INK : MUTED }}>{item.icon}</span>
+              <span className="min-w-0 flex-1 truncate">{item.label}</span>
+              {!active && (
+                <span className="text-[0.75rem] opacity-35" aria-hidden>
+                  ›
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </nav>
 
-        <nav className="flex flex-1 flex-col gap-1" aria-label="Admin">
-          {NAV.map((item) => {
-            const active = section === item.id
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() =>
-                  navigateApp(
-                    item.id === 'dashboard'
-                      ? APP_ROUTES.admin
-                      : `${APP_ROUTES.admin}/${item.id}`,
-                  )
-                }
-                className="flex cursor-pointer items-center gap-3 rounded-xl border-0 px-3 py-2.5 text-left text-[0.86rem] font-medium transition"
-                style={{
-                  backgroundColor: active ? GOLD : 'transparent',
-                  color: active ? INK : INK,
-                  boxShadow: active ? '0 8px 20px -12px rgba(184,134,11,0.7)' : undefined,
-                }}
-              >
-                <span style={{ color: active ? INK : MUTED }}>{item.icon}</span>
-                <span className="flex-1">{item.label}</span>
-                {!active && (
-                  <span className="text-[0.75rem] opacity-35" aria-hidden>
-                    ›
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </nav>
-
+      <div className="shrink-0 border-t px-3 py-3" style={{ borderColor: 'rgba(10,46,34,0.08)' }}>
         <button
           type="button"
           onClick={() => {
+            onNavigate?.()
             logout()
             navigateApp(APP_ROUTES.login)
           }}
-          className="admin-sidebar-logout mt-auto flex w-full cursor-pointer items-center gap-3 rounded-xl border-0 px-3 py-2.5 text-left text-[0.86rem] font-medium transition"
+          className="admin-sidebar-logout flex w-full cursor-pointer items-center gap-3 rounded-xl border-0 px-3 py-2.5 text-left text-[0.86rem] font-medium transition"
           style={{ backgroundColor: 'transparent', color: INK }}
         >
           <span style={{ color: MUTED }}>
@@ -291,24 +292,104 @@ export default function AdminLayout({
             ›
           </span>
         </button>
+      </div>
+    </>
+  )
+}
+
+export default function AdminLayout({
+  section,
+  children,
+}: {
+  section: AdminSection
+  children: ReactNode
+}) {
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const sectionLabel = NAV.find((n) => n.id === section)?.label ?? 'Dashboard'
+
+  useEffect(() => {
+    setMobileNavOpen(false)
+  }, [section])
+
+  useEffect(() => {
+    if (!mobileNavOpen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [mobileNavOpen])
+
+  return (
+    <div className="admin-shell min-h-svh" style={{ backgroundColor: PAGE_BG, fontFamily: 'Inter, sans-serif' }}>
+      {/* Fixed top bar — brand + breadcrumb + avatar */}
+      <header className="admin-topbar">
+        <div className="admin-topbar__brand hidden lg:flex">
+          <AdminBrandLockup onClick={() => navigateApp(APP_ROUTES.admin)} />
+        </div>
+
+        <div className="admin-topbar__main">
+          <button
+            type="button"
+            className="admin-menu-btn flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border lg:hidden"
+            style={{ borderColor: 'rgba(10,46,34,0.12)', backgroundColor: '#fff', color: INK }}
+            aria-label={mobileNavOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-expanded={mobileNavOpen}
+            onClick={() => setMobileNavOpen((o) => !o)}
+          >
+            {mobileNavOpen ? (
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
+              </svg>
+            )}
+          </button>
+
+          <p className="admin-topbar__crumb m-0 min-w-0 truncate text-[0.78rem] sm:text-[0.82rem]" style={{ color: MUTED }}>
+            Admin / <span style={{ color: INK }}>{sectionLabel}</span>
+          </p>
+
+          <AdminAvatarMenu />
+        </div>
+      </header>
+
+      {/* Desktop sidebar — fixed below top bar */}
+      <aside className="admin-sidebar hidden lg:flex" style={{ backgroundColor: SIDEBAR_BG }}>
+        <AdminNav section={section} />
       </aside>
 
-      <div className="min-w-0 flex-1 overflow-x-hidden">
-        <header
-          className="sticky top-0 z-20 flex items-center justify-between border-b px-6 py-3.5"
-          style={{
-            backgroundColor: 'rgba(238,243,239,0.92)',
-            borderColor: 'rgba(10,46,34,0.08)',
-            backdropFilter: 'blur(8px)',
-          }}
-        >
-          <p className="m-0 text-[0.78rem]" style={{ color: MUTED }}>
-            Admin / <span style={{ color: INK }}>{NAV.find((n) => n.id === section)?.label}</span>
-          </p>
-          <AdminAvatarMenu />
-        </header>
-        <div className="px-6 py-6">{children}</div>
-      </div>
+      {/* Mobile drawer */}
+      {mobileNavOpen ? (
+        <button
+          type="button"
+          className="admin-sidebar-backdrop fixed inset-0 z-40 bg-black/40 lg:hidden"
+          aria-label="Close navigation menu"
+          onClick={() => setMobileNavOpen(false)}
+        />
+      ) : null}
+
+      <aside
+        className={`admin-sidebar admin-sidebar--drawer fixed z-50 flex lg:hidden ${mobileNavOpen ? 'admin-sidebar--open' : ''}`}
+        style={{ backgroundColor: SIDEBAR_BG }}
+        aria-hidden={!mobileNavOpen}
+      >
+        <div className="shrink-0 border-b px-3 py-4" style={{ borderColor: 'rgba(10,46,34,0.08)' }}>
+          <AdminBrandLockup
+            onClick={() => {
+              setMobileNavOpen(false)
+              navigateApp(APP_ROUTES.admin)
+            }}
+          />
+        </div>
+        <AdminNav section={section} onNavigate={() => setMobileNavOpen(false)} />
+      </aside>
+
+      <main className="admin-main">
+        <div className="admin-content">{children}</div>
+      </main>
     </div>
   )
 }

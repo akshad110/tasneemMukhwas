@@ -210,6 +210,20 @@ export function paymentReceivedEmailHtml({ order }) {
   `
 }
 
+export function passwordRecoveryEmailHtml({ name, email, temporaryPassword }) {
+  return `
+    <div style="font-family:Inter,sans-serif;max-width:560px;color:#0a2e22">
+      <h2 style="color:#b8860b;margin:0 0 12px">Password recovery</h2>
+      <p style="margin:0 0 12px">Hi ${name || 'there'},</p>
+      <p style="margin:0 0 16px;line-height:1.6">We received a request to recover the login for <strong>${email}</strong>.</p>
+      <p style="margin:0 0 8px;font-size:14px;color:#666">Your new temporary password:</p>
+      <p style="margin:0 0 16px;padding:14px 18px;background:#f3f8f4;border-radius:12px;font-size:22px;font-weight:700;letter-spacing:0.12em;text-align:center;color:#0a2e22">${temporaryPassword}</p>
+      <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#666">Use this password to sign in, then update it from Settings for better security.</p>
+      <p style="margin:0;font-size:13px;color:#666">If you did not request this, contact Tasneem Mukhwas support immediately.</p>
+    </div>
+  `
+}
+
 export function discountCampaignEmailHtml({ customerName, message, coupon, shopUrl }) {
   const discountLabel =
     coupon.discountType === 'percent'

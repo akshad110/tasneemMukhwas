@@ -355,7 +355,7 @@ function DashboardPeriodPicker({
 
         {monthOpen && (
           <div
-            className="absolute right-0 top-[calc(100%+6px)] z-30 min-w-[220px] rounded-xl border p-3 shadow-lg"
+            className="absolute right-0 top-[calc(100%+6px)] z-[70] min-w-[220px] rounded-xl border p-3 shadow-lg"
             style={{ borderColor: LINE, backgroundColor: CARD }}
             role="listbox"
           >
@@ -622,11 +622,11 @@ export default function AdminDashboard() {
   if (error && !data) {
     return (
       <div>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="m-0 text-[1.85rem] font-bold tracking-tight" style={{ color: INK }}>
-            Dashboard
-          </h1>
-          <DashboardPeriodPicker period={period} onChange={setPeriod} />
+        <div className="admin-page-head">
+          <h1 className="admin-page-title tracking-tight">Dashboard</h1>
+          <div className="admin-toolbar">
+            <DashboardPeriodPicker period={period} onChange={setPeriod} />
+          </div>
         </div>
         <p className="mt-4 m-0 text-[0.95rem]" style={{ color: '#a32020' }}>
           {error}
@@ -638,11 +638,11 @@ export default function AdminDashboard() {
   if (!data) {
     return (
       <div>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="m-0 text-[1.85rem] font-bold tracking-tight" style={{ color: INK }}>
-            Dashboard
-          </h1>
-          <DashboardPeriodPicker period={period} onChange={setPeriod} />
+        <div className="admin-page-head">
+          <h1 className="admin-page-title tracking-tight">Dashboard</h1>
+          <div className="admin-toolbar">
+            <DashboardPeriodPicker period={period} onChange={setPeriod} />
+          </div>
         </div>
         <p className="mt-4 m-0 text-[0.95rem]" style={{ color: MUTED }}>
           Loading dashboard…
@@ -671,11 +671,11 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="m-0 text-[1.85rem] font-bold tracking-tight" style={{ color: INK }}>
-          Dashboard
-        </h1>
-        <DashboardPeriodPicker period={period} onChange={setPeriod} />
+      <div className="admin-page-head">
+        <h1 className="admin-page-title tracking-tight">Dashboard</h1>
+        <div className="admin-toolbar">
+          <DashboardPeriodPicker period={period} onChange={setPeriod} />
+        </div>
       </div>
       {periodLabel && (
         <p className="mt-1.5 m-0 text-[0.75rem] font-medium" style={{ color: MUTED }}>

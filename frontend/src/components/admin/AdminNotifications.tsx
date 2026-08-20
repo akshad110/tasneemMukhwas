@@ -67,12 +67,14 @@ export default function AdminNotifications() {
 
   return (
     <div>
-      <h1 className="m-0 text-[1.85rem] font-bold" style={{ color: INK }}>
-        Order alerts
-      </h1>
-      <p className="mt-1 m-0 text-[0.88rem]" style={{ color: MUTED }}>
-        Order confirmations, payments, shipping updates, and bulk discount campaigns — no email delivery logs.
-      </p>
+      <div className="admin-page-head">
+        <div>
+          <h1 className="admin-page-title">Order alerts</h1>
+          <p className="admin-page-sub">
+            Order confirmations, payments, shipping updates, and bulk discount campaigns — no email delivery logs.
+          </p>
+        </div>
+      </div>
 
       {!mailConfigured && (
         <p

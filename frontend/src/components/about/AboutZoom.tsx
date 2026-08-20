@@ -55,9 +55,9 @@ export default function AboutZoom() {
             buttonTextColor={BLACK}
             buttonBgColor={WHITE}
             iconType="none"
-            animationStiffness={180}
-            animationDamping={34}
-            animationMass={0.38}
+            animationStiffness={260}
+            animationDamping={28}
+            animationMass={0.28}
             leftFont={{
               fontFamily: 'Anton, Impact, sans-serif',
               fontWeight: 400,

@@ -48,12 +48,12 @@ export default function AdminTransactions() {
 
   return (
     <div>
-      <h1 className="m-0 text-[1.85rem] font-bold" style={{ color: INK }}>
-        Transactions
-      </h1>
-      <p className="mt-1 m-0 text-[0.88rem]" style={{ color: MUTED }}>
-        Billing history, invoices, and payment status.
-      </p>
+      <div className="admin-page-head">
+        <div>
+          <h1 className="admin-page-title">Transactions</h1>
+          <p className="admin-page-sub">Billing history, invoices, and payment status.</p>
+        </div>
+      </div>
 
       {error && (
         <p className="mt-3 m-0 text-[0.85rem]" style={{ color: '#a32020' }}>
@@ -105,7 +105,7 @@ export default function AdminTransactions() {
       </div>
 
       <div
-        className="mt-4 overflow-hidden rounded-2xl border"
+        className="admin-table-wrap mt-4 overflow-hidden rounded-2xl border"
         style={{ backgroundColor: CARD, borderColor: LINE }}
       >
         <table className="w-full border-collapse text-left text-[0.85rem]">

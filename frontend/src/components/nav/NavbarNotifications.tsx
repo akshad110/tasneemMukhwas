@@ -78,17 +78,17 @@ export default function NavbarNotifications({ ink }: { ink: string }) {
 
       {open && (
         <div
-          className="fixed left-1/2 top-[calc(env(safe-area-inset-top,0px)+3.25rem)] z-[80] w-[min(calc(100vw-1.5rem),20rem)] -translate-x-1/2 overflow-hidden rounded-xl border shadow-lg md:absolute md:right-0 md:top-[calc(100%+8px)] md:w-[min(92vw,20rem)] md:translate-x-0"
+          className="navbar-notif-panel fixed left-1/2 top-[calc(env(safe-area-inset-top,0px)+3.25rem)] z-[80] flex w-[min(calc(100vw-1.5rem),22rem)] max-h-[min(calc(100dvh-5rem),26rem)] -translate-x-1/2 flex-col overflow-hidden rounded-xl border shadow-lg md:absolute md:left-auto md:right-0 md:top-[calc(100%+8px)] md:w-[min(calc(100vw-2rem),22rem)] md:max-h-[min(calc(100dvh-6rem),24rem)] md:translate-x-0"
           style={{ backgroundColor: CREAM, borderColor: 'rgba(10,46,34,0.12)' }}
         >
           <div
-            className="flex items-center justify-between gap-2 border-b px-3 py-2.5"
+            className="flex shrink-0 flex-wrap items-center justify-between gap-x-2 gap-y-1 border-b px-3 py-2.5"
             style={{ borderColor: 'rgba(10,46,34,0.08)' }}
           >
             <p className="m-0 text-[0.78rem] font-bold" style={{ color: INK }}>
               Notifications
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-x-2 gap-y-0.5">
               {unread > 0 && (
                 <button
                   type="button"
@@ -114,7 +114,7 @@ export default function NavbarNotifications({ ink }: { ink: string }) {
 
           <ul
             ref={listRef}
-            className="max-h-[min(60vh,320px)] list-none overflow-y-auto overscroll-y-contain p-0 m-0 touch-pan-y"
+            className="navbar-notif-panel__list m-0 min-h-0 flex-1 list-none overflow-x-hidden overflow-y-auto overscroll-y-contain p-0 touch-pan-y"
             onWheel={(e) => e.stopPropagation()}
             onTouchMove={(e) => e.stopPropagation()}
           >
@@ -126,64 +126,71 @@ export default function NavbarNotifications({ ink }: { ink: string }) {
             {items.map((n) => (
               <li
                 key={n.id}
-                className="border-b px-3 py-2.5"
+                className="border-b px-3 py-2.5 last:border-b-0"
                 style={{
                   borderColor: 'rgba(10,46,34,0.06)',
                   backgroundColor: n.read ? 'transparent' : 'rgba(184,134,11,0.08)',
                 }}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="m-0 text-[0.62rem] font-semibold uppercase tracking-wide" style={{ color: GOLD }}>
-                      {typeLabel(n.type)}
-                    </p>
-                    <p className="mt-0.5 m-0 text-[0.78rem] font-semibold leading-snug" style={{ color: INK }}>
-                      {n.title}
-                    </p>
-                    <p className="mt-0.5 m-0 text-[0.68rem] leading-snug" style={{ color: MUTED }}>
-                      {n.body}
-                    </p>
-                    {n.orderNumber && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setOpen(false)
-                          navigateApp(APP_ROUTES.myOrders)
-                        }}
-                        className="mt-1 cursor-pointer border-0 bg-transparent p-0 text-[0.66rem] font-semibold underline"
-                        style={{ color: INK }}
-                      >
-                        View order {n.orderNumber}
-                      </button>
-                    )}
-                  </div>
-                  <div className="flex shrink-0 flex-col items-end gap-1">
-                    {!n.read && (
-                      <button
-                        type="button"
-                        onClick={() => void markRead(n.id)}
-                        className="cursor-pointer border-0 bg-transparent text-[0.62rem] font-semibold"
-                        style={{ color: GOLD }}
-                      >
-                        Read
-                      </button>
-                    )}
+                <div className="min-w-0">
+                  <p className="m-0 text-[0.62rem] font-semibold uppercase tracking-wide" style={{ color: GOLD }}>
+                    {typeLabel(n.type)}
+                  </p>
+                  <p
+                    className="mt-0.5 m-0 break-words text-[0.78rem] font-semibold leading-snug"
+                    style={{ color: INK }}
+                  >
+                    {n.title}
+                  </p>
+                  <p
+                    className="mt-0.5 m-0 break-words text-[0.68rem] leading-snug"
+                    style={{ color: MUTED }}
+                  >
+                    {n.body}
+                  </p>
+                  {n.orderNumber && (
                     <button
                       type="button"
-                      onClick={() => void removeOne(n.id)}
-                      className="cursor-pointer border-0 bg-transparent text-[0.62rem] font-semibold"
-                      style={{ color: 'rgba(163,32,32,0.75)' }}
-                      aria-label="Delete notification"
+                      onClick={() => {
+                        setOpen(false)
+                        navigateApp(APP_ROUTES.myOrders)
+                      }}
+                      className="mt-1 cursor-pointer border-0 bg-transparent p-0 text-left text-[0.66rem] font-semibold underline"
+                      style={{ color: INK }}
                     >
-                      Delete
+                      View order {n.orderNumber}
                     </button>
-                  </div>
+                  )}
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+                  {!n.read && (
+                    <button
+                      type="button"
+                      onClick={() => void markRead(n.id)}
+                      className="cursor-pointer border-0 bg-transparent p-0 text-[0.62rem] font-semibold"
+                      style={{ color: GOLD }}
+                    >
+                      Read
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => void removeOne(n.id)}
+                    className="cursor-pointer border-0 bg-transparent p-0 text-[0.62rem] font-semibold"
+                    style={{ color: 'rgba(163,32,32,0.75)' }}
+                    aria-label="Delete notification"
+                  >
+                    Delete
+                  </button>
                 </div>
               </li>
             ))}
           </ul>
 
-          <div className="border-t px-3 py-2" style={{ borderColor: 'rgba(10,46,34,0.08)' }}>
+          <div
+            className="shrink-0 border-t px-3 py-2"
+            style={{ borderColor: 'rgba(10,46,34,0.08)' }}
+          >
             <button
               type="button"
               onClick={() => {

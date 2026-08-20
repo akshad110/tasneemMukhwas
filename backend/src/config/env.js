@@ -58,7 +58,7 @@ export const env = {
     readEnv('RAZOPAY_API_KEY'),
   razorpayKeySecret: readEnv('RAZORPAY_KEY_SECRET') || readEnv('RAZORPAY_SECRET_KEY'),
   resendApiKey: readEnv('RESEND_API_KEY'),
-  mailFrom: readEnv('MAIL_FROM') || 'Tasneem Mukhwas <support@tasneemmukhwas.com>',
+  mailFrom: readEnv('MAIL_FROM') || 'Tasneem Mukhwas <info@tasneemmukhwas.com>',
   resendSandboxTo: readEnv('RESEND_SANDBOX_TO'),
   mailTestTo: readEnv('MAIL_TEST_TO'),
 }

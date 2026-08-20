@@ -155,12 +155,12 @@ export default function AdminOrders() {
 
   return (
     <div>
-      <h1 className="m-0 text-[1.85rem] font-bold" style={{ color: INK }}>
-        Order Management
-      </h1>
-      <p className="mt-1 m-0 text-[0.88rem]" style={{ color: MUTED }}>
-        Track orders, shipments, and fulfillment status.
-      </p>
+      <div className="admin-page-head">
+        <div>
+          <h1 className="admin-page-title">Order Management</h1>
+          <p className="admin-page-sub">Track orders, shipments, and fulfillment status.</p>
+        </div>
+      </div>
 
       {error && (
         <p className="mt-3 m-0 text-[0.85rem]" style={{ color: '#a32020' }}>
@@ -189,8 +189,8 @@ export default function AdminOrders() {
         ))}
       </div>
 
-      <div className="mt-5 grid gap-4 lg:grid-cols-[1.2fr_0.9fr]">
-        <div className="overflow-hidden rounded-2xl border" style={{ backgroundColor: CARD, borderColor: LINE }}>
+      <div className="admin-panel-grid admin-panel-grid--orders mt-5">
+        <div className="admin-table-wrap overflow-hidden rounded-2xl border" style={{ backgroundColor: CARD, borderColor: LINE }}>
           <table className="w-full border-collapse text-left text-[0.85rem]">
             <thead>
               <tr style={{ backgroundColor: '#f3f8f4', color: MUTED }}>

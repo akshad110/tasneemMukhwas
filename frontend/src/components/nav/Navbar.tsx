@@ -42,6 +42,9 @@ const INK = '#0a2e22'
 const GOLD = '#b8860b'
 const NAV_LINK_DARK = 'rgba(242,244,245,0.68)'
 const NAV_LINK_LIGHT = 'rgba(10,46,34,0.62)'
+const NAV_LINK_HOVER_DARK = '#ffffff'
+const NAV_LINK_HOVER_DARK_BORDER = '#FFD966'
+const NAV_LINK_HOVER_LIGHT = '#b8860b'
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
 /** Hysteresis avoids flicker when navbar height change shifts scroll position near the threshold */
 const SCROLL_COMPACT_AT = 96
@@ -108,8 +111,8 @@ function useActiveSection() {
 
     if (pathname === '/' || isHomeScrollPath(pathname)) {
       const section = getActiveSectionId()
-      // Home contact section — keep Home underline; /contact page gets its own underline
-      if (section === 'contact') return 'home'
+      // Home scroll sections — About us nav highlights only on /know-more, not #about
+      if (section === 'contact' || section === 'about') return 'home'
       return section
     }
 
@@ -211,6 +214,12 @@ function NavLinks({
             : link.id === 'products'
               ? APP_ROUTES.shop
               : pathForSection(link.id)
+
+        const baseColor = onDark ? NAV_LINK_DARK : NAV_LINK_LIGHT
+        const activeColor = onDark ? NAV_LINK_HOVER_DARK : INK
+        const hoverColor = onDark ? NAV_LINK_HOVER_DARK : NAV_LINK_HOVER_LIGHT
+        const hoverBorder = onDark ? NAV_LINK_HOVER_DARK_BORDER : NAV_LINK_HOVER_LIGHT
+
         return (
           <li key={link.label}>
             <a
@@ -219,13 +228,14 @@ function NavLinks({
                 e.preventDefault()
                 onNavigate?.(link.id)
               }}
-              className={`cursor-pointer text-[0.82rem] font-medium tracking-wide no-underline transition-opacity hover:opacity-80 ${
-                isActive ? 'border-b-2 pb-0.5' : 'border-b-2 border-transparent pb-0.5'
-              }`}
+              className="nav-link group cursor-pointer border-b-2 pb-0.5 text-[0.82rem] font-medium tracking-wide no-underline transition-[color,border-color,font-weight] duration-200"
               style={{
-                color: onDark ? NAV_LINK_DARK : NAV_LINK_LIGHT,
+                color: isActive ? activeColor : baseColor,
                 borderColor: isActive ? GOLD : 'transparent',
                 fontFamily: 'Inter, sans-serif',
+                fontWeight: isActive ? 600 : 500,
+                ['--nav-link-hover-color' as string]: hoverColor,
+                ['--nav-link-hover-border' as string]: hoverBorder,
               }}
               aria-current={isActive ? 'page' : undefined}
             >
@@ -401,6 +411,10 @@ export default function Navbar() {
 
   const openCart = () => {
     setMenuOpen(false)
+    if (!user) {
+      navigateApp(APP_ROUTES.login)
+      return
+    }
     navigateApp(APP_ROUTES.cart)
   }
 
@@ -509,7 +523,6 @@ export default function Navbar() {
   const heroOverlay = isHome && !scrolled
   const navInk = isDarkNav ? 'rgba(242,244,245,0.82)' : INK
   const navHover = isDarkNav ? 'hover:bg-white/10' : 'hover:bg-[#0a2e22]/8'
-  const navBorder = heroOverlay ? 'border-transparent' : 'border-[#0a2e22]/08'
   const badgeRing = isDarkNav ? 'rgba(10,46,34,0.85)' : PEACH
   const showMobileBottomNav = shouldShowMobileBottomNav(pathname)
   const mobileTabActiveId = resolveMobileBottomNavActive(pathname)
@@ -517,14 +530,14 @@ export default function Navbar() {
   return (
     <>
     <header
-      className={`sticky top-0 z-50 w-full border-b ${navBorder}`}
+      className="sticky top-0 z-50 w-full border-0"
       style={{
         paddingTop: 'env(safe-area-inset-top, 0px)',
         background: heroOverlay
           ? 'linear-gradient(180deg, rgba(6,14,11,0.42) 0%, rgba(6,14,11,0.12) 55%, transparent 100%)'
           : PEACH,
         boxShadow: scrolled && !heroOverlay ? '0 6px 20px rgba(10,46,34,0.06)' : 'none',
-        transition: `background 450ms ${EASE}, box-shadow 450ms ${EASE}, border-color 450ms ${EASE}`,
+        transition: `background 450ms ${EASE}, box-shadow 450ms ${EASE}`,
       }}
     >
       {/* —— Desktop (single morphing bar) —— */}
@@ -601,46 +614,50 @@ export default function Navbar() {
 
         {/* Right — cart / favorite / login (edge-aligned) */}
         <div className="relative z-10 ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
-          <button
-            type="button"
-            onClick={openCart}
-            className={`relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md transition-colors ${navHover}`}
-            style={{ color: navInk }}
-            aria-label="Cart"
-          >
-            <CartIcon className="h-[1.2rem] w-[1.2rem]" />
-            <NavCountBadge count={cartBadgeCount} label="Cart items" ringColor={badgeRing} />
-          </button>
+          {user ? (
+            <>
+              <button
+                type="button"
+                onClick={openCart}
+                className={`relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md transition-colors ${navHover}`}
+                style={{ color: navInk }}
+                aria-label="Cart"
+              >
+                <CartIcon className="h-[1.2rem] w-[1.2rem]" />
+                <NavCountBadge count={cartBadgeCount} label="Cart items" ringColor={badgeRing} />
+              </button>
 
-          <div className="group relative">
-            <button
-              type="button"
-              onClick={openWishlist}
-              className={`relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md transition-colors ${navHover}`}
-              style={{ color: wishlistCount > 0 ? '#f4a4a4' : navInk }}
-              aria-label="Wishlist"
-            >
-              <HeartIcon className="h-[1.2rem] w-[1.2rem]" filled={wishlistCount > 0} />
-              <NavCountBadge
-                count={wishlistCount}
-                label="Wishlist items"
-                variant="wishlist"
-                ringColor={badgeRing}
-              />
-            </button>
-            <span
-              className="pointer-events-none invisible absolute left-1/2 top-[calc(100%+8px)] z-50 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-lg border px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-wide opacity-0 shadow-md transition duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100"
-              style={{
-                backgroundColor: PEACH,
-                borderColor: 'rgba(10,46,34,0.12)',
-                color: INK,
-                fontFamily: 'Inter, sans-serif',
-              }}
-              role="tooltip"
-            >
-              Wishlist
-            </span>
-          </div>
+              <div className="group relative">
+                <button
+                  type="button"
+                  onClick={openWishlist}
+                  className={`relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md transition-colors ${navHover}`}
+                  style={{ color: wishlistCount > 0 ? '#f4a4a4' : navInk }}
+                  aria-label="Wishlist"
+                >
+                  <HeartIcon className="h-[1.2rem] w-[1.2rem]" filled={wishlistCount > 0} />
+                  <NavCountBadge
+                    count={wishlistCount}
+                    label="Wishlist items"
+                    variant="wishlist"
+                    ringColor={badgeRing}
+                  />
+                </button>
+                <span
+                  className="pointer-events-none invisible absolute left-1/2 top-[calc(100%+8px)] z-50 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-lg border px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-wide opacity-0 shadow-md transition duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100"
+                  style={{
+                    backgroundColor: PEACH,
+                    borderColor: 'rgba(10,46,34,0.12)',
+                    color: INK,
+                    fontFamily: 'Inter, sans-serif',
+                  }}
+                  role="tooltip"
+                >
+                  Wishlist
+                </span>
+              </div>
+            </>
+          ) : null}
 
           {!authLoading && user ? (
             <>
@@ -685,45 +702,49 @@ export default function Navbar() {
         </a>
 
         <div className="ml-auto flex items-center gap-0.5">
-          <button
-            type="button"
-            onClick={openCart}
-            className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md"
-            style={{ color: navInk }}
-            aria-label="Cart"
-          >
-            <CartIcon className="h-5 w-5" />
-            <NavCountBadge count={cartBadgeCount} label="Cart items" ringColor={badgeRing} />
-          </button>
-          <div className="group relative">
-            <button
-              type="button"
-              onClick={openWishlist}
-              className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md"
-              style={{ color: wishlistCount > 0 ? '#f4a4a4' : navInk }}
-              aria-label="Wishlist"
-            >
-              <HeartIcon className="h-5 w-5" filled={wishlistCount > 0} />
-              <NavCountBadge
-                count={wishlistCount}
-                label="Wishlist items"
-                variant="wishlist"
-                ringColor={badgeRing}
-              />
-            </button>
-            <span
-              className="pointer-events-none invisible absolute left-1/2 top-[calc(100%+8px)] z-50 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-lg border px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-wide opacity-0 shadow-md transition duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100"
-              style={{
-                backgroundColor: PEACH,
-                borderColor: 'rgba(10,46,34,0.12)',
-                color: INK,
-                fontFamily: 'Inter, sans-serif',
-              }}
-              role="tooltip"
-            >
-              Wishlist
-            </span>
-          </div>
+          {user ? (
+            <>
+              <button
+                type="button"
+                onClick={openCart}
+                className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md"
+                style={{ color: navInk }}
+                aria-label="Cart"
+              >
+                <CartIcon className="h-5 w-5" />
+                <NavCountBadge count={cartBadgeCount} label="Cart items" ringColor={badgeRing} />
+              </button>
+              <div className="group relative">
+                <button
+                  type="button"
+                  onClick={openWishlist}
+                  className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md"
+                  style={{ color: wishlistCount > 0 ? '#f4a4a4' : navInk }}
+                  aria-label="Wishlist"
+                >
+                  <HeartIcon className="h-5 w-5" filled={wishlistCount > 0} />
+                  <NavCountBadge
+                    count={wishlistCount}
+                    label="Wishlist items"
+                    variant="wishlist"
+                    ringColor={badgeRing}
+                  />
+                </button>
+                <span
+                  className="pointer-events-none invisible absolute left-1/2 top-[calc(100%+8px)] z-50 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-lg border px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-wide opacity-0 shadow-md transition duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100"
+                  style={{
+                    backgroundColor: PEACH,
+                    borderColor: 'rgba(10,46,34,0.12)',
+                    color: INK,
+                    fontFamily: 'Inter, sans-serif',
+                  }}
+                  role="tooltip"
+                >
+                  Wishlist
+                </span>
+              </div>
+            </>
+          ) : null}
           {!authLoading && user ? <NavbarNotifications ink={navInk} /> : null}
           <button
             type="button"
@@ -755,7 +776,7 @@ export default function Navbar() {
       {menuOpen && (
         <div
           id="mobile-nav"
-          className={`border-t px-3 pb-4 pt-3 sm:px-4 md:hidden ${navBorder}`}
+          className="border-t border-[#0a2e22]/06 px-3 pb-4 pt-3 sm:px-4 md:hidden"
           style={{
             backgroundColor: 'rgba(242,244,245,0.92)',
             backdropFilter: 'blur(12px)',

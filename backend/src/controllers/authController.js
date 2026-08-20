@@ -1,7 +1,9 @@
 import { z } from 'zod'
+import crypto from 'crypto'
 import { User } from '../models/User.js'
 import { ApiError, asyncHandler, sendSuccess } from '../utils/asyncHandler.js'
 import { signToken } from '../utils/tokens.js'
+import { isMailConfigured, passwordRecoveryEmailHtml, sendEmail } from '../services/mail.js'
 
 const registerSchema = z.object({
   name: z.string().trim().min(2).max(120),
@@ -30,6 +32,20 @@ const changePasswordSchema = z.object({
   newPassword: z.string().min(6).max(128),
 })
 
+const forgotPasswordSchema = z.object({
+  email: z.string().trim().email().max(160),
+})
+
+function generateTempPassword() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'
+  const bytes = crypto.randomBytes(10)
+  let pwd = ''
+  for (let i = 0; i < 10; i += 1) {
+    pwd += chars[bytes[i] % chars.length]
+  }
+  return pwd
+}
+
 function authPayload(user) {
   const token = signToken({ sub: user._id.toString(), role: user.role })
   return { token, user: user.toSafeJSON() }
@@ -40,6 +56,7 @@ export const registerSchemas = {
   loginSchema,
   profileSchema,
   changePasswordSchema,
+  forgotPasswordSchema,
 }
 
 export const register = asyncHandler(async (req, res) => {
@@ -104,5 +121,46 @@ export const changePassword = asyncHandler(async (req, res) => {
   return sendSuccess(res, {
     message: 'Password updated successfully',
     data: null,
+  })
+})
+
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body
+  const normalized = email.toLowerCase()
+  const user = await User.findOne({ email: normalized })
+
+  if (!user) {
+    throw new ApiError(404, 'No account found with this email address')
+  }
+  if (!user.isActive) {
+    throw new ApiError(403, 'This account is inactive. Contact support for help.')
+  }
+  if (!isMailConfigured()) {
+    throw new ApiError(503, 'Email service is not configured. Please contact support.')
+  }
+
+  const temporaryPassword = generateTempPassword()
+  user.password = temporaryPassword
+  await user.save()
+
+  const mail = await sendEmail({
+    to: user.email,
+    subject: 'Your Tasneem Mukhwas login password',
+    html: passwordRecoveryEmailHtml({ name: user.name, email: user.email, temporaryPassword }),
+    audience: 'customer',
+  })
+
+  if (!mail.ok) {
+    throw new ApiError(
+      502,
+      mail.sandboxBlocked
+        ? 'Could not deliver email in test mode. Use your verified inbox email or configure a domain in Resend.'
+        : mail.error || 'Could not send recovery email',
+    )
+  }
+
+  return sendSuccess(res, {
+    message: 'A new login password has been sent to your email.',
+    data: { email: user.email },
   })
 })

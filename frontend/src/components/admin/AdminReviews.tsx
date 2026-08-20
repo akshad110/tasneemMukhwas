@@ -113,23 +113,23 @@ export default function AdminReviews() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="admin-page-head">
         <div>
-          <h1 className="m-0 text-[1.85rem] font-bold" style={{ color: INK }}>
-            Review Management
-          </h1>
-          <p className="mt-1 m-0 max-w-xl text-[0.88rem]" style={{ color: MUTED }}>
+          <h1 className="admin-page-title">Review Management</h1>
+          <p className="admin-page-sub max-w-xl">
             Moderate customer feedback. Approved reviews appear in the home page testimonials marquee.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => void load()}
-          className="cursor-pointer rounded-xl border px-4 py-2 text-[0.78rem] font-semibold"
-          style={{ borderColor: LINE, backgroundColor: CARD, color: INK }}
-        >
-          Refresh
-        </button>
+        <div className="admin-toolbar">
+          <button
+            type="button"
+            onClick={() => void load()}
+            className="cursor-pointer rounded-xl border px-4 py-2 text-[0.78rem] font-semibold"
+            style={{ borderColor: LINE, backgroundColor: CARD, color: INK }}
+          >
+            Refresh
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -203,7 +203,7 @@ export default function AdminReviews() {
           </p>
         </div>
       ) : (
-        <div className="mt-5 grid gap-4 lg:grid-cols-[1.15fr_0.95fr]">
+        <div className="admin-panel-grid admin-panel-grid--split mt-5">
           <div className="overflow-hidden rounded-2xl border" style={{ backgroundColor: CARD, borderColor: LINE }}>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[640px] border-collapse text-left text-[0.85rem]">

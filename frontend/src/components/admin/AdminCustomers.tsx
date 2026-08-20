@@ -52,22 +52,20 @@ export default function AdminCustomers() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="admin-page-head">
         <div>
-          <h1 className="m-0 text-[1.85rem] font-bold" style={{ color: INK }}>
-            Customers
-          </h1>
-          <p className="mt-1 m-0 text-[0.88rem]" style={{ color: MUTED }}>
-            All registered buyers and their recent interactions.
-          </p>
+          <h1 className="admin-page-title">Customers</h1>
+          <p className="admin-page-sub">All registered buyers and their recent interactions.</p>
         </div>
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search name, email, city…"
-          className="min-w-[220px] rounded-xl border px-3 py-2.5 text-[0.85rem] outline-none"
-          style={{ borderColor: LINE, backgroundColor: CARD, color: INK }}
-        />
+        <div className="admin-toolbar">
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search name, email, city…"
+            className="w-full rounded-xl border px-3 py-2.5 text-[0.85rem] outline-none sm:w-auto"
+            style={{ borderColor: LINE, backgroundColor: CARD, color: INK }}
+          />
+        </div>
       </div>
 
       {error && (
@@ -76,9 +74,9 @@ export default function AdminCustomers() {
         </p>
       )}
 
-      <div className="mt-5 grid gap-4 lg:grid-cols-[1.15fr_0.95fr]">
+      <div className="admin-panel-grid admin-panel-grid--split mt-5">
         <div
-          className="overflow-hidden rounded-2xl border"
+          className="admin-table-wrap overflow-hidden rounded-2xl border"
           style={{ backgroundColor: CARD, borderColor: LINE }}
         >
           <table className="w-full border-collapse text-left text-[0.85rem]">

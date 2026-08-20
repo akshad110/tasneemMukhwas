@@ -55,7 +55,7 @@ const STEPS = [
   },
 ] as const
 
-const SPRING = { stiffness: 70, damping: 28, mass: 0.35 }
+const SPRING = { stiffness: 105, damping: 24, mass: 0.28 }
 
 type StepBounds = { bottom: number }
 

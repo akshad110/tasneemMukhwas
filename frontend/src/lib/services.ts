@@ -111,6 +111,12 @@ export const authApi = {
     apiRequest<AuthUser>('/auth/profile', { method: 'PATCH', body: payload }),
   changePassword: (payload: { currentPassword: string; newPassword: string }) =>
     apiRequest<null>('/auth/change-password', { method: 'POST', body: payload }),
+  forgotPassword: (email: string) =>
+    apiRequest<{ email: string }>('/auth/forgot-password', {
+      method: 'POST',
+      body: { email },
+      auth: false,
+    }),
 }
 
 export const productsApi = {

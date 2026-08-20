@@ -118,7 +118,7 @@ export default function OrderSuccessScreen({
   user,
 }: OrderSuccessScreenProps) {
   const paymentLabel =
-    paidVia === 'cod' ? 'Cash on Delivery' : paidVia === 'razorpay' ? 'Paid · Razorpay' : 'Confirmed'
+    paidVia === 'cod' ? 'Cash on Delivery' : paidVia === 'razorpay' ? 'Paid · Online mode' : 'Confirmed'
 
   const activeStep = paidVia === 'razorpay' ? 1 : 0
 
