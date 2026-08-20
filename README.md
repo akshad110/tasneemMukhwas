@@ -35,12 +35,14 @@ npm run dev
 - **Start Command:** `npm start`
 - **Health check path:** `/api/health`
 - **Env (required on Render):**
-  - `MONGODB_URI` — Atlas connection string
+  - `MONGODB_URI` — **exact same** Atlas string as local `.env` (check database name spelling, e.g. `tasneen_mukhwas`)
   - `JWT_SECRET` — long random secret
   - `CLIENT_URL` = `https://tasneemmukhwas.onrender.com`
   - `NODE_ENV` = `production`
+  - **Do NOT set `PORT`** — delete it from Render env; Render assigns `PORT` automatically (manual `PORT=5000` causes 502)
+- **Root Directory must be `backend`** (or use repo root — root `package.json` delegates to backend)
 
-**If you see 502:** open Render → API service → Logs. Usually `Missing required env variable: MONGODB_URI` or MongoDB Atlas blocking Render (Network Access → allow `0.0.0.0/0`).
+**If you see 502:** open Render → API service → Logs. Common fixes: remove `PORT` env var, set Root Directory to `backend`, redeploy.
 
 After first deploy, from Render shell or locally against Atlas: `npm run seed:force`
 

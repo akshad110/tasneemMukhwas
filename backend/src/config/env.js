@@ -37,8 +37,26 @@ function parseClientOrigins() {
   return [...new Set([...fromEnv, ...defaults])]
 }
 
+function resolvePort() {
+  const port = Number(process.env.PORT)
+  if (process.env.RENDER) {
+    if (!port || Number.isNaN(port)) {
+      throw new Error(
+        'PORT is missing on Render. Remove any manual PORT=5000 from dashboard — Render assigns PORT automatically.',
+      )
+    }
+    if (port === 5000) {
+      console.warn(
+        '[env] PORT=5000 on Render often causes 502. Delete the PORT variable from Render env — let Render set it automatically.',
+      )
+    }
+    return port
+  }
+  return port || 5000
+}
+
 export const env = {
-  port: Number(process.env.PORT) || 5000,
+  port: resolvePort(),
   nodeEnv: process.env.NODE_ENV || 'development',
   mongodbUri: required('MONGODB_URI'),
   jwtSecret: required('JWT_SECRET'),

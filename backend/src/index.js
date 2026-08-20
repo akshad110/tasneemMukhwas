@@ -12,6 +12,30 @@ import { startNotificationCleanupJob } from './services/notificationCleanup.js'
 const app = express()
 
 app.set('trust proxy', 1)
+
+function healthPayload() {
+  return {
+    success: true,
+    data: {
+      ok: true,
+      db: isDbConnected() ? 'connected' : 'connecting',
+      env: env.nodeEnv,
+      port: env.port,
+    },
+  }
+}
+
+/** Health checks first — before middleware that can fail behind Render proxy. */
+app.get('/', (_req, res) => {
+  res.json(healthPayload())
+})
+app.get('/health', (_req, res) => {
+  res.json(healthPayload())
+})
+app.get('/api/health', (_req, res) => {
+  res.json(healthPayload())
+})
+
 app.use(helmet())
 app.use(
   cors({
@@ -37,27 +61,29 @@ app.use(
     max: 400,
     standardHeaders: true,
     legacyHeaders: false,
+    validate: { xForwardedForHeader: false },
     message: { success: false, message: 'Too many requests, try again later' },
   }),
 )
-
-app.get('/api/health', (_req, res) => {
-  res.json({
-    success: true,
-    data: {
-      ok: true,
-      db: isDbConnected() ? 'connected' : 'connecting',
-    },
-  })
-})
 
 app.use('/api', apiRoutes)
 app.use(notFoundHandler)
 app.use(errorHandler)
 
+process.on('unhandledRejection', (reason) => {
+  console.error('[process] unhandledRejection', reason)
+})
+process.on('uncaughtException', (err) => {
+  console.error('[process] uncaughtException', err)
+})
+
 async function boot() {
+  console.log(
+    `[boot] node=${process.version} env=${env.nodeEnv} port=${env.port} render=${Boolean(process.env.RENDER)}`,
+  )
+
   app.listen(env.port, '0.0.0.0', () => {
-    console.log(`API listening on port ${env.port}`)
+    console.log(`API listening on 0.0.0.0:${env.port}`)
   })
 
   const connected = await connectDBWithRetry()
@@ -65,7 +91,7 @@ async function boot() {
     startNotificationCleanupJob()
   } else {
     console.error(
-      'MongoDB never connected — check MONGODB_URI on Render and Atlas Network Access (allow 0.0.0.0/0).',
+      'MongoDB never connected — verify MONGODB_URI matches local Atlas string and Atlas Network Access allows 0.0.0.0/0.',
     )
   }
 }
