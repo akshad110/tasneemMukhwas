@@ -1,9 +1,9 @@
 {
   "name": "taskeen-mukhwas",
   "private": true,
-  "description": "Monorepo root — Render API service can use repo root OR set Root Directory to backend",
+  "description": "Monorepo root — installs backend deps on Render when Root Directory is repo root",
   "scripts": {
-    "start": "npm --prefix backend start",
-    "build": "npm --prefix backend install"
+    "build": "npm --prefix backend install",
+    "start": "npm --prefix backend start"
   }
 }

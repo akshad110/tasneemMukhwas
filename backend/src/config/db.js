@@ -6,9 +6,12 @@ export function isDbConnected() {
 }
 
 export async function connectDB() {
+  if (!env.mongodbUri) {
+    throw new Error('MONGODB_URI is not set')
+  }
   if (env.mongodbUri.includes('<') || env.mongodbUri.includes('password>')) {
     throw new Error(
-      'Set a real MONGODB_URI in backend/.env (replace the placeholder username/password/cluster).',
+      'Set a real MONGODB_URI in Render environment (replace placeholder username/password/cluster).',
     )
   }
 
@@ -27,6 +30,11 @@ const MAX_RETRIES = 12
 
 /** Keep retrying MongoDB in the background after HTTP server is already listening. */
 export async function connectDBWithRetry() {
+  if (!env.mongodbUri) {
+    console.error('[db] Skipping connect — MONGODB_URI is not set')
+    return false
+  }
+
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt += 1) {
     try {
       await connectDB()

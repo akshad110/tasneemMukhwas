@@ -2,12 +2,9 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 
-function required(name) {
+function readEnv(name) {
   const value = process.env[name]
-  if (!value || !String(value).trim()) {
-    throw new Error(`Missing required env variable: ${name}`)
-  }
-  return String(value).trim()
+  return value && String(value).trim() ? String(value).trim() : ''
 }
 
 function normalizeOrigin(value) {
@@ -21,7 +18,7 @@ function normalizeOrigin(value) {
 }
 
 function parseClientOrigins() {
-  const fromEnv = (process.env.CORS_ORIGINS || process.env.CLIENT_URL || '')
+  const fromEnv = (readEnv('CORS_ORIGINS') || readEnv('CLIENT_URL'))
     .split(',')
     .map(normalizeOrigin)
     .filter(Boolean)
@@ -39,49 +36,51 @@ function parseClientOrigins() {
 
 function resolvePort() {
   const port = Number(process.env.PORT)
-  if (process.env.RENDER) {
-    if (!port || Number.isNaN(port)) {
-      throw new Error(
-        'PORT is missing on Render. Remove any manual PORT=5000 from dashboard — Render assigns PORT automatically.',
-      )
-    }
-    if (port === 5000) {
-      console.warn(
-        '[env] PORT=5000 on Render often causes 502. Delete the PORT variable from Render env — let Render set it automatically.',
-      )
-    }
-    return port
-  }
-  return port || 5000
+  if (port && !Number.isNaN(port)) return port
+  return process.env.NODE_ENV === 'production' ? 10000 : 5000
 }
 
 export const env = {
   port: resolvePort(),
   nodeEnv: process.env.NODE_ENV || 'development',
-  mongodbUri: required('MONGODB_URI'),
-  jwtSecret: required('JWT_SECRET'),
+  mongodbUri: readEnv('MONGODB_URI'),
+  jwtSecret: readEnv('JWT_SECRET'),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
-  clientUrl: normalizeOrigin(process.env.CLIENT_URL || 'http://localhost:5173'),
+  clientUrl: normalizeOrigin(readEnv('CLIENT_URL') || 'http://localhost:5173'),
   clientOrigins: parseClientOrigins(),
   adminName: process.env.ADMIN_NAME || 'Admin Tasneem',
-  adminEmail: process.env.ADMIN_EMAIL || '',
+  adminEmail: readEnv('ADMIN_EMAIL'),
   adminPassword: process.env.ADMIN_PASSWORD || 'Admin@12345',
-  adminPhone: process.env.ADMIN_PHONE || '',
+  adminPhone: readEnv('ADMIN_PHONE'),
   razorpayKeyId:
-    process.env.RAZORPAY_KEY_ID ||
-    process.env.RAZORPAY_API_KEY ||
-    process.env.RAZOPAY_API_KEY ||
-    '',
-  razorpayKeySecret:
-    process.env.RAZORPAY_KEY_SECRET ||
-    process.env.RAZORPAY_SECRET_KEY ||
-    '',
-  resendApiKey: process.env.RESEND_API_KEY || '',
-  mailFrom: process.env.MAIL_FROM || 'Tasneem Mukhwas <support@tasneemmukhwas.com>',
-  /**
-   * Resend sandbox (onboarding@resend.dev) only delivers to the account owner's email.
-   * Set RESEND_SANDBOX_TO to that address in development.
-   */
-  resendSandboxTo: process.env.RESEND_SANDBOX_TO || '',
-  mailTestTo: process.env.MAIL_TEST_TO || '',
+    readEnv('RAZORPAY_KEY_ID') ||
+    readEnv('RAZORPAY_API_KEY') ||
+    readEnv('RAZOPAY_API_KEY'),
+  razorpayKeySecret: readEnv('RAZORPAY_KEY_SECRET') || readEnv('RAZORPAY_SECRET_KEY'),
+  resendApiKey: readEnv('RESEND_API_KEY'),
+  mailFrom: readEnv('MAIL_FROM') || 'Tasneem Mukhwas <support@tasneemmukhwas.com>',
+  resendSandboxTo: readEnv('RESEND_SANDBOX_TO'),
+  mailTestTo: readEnv('MAIL_TEST_TO'),
+}
+
+const REQUIRED_KEYS = ['MONGODB_URI', 'JWT_SECRET']
+
+export function missingEnvKeys() {
+  return REQUIRED_KEYS.filter((key) => {
+    if (key === 'MONGODB_URI') return !env.mongodbUri
+    if (key === 'JWT_SECRET') return !env.jwtSecret
+    return false
+  })
+}
+
+export function logEnvDiagnostics() {
+  const missing = missingEnvKeys()
+  console.log(
+    `[env] nodeEnv=${env.nodeEnv} port=${env.port} render=${Boolean(process.env.RENDER)} missing=[${missing.join(', ')}]`,
+  )
+  if (missing.length) {
+    console.error(
+      `[env] Add these in Render → Environment: ${missing.join(', ')} then redeploy.`,
+    )
+  }
 }
