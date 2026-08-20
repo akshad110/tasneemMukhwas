@@ -11,6 +11,7 @@ import { getRazorpay, isRazorpayConfigured, toPaise } from '../services/razorpay
 import { canDownloadInvoice } from '../services/invoicePdf.js'
 import { validateCouponForCheckout, redeemCoupon } from '../services/couponService.js'
 import { notifyOrderPlaced, notifyOrderStatusChange } from '../services/notificationService.js'
+import { nextOrderNumber, nextTxnNumber } from '../services/orderNumbers.js'
 
 const FLOW = ['pending', 'processing', 'shipped', 'completed']
 
@@ -36,16 +37,6 @@ export const createOrderSchema = z.object({
     )
     .min(1),
 })
-
-async function nextOrderNumber() {
-  const count = await Order.countDocuments()
-  return `TM-${1000 + count + 1}`
-}
-
-async function nextTxnNumber() {
-  const count = await Transaction.countDocuments()
-  return `TX-${9000 + count + 1}`
-}
 
 function sellPrice(p) {
   if (p.showDiscountedPrice && p.discountedPrice > 0) return p.discountedPrice
@@ -245,27 +236,39 @@ export const createOrder = asyncHandler(async (req, res) => {
     throw new ApiError(503, 'Online payment is not configured. Please choose Cash on Delivery.')
   }
 
-  const order = await Order.create({
-    orderNumber,
-    customer: customer._id,
-    customerName,
-    customerEmail: body.email.toLowerCase(),
-    customerPhone: body.phone,
-    address: body.address,
-    city: body.city,
-    country: body.country,
-    postal: body.postal,
-    items: lineItems,
-    itemCount,
-    subtotal,
-    deliveryFee,
-    discountAmount,
-    couponCode,
-    total,
-    status: 'pending',
-    payment: body.payment,
-    paymentStatus: isRazorpay ? 'pending' : 'pending',
-  })
+  let order
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const candidate =
+      attempt === 0 ? orderNumber : await nextOrderNumber()
+    try {
+      order = await Order.create({
+        orderNumber: candidate,
+        customer: customer._id,
+        customerName,
+        customerEmail: body.email.toLowerCase(),
+        customerPhone: body.phone,
+        address: body.address,
+        city: body.city,
+        country: body.country,
+        postal: body.postal,
+        items: lineItems,
+        itemCount,
+        subtotal,
+        deliveryFee,
+        discountAmount,
+        couponCode,
+        total,
+        status: 'pending',
+        payment: body.payment,
+        paymentStatus: isRazorpay ? 'pending' : 'pending',
+      })
+      break
+    } catch (err) {
+      if (err?.code === 11000 && err?.keyPattern?.orderNumber && attempt < 2) continue
+      throw err
+    }
+  }
+  if (!order) throw new ApiError(500, 'Could not create order')
 
   if (!isRazorpay) {
     await decrementOrderStock(body.items)
@@ -274,20 +277,20 @@ export const createOrder = asyncHandler(async (req, res) => {
         coupon: appliedCoupon,
         email: body.email.toLowerCase(),
         userId: req.user?._id,
-        orderNumber,
+        orderNumber: order.orderNumber,
         discountAmount,
       })
     }
   }
 
   const txnNumber = await nextTxnNumber()
-  const invoice = `INV-${new Date().getFullYear()}-${orderNumber.replace('TM-', '')}`
+  const invoice = `INV-${new Date().getFullYear()}-${order.orderNumber.replace('TM-', '')}`
   const txnStatus = isRazorpay ? 'pending' : 'pending'
 
   const txn = await Transaction.create({
     txnNumber,
     order: order._id,
-    orderNumber,
+    orderNumber: order.orderNumber,
     customerName,
     customerEmail: body.email.toLowerCase(),
     amount: total,
@@ -311,9 +314,9 @@ export const createOrder = asyncHandler(async (req, res) => {
     const rzpOrder = await rzp.orders.create({
       amount: toPaise(total),
       currency: 'INR',
-      receipt: orderNumber,
+      receipt: order.orderNumber,
       notes: {
-        orderNumber,
+        orderNumber: order.orderNumber,
         customerEmail: body.email.toLowerCase(),
       },
     })
@@ -329,7 +332,7 @@ export const createOrder = asyncHandler(async (req, res) => {
       amount: rzpOrder.amount,
       currency: rzpOrder.currency,
       name: 'Tasneem Mukhwas',
-      description: `Order ${orderNumber}`,
+      description: `Order ${order.orderNumber}`,
       prefill: {
         name: customerName,
         email: body.email.toLowerCase(),

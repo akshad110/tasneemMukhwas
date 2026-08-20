@@ -32,7 +32,10 @@ export function errorHandler(err, _req, res, _next) {
   if (err?.code === 11000) {
     status = 409
     const field = Object.keys(err.keyPattern || {})[0] || 'field'
-    message = `${field} already exists`
+    message =
+      field === 'orderNumber'
+        ? 'Could not assign an order number. Please try again.'
+        : `${field} already exists`
   }
 
   if (err?.name === 'CastError') {
