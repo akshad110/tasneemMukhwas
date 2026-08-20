@@ -1,5 +1,9 @@
 import { useMemo, useState, type ChangeEvent } from 'react'
 import { useCatalog } from '../../context/CatalogContext'
+import {
+  extractPacketBackgroundColor,
+  fillUsesLightText,
+} from '../../lib/extractPacketBackgroundColor'
 import { CATEGORIES, type ShopProduct } from '../../lib/shopCatalog'
 
 const INK = '#0a2e22'
@@ -52,6 +56,22 @@ function toShopProduct(e: Editable, existing?: ShopProduct): ShopProduct {
   const images = e.images.map((x) => x.trim()).filter(Boolean).slice(0, 3)
   const image = images[0] ?? existing?.image ?? '/products/shahi-mukhwas.png'
   const gallery = images.length ? images : image ? [image] : []
+  const fill = e.fill || existing?.fill || '#0a2e22'
+
+  const variants = existing?.variants?.length
+    ? existing.variants.map((v, idx) => ({
+        ...v,
+        color: fill,
+        image: idx === 0 ? gallery[0] || v.image : v.image,
+      }))
+    : [
+        {
+          id: 'default',
+          label: 'Default',
+          color: fill,
+          image,
+        },
+      ]
 
   return {
     id: e.id,
@@ -59,8 +79,8 @@ function toShopProduct(e: Editable, existing?: ShopProduct): ShopProduct {
     description: e.description.trim() || existing?.description || e.name.trim(),
     image,
     images: gallery,
-    fill: e.fill || existing?.fill || '#0a2e22',
-    lightText: existing?.lightText ?? true,
+    fill,
+    lightText: fillUsesLightText(fill),
     price: e.price,
     showDiscountedPrice: e.showDiscountedPrice,
     discountedPrice: e.showDiscountedPrice ? e.discountedPrice : undefined,
@@ -70,17 +90,7 @@ function toShopProduct(e: Editable, existing?: ShopProduct): ShopProduct {
     rating: e.rating || existing?.rating || 5,
     reviews: e.reviews || existing?.reviews || 0,
     brand: e.brand || existing?.brand || 'Tasneem',
-    variants:
-      existing?.variants?.length
-        ? existing.variants
-        : [
-            {
-              id: 'default',
-              label: 'Default',
-              color: e.fill || '#0a2e22',
-              image,
-            },
-          ],
+    variants,
   }
 }
 
@@ -160,7 +170,13 @@ export default function AdminProducts() {
     const dataUrl = await readFileAsDataUrl(file)
     const images = [...editing.images] as [string, string, string]
     images[index] = dataUrl
-    setEditing({ ...editing, images })
+
+    let fill = editing.fill
+    if (index === 0) {
+      fill = await extractPacketBackgroundColor(dataUrl)
+    }
+
+    setEditing({ ...editing, images, fill })
     e.target.value = ''
   }
 
@@ -229,7 +245,7 @@ export default function AdminProducts() {
                         src={thumb}
                         alt=""
                         className="h-10 w-10 rounded-lg object-contain"
-                        style={{ backgroundColor: '#f3f7f4' }}
+                        style={{ backgroundColor: r.fill }}
                       />
                       <span className="font-semibold" style={{ color: INK }}>
                         {r.name}
@@ -306,7 +322,7 @@ export default function AdminProducts() {
             <div className="mt-4 space-y-3">
               <div>
                 <p className="m-0 mb-2 text-[0.78rem]" style={{ color: MUTED }}>
-                  Images (optional — up to 3)
+                  Images (optional — up to 3). Primary image auto-detects panel color.
                 </p>
                 <div className="grid grid-cols-3 gap-2">
                   {([0, 1, 2] as const).map((i) => (
@@ -320,10 +336,10 @@ export default function AdminProducts() {
                       </p>
                       <div
                         className="mb-2 flex h-20 items-center justify-center overflow-hidden rounded-lg"
-                        style={{ backgroundColor: '#f2f4f5' }}
+                        style={{ backgroundColor: form.images[i] ? form.fill : '#f2f4f5' }}
                       >
                         {form.images[i] ? (
-                          <img src={form.images[i]} alt="" className="h-full w-full object-contain" />
+                          <img src={form.images[i]} alt="" className="h-full w-full object-contain object-center" />
                         ) : (
                           <span className="text-[0.65rem]" style={{ color: MUTED }}>
                             Optional
@@ -352,6 +368,22 @@ export default function AdminProducts() {
                     </div>
                   ))}
                 </div>
+                {form.images[0] ? (
+                  <div
+                    className="mt-2 flex items-center gap-2 rounded-xl border px-3 py-2 text-[0.75rem]"
+                    style={{ borderColor: LINE, color: MUTED }}
+                  >
+                    <span
+                      className="h-5 w-5 shrink-0 rounded-md border"
+                      style={{ backgroundColor: form.fill, borderColor: LINE }}
+                      aria-hidden
+                    />
+                    Panel color detected from image:{' '}
+                    <span className="font-semibold" style={{ color: INK }}>
+                      {form.fill}
+                    </span>
+                  </div>
+                ) : null}
               </div>
 
               <label className="block text-[0.78rem]" style={{ color: MUTED }}>

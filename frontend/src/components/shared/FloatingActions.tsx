@@ -183,7 +183,7 @@ export default function FloatingActions() {
 
   return (
     <>
-      <div className="pointer-events-none fixed right-3 bottom-4 z-[60] flex flex-col items-end gap-3 sm:right-5 sm:bottom-6">
+      <div className="pointer-events-none fixed right-3 bottom-4 z-[60] tm-floating-actions flex flex-col items-end gap-3 sm:right-5 sm:bottom-6">
         <button
           type="button"
           onClick={goTop}

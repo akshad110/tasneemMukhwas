@@ -49,6 +49,11 @@ export function getProductImages(p: ShopProduct): string[] {
   return p.image ? [p.image] : []
 }
 
+/** Brand panel color behind shop / wishlist product imagery. */
+export function getProductPanelFill(p: ShopProduct): string {
+  return p.fill?.trim() || p.variants[0]?.color?.trim() || '#0a2e22'
+}
+
 export const CATEGORIES = [
   'Classic Mukhwas',
   'Fruit Blend',

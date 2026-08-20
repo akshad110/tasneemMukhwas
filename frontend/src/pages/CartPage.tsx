@@ -12,7 +12,7 @@ import { useCart, type CartResolvedItem } from '../context/CartContext'
 import { useCatalog } from '../context/CatalogContext'
 import { APP_ROUTES, navigateApp } from '../lib/appRoutes'
 import { scrollAppToTop } from '../lib/scrollControl'
-import { getSellPrice, type ShopProduct } from '../lib/shopCatalog'
+import { getProductPanelFill, getSellPrice, type ShopProduct } from '../lib/shopCatalog'
 
 const INK = '#0a2e22'
 const CREAM = '#f2f4f5'
@@ -50,12 +50,12 @@ function CartLineRow({ item }: { item: CartResolvedItem }) {
     >
       <div
         className="flex h-[100px] w-[100px] shrink-0 items-center justify-center overflow-hidden rounded-xl border sm:h-[124px] sm:w-[124px]"
-        style={{ borderColor: LINE, backgroundColor: PANEL }}
+        style={{ borderColor: LINE, backgroundColor: getProductPanelFill(item.product) }}
       >
         <img
           src={item.variant.image}
           alt={item.product.name}
-          className="h-[78%] w-auto max-w-[85%] object-contain"
+          className="h-full w-full object-contain object-center p-1.5"
           draggable={false}
         />
       </div>

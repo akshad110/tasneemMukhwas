@@ -22,7 +22,7 @@ export default function ProductCardSkeleton({ index = 0 }: ProductCardSkeletonPr
       transition={{ duration: 0.3, delay: index * 0.05 }}
       aria-hidden
     >
-      <div className="product-skeleton-block aspect-[4/3] max-h-[148px] w-full rounded-lg sm:max-h-[160px]" />
+      <div className="product-skeleton-block aspect-[3/4] max-h-[168px] w-full rounded-lg sm:max-h-[180px]" />
       <div className="product-skeleton-block mt-2 h-4 w-[78%] rounded-md" />
       <div className="product-skeleton-block mt-1.5 h-4 w-[42%] rounded-full" />
       <div className="product-skeleton-block mt-1.5 h-3 w-[55%] rounded-md" />

@@ -15,3 +15,15 @@ export const WHATSAPP_URL = `https://wa.me/${CONTACT_WHATSAPP}`
 export const WHATSAPP_BULK_URL = `${WHATSAPP_URL}?text=${encodeURIComponent(
   'Hi Tasneem Mukhwas, I am interested in bulk / wholesale orders.',
 )}`
+
+/** Pre-filled WhatsApp link for customer feedback from the contact form. */
+export function buildFeedbackWhatsAppUrl(name: string, message: string) {
+  const text = [
+    'Hi Tasneem Mukhwas — Customer Feedback',
+    '',
+    `Name: ${name.trim()}`,
+    '',
+    message.trim(),
+  ].join('\n')
+  return `${WHATSAPP_URL}?text=${encodeURIComponent(text)}`
+}

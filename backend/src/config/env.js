@@ -31,7 +31,7 @@ export const env = {
     process.env.RAZORPAY_SECRET_KEY ||
     '',
   resendApiKey: process.env.RESEND_API_KEY || '',
-  mailFrom: process.env.MAIL_FROM || 'Tasneem Mukhwas <onboarding@resend.dev>',
+  mailFrom: process.env.MAIL_FROM || 'Tasneem Mukhwas <support@tasneemmukhwas.com>',
   /**
    * Resend sandbox (onboarding@resend.dev) only delivers to the account owner's email.
    * Set RESEND_SANDBOX_TO to that address in development.

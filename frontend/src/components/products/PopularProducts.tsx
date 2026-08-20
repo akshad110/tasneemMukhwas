@@ -57,7 +57,7 @@ export default function PopularProducts() {
         </h2>
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-[calc(72rem-16px)] overflow-hidden">
+      <div className="relative z-10 mx-auto w-full max-w-[calc(72rem-16px)] max-lg:overflow-visible overflow-hidden">
         <ProductAccordion />
       </div>
 

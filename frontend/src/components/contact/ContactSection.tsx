@@ -7,6 +7,7 @@ import {
 } from '../../lib/contact'
 import { BRAND_BRANCHES } from '../../lib/brandBranches'
 import ContactGlobe from './ContactGlobe'
+import ContactFeedbackForm from './ContactFeedbackForm'
 
 const PAGE = '#f2f4f5'
 const INK = '#0a2e22'
@@ -73,10 +74,12 @@ export default function ContactSection() {
         </p>
       </div>
 
-      <div className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-12">
-        <ContactGlobe />
+      <div className="relative z-10 mx-auto grid w-full min-w-0 max-w-6xl items-center gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-12">
+        <div className="min-w-0 overflow-hidden">
+          <ContactGlobe />
+        </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-4">
           <p
             className="m-0 text-[0.62rem] font-semibold tracking-[0.16em] uppercase"
             style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}
@@ -183,6 +186,10 @@ export default function ContactSection() {
             </dl>
           </article>
         </div>
+      </div>
+
+      <div className="relative z-10 mx-auto mt-14 w-full min-w-0 max-w-6xl md:mt-16">
+        <ContactFeedbackForm compact className="min-w-0" />
       </div>
     </section>
   )

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { notificationsApi, type AppNotification } from '../../lib/services'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
+import { useNotifications } from '../../context/NotificationsContext'
 import { useLenisLock } from '../scroll/SmoothScroll'
 
 const INK = '#0a2e22'
@@ -29,28 +29,16 @@ function typeLabel(type: string) {
 
 export default function NavbarNotifications({ ink }: { ink: string }) {
   const [open, setOpen] = useState(false)
-  const [items, setItems] = useState<AppNotification[]>([])
-  const [unread, setUnread] = useState(0)
   const ref = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLUListElement>(null)
+  const { items, unread, refresh, markRead, markAllRead, removeOne, removeAll } = useNotifications()
 
   useLenisLock(open)
 
-  const load = () => {
-    notificationsApi
-      .mine()
-      .then((res) => {
-        setItems(res.items)
-        setUnread(res.unread)
-      })
-      .catch(() => {})
-  }
-
   useEffect(() => {
-    load()
-    const id = window.setInterval(load, 60_000)
-    return () => window.clearInterval(id)
-  }, [])
+    if (!open) return
+    void refresh(true)
+  }, [open, refresh])
 
   useEffect(() => {
     if (!open) return
@@ -61,36 +49,17 @@ export default function NavbarNotifications({ ink }: { ink: string }) {
     return () => document.removeEventListener('mousedown', onDoc)
   }, [open])
 
-  const markRead = async (id: string) => {
-    await notificationsApi.markRead(id).catch(() => {})
-    load()
-  }
-
-  const markAll = async () => {
-    await notificationsApi.readAll().catch(() => {})
-    load()
-  }
-
-  const deleteOne = async (id: string) => {
-    await notificationsApi.remove(id).catch(() => {})
-    load()
-  }
-
   const deleteAll = async () => {
     if (!items.length) return
     if (!window.confirm('Delete all notifications?')) return
-    await notificationsApi.deleteAll().catch(() => {})
-    load()
+    await removeAll()
   }
 
   return (
     <div ref={ref} className="relative">
       <button
         type="button"
-        onClick={() => {
-          setOpen((v) => !v)
-          if (!open) load()
-        }}
+        onClick={() => setOpen((v) => !v)}
         className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md"
         style={{ color: ink }}
         aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`}
@@ -109,7 +78,7 @@ export default function NavbarNotifications({ ink }: { ink: string }) {
 
       {open && (
         <div
-          className="absolute right-0 top-[calc(100%+8px)] z-[80] w-[min(92vw,20rem)] overflow-hidden rounded-xl border shadow-lg"
+          className="fixed left-1/2 top-[calc(env(safe-area-inset-top,0px)+3.25rem)] z-[80] w-[min(calc(100vw-1.5rem),20rem)] -translate-x-1/2 overflow-hidden rounded-xl border shadow-lg md:absolute md:right-0 md:top-[calc(100%+8px)] md:w-[min(92vw,20rem)] md:translate-x-0"
           style={{ backgroundColor: CREAM, borderColor: 'rgba(10,46,34,0.12)' }}
         >
           <div
@@ -123,7 +92,7 @@ export default function NavbarNotifications({ ink }: { ink: string }) {
               {unread > 0 && (
                 <button
                   type="button"
-                  onClick={() => void markAll()}
+                  onClick={() => void markAllRead()}
                   className="cursor-pointer border-0 bg-transparent text-[0.68rem] font-semibold"
                   style={{ color: GOLD }}
                 >
@@ -188,27 +157,27 @@ export default function NavbarNotifications({ ink }: { ink: string }) {
                       </button>
                     )}
                   </div>
-                <div className="flex shrink-0 flex-col items-end gap-1">
-                  {!n.read && (
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    {!n.read && (
+                      <button
+                        type="button"
+                        onClick={() => void markRead(n.id)}
+                        className="cursor-pointer border-0 bg-transparent text-[0.62rem] font-semibold"
+                        style={{ color: GOLD }}
+                      >
+                        Read
+                      </button>
+                    )}
                     <button
                       type="button"
-                      onClick={() => void markRead(n.id)}
+                      onClick={() => void removeOne(n.id)}
                       className="cursor-pointer border-0 bg-transparent text-[0.62rem] font-semibold"
-                      style={{ color: GOLD }}
+                      style={{ color: 'rgba(163,32,32,0.75)' }}
+                      aria-label="Delete notification"
                     >
-                      Read
+                      Delete
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => void deleteOne(n.id)}
-                    className="cursor-pointer border-0 bg-transparent text-[0.62rem] font-semibold"
-                    style={{ color: 'rgba(163,32,32,0.75)' }}
-                    aria-label="Delete notification"
-                  >
-                    Delete
-                  </button>
-                </div>
+                  </div>
                 </div>
               </li>
             ))}

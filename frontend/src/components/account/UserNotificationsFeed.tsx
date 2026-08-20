@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react'
-import { ApiRequestError } from '../../lib/api'
-import { notificationsApi, type AppNotification } from '../../lib/services'
+import { useEffect } from 'react'
+import { useNotifications } from '../../context/NotificationsContext'
 import { ACCOUNT_GOLD, ACCOUNT_MUTED } from '../../lib/accountTheme'
 
 function typeLabel(type: string) {
@@ -15,89 +14,23 @@ function typeLabel(type: string) {
 
 /** In-app notification feed for order & payment tracking */
 export default function UserNotificationsFeed() {
-  const [items, setItems] = useState<AppNotification[]>([])
-  const [unread, setUnread] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-
-  const load = () => {
-    setLoading(true)
-    setError('')
-    notificationsApi
-      .mine()
-      .then((res) => {
-        setItems(res.items)
-        setUnread(res.unread)
-      })
-      .catch((err) => {
-        setError(err instanceof ApiRequestError ? err.message : 'Could not load notifications')
-      })
-      .finally(() => setLoading(false))
-  }
+  const { items, unread, loading, refresh, markRead, markAllRead, removeOne, removeAll } =
+    useNotifications()
 
   useEffect(() => {
-    load()
-  }, [])
-
-  const markAllRead = async () => {
-    try {
-      await notificationsApi.readAll()
-      setItems((prev) => prev.map((n) => ({ ...n, read: true })))
-      setUnread(0)
-    } catch {
-      /* ignore */
-    }
-  }
-
-  const markRead = async (id: string) => {
-    try {
-      await notificationsApi.markRead(id)
-      setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
-      setUnread((u) => Math.max(0, u - 1))
-    } catch {
-      /* ignore */
-    }
-  }
-
-  const deleteOne = async (id: string) => {
-    try {
-      await notificationsApi.remove(id)
-      setItems((prev) => {
-        const removed = prev.find((n) => n.id === id)
-        if (removed && !removed.read) {
-          setUnread((u) => Math.max(0, u - 1))
-        }
-        return prev.filter((n) => n.id !== id)
-      })
-    } catch {
-      /* ignore */
-    }
-  }
+    void refresh(true)
+  }, [refresh])
 
   const deleteAll = async () => {
     if (!items.length) return
     if (!window.confirm('Delete all notifications?')) return
-    try {
-      await notificationsApi.deleteAll()
-      setItems([])
-      setUnread(0)
-    } catch {
-      /* ignore */
-    }
+    await removeAll()
   }
 
-  if (loading) {
+  if (loading && items.length === 0) {
     return (
       <p className="m-0 py-4 text-[0.85rem]" style={{ color: ACCOUNT_MUTED }}>
         Loading your notifications…
-      </p>
-    )
-  }
-
-  if (error) {
-    return (
-      <p className="m-0 py-4 text-[0.85rem]" style={{ color: '#a32020' }}>
-        {error}
       </p>
     )
   }

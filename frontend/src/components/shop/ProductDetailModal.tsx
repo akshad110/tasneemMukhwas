@@ -7,6 +7,7 @@ import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 import {
   getComparePrice,
   getProductImages,
+  getProductPanelFill,
   getSellPrice,
   type ShopProduct,
 } from '../../lib/shopCatalog'
@@ -74,6 +75,7 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
   const liked = product ? isWishlisted(product.id) : false
   const activeImage =
     product && (images[Math.min(imageIndex, Math.max(0, images.length - 1))] ?? product.image)
+  const panelFill = product ? getProductPanelFill(product) : CREAM
 
   const requireAuth = () => {
     if (user) return true
@@ -159,18 +161,15 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
             <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto md:grid-cols-[1.05fr_0.95fr] md:overflow-hidden">
               <div
                 className="relative flex flex-col p-5 pb-4 sm:p-6 md:overflow-y-auto"
-                style={{ backgroundColor: '#f3ebe0' }}
+                style={{ backgroundColor: panelFill }}
               >
-                <div
-                  className="relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl"
-                  style={{ backgroundColor: 'rgba(248,249,250,0.85)' }}
-                >
+                <div className="relative aspect-square overflow-hidden rounded-2xl">
                   <motion.img
                     key={activeImage}
                     src={activeImage}
                     alt={product.name}
-                    className="h-[78%] w-auto max-w-[88%] object-contain drop-shadow-[0_20px_32px_rgba(10,46,34,0.22)]"
-                    initial={{ opacity: 0, scale: 0.94 }}
+                    className="h-full w-full object-contain object-center"
+                    initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: outOfStock ? 0.5 : 1, scale: 1 }}
                     transition={{ duration: 0.28 }}
                   />
@@ -191,15 +190,15 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
                         key={`${src}-${i}`}
                         type="button"
                         onClick={() => setImageIndex(i)}
-                        className="h-16 w-16 shrink-0 cursor-pointer overflow-hidden rounded-xl border-2 p-1 transition"
+                        className="h-16 w-16 shrink-0 cursor-pointer overflow-hidden rounded-xl border-2 p-0 transition"
                         style={{
                           borderColor: i === imageIndex ? GOLD : 'rgba(10,46,34,0.12)',
-                          backgroundColor: CREAM,
+                          backgroundColor: panelFill,
                         }}
                         aria-label={`View image ${i + 1}`}
                         aria-pressed={i === imageIndex}
                       >
-                        <img src={src} alt="" className="h-full w-full object-contain" draggable={false} />
+                        <img src={src} alt="" className="h-full w-full object-contain object-center" draggable={false} />
                       </button>
                     ))}
                   </div>

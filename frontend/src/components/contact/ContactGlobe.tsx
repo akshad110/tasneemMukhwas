@@ -20,8 +20,8 @@ const GLOBE_LOCATIONS = [
 const ContactGlobe = memo(function ContactGlobe({ className = '' }: { className?: string }) {
   return (
     <div
-      className={`relative mx-auto aspect-square w-full max-w-[480px] lg:max-w-none ${className}`}
-      style={{ minHeight: 280 }}
+      className={`relative mx-auto aspect-square w-full max-w-[min(100%,17.5rem)] overflow-hidden sm:max-w-[20rem] lg:max-w-none ${className}`}
+      style={{ minHeight: 'clamp(13.5rem, 52vw, 17.5rem)' }}
     >
       <OrbitDotGlobe
         oceanColor={GLOBE_OCEAN}
@@ -32,7 +32,7 @@ const ContactGlobe = memo(function ContactGlobe({ className = '' }: { className?
         labelStyle="auto"
         showQuickStart={false}
         locations={GLOBE_LOCATIONS}
-        style={{ width: '100%', height: '100%', touchAction: 'pan-y' }}
+        style={{ width: '100%', height: '100%', touchAction: 'pan-y', overflow: 'hidden' }}
       />
     </div>
   )

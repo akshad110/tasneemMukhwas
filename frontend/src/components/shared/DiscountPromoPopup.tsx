@@ -103,7 +103,7 @@ export default function DiscountPromoPopup() {
 
   return (
     <div
-      className="pointer-events-none fixed bottom-5 right-0 z-[110] w-[min(calc(100vw-1rem),21.5rem)] overflow-hidden px-3 sm:bottom-8 sm:px-5"
+      className="pointer-events-none fixed right-0 z-[110] w-[min(calc(100vw-1rem),21.5rem)] overflow-hidden px-3 max-md:bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:bottom-8 md:px-5"
       aria-live="polite"
     >
       <motion.aside

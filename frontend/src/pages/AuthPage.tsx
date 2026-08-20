@@ -36,10 +36,8 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
   const { login, register } = useAuth()
   const [mode, setMode] = useState<AuthMode>(initialMode)
   const [showPass, setShowPass] = useState(false)
-  const [done, setDone] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const [doneAsAdmin, setDoneAsAdmin] = useState(false)
 
   const compact = mode === 'signup'
   const fieldClass = compact
@@ -48,11 +46,9 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
 
   useEffect(() => {
     setMode(initialMode)
-    setDone(false)
     setSubmitting(false)
     setShowPass(false)
     setError('')
-    setDoneAsAdmin(false)
     document.title =
       initialMode === 'signup'
         ? 'Sign up · Tasneem Mukhwas'
@@ -77,7 +73,6 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
 
   const switchMode = (next: AuthMode) => {
     setMode(next)
-    setDone(false)
     navigateApp(next === 'signup' ? APP_ROUTES.signup : APP_ROUTES.login)
   }
 
@@ -94,23 +89,19 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
       try {
         if (mode === 'login') {
           const user = await login(email, password)
-          setDoneAsAdmin(user.role === 'admin')
-          setDone(true)
-          if (user.role === 'admin') {
-            navigateApp(APP_ROUTES.admin)
-            return
-          }
-        } else {
-          await register({
-            name: String(fd.get('name') || '').trim(),
-            phone: String(fd.get('phone') || '').trim(),
-            email,
-            password,
-          })
-          setDoneAsAdmin(false)
-          setDone(true)
+          document.title = 'Tasneem Mukhwas'
+          navigateApp(user.role === 'admin' ? APP_ROUTES.admin : APP_ROUTES.home)
+          return
         }
-        setSubmitting(false)
+
+        await register({
+          name: String(fd.get('name') || '').trim(),
+          phone: String(fd.get('phone') || '').trim(),
+          email,
+          password,
+        })
+        document.title = 'Tasneem Mukhwas'
+        navigateApp(APP_ROUTES.home)
         return
       } catch (err) {
         const retryable = err instanceof ApiRequestError && err.status === 0
@@ -311,85 +302,27 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
             className={`m-0 text-center leading-tight ${compact ? 'text-[1.45rem] sm:text-[1.7rem]' : 'text-[clamp(1.55rem,2.6vw,2rem)]'}`}
             style={{ color: INK, fontFamily: 'Anton, Impact, sans-serif' }}
           >
-            {done
-              ? mode === 'login'
-                ? 'Welcome back'
-                : 'Account ready'
-              : mode === 'login'
-                ? 'Welcome back'
-                : 'Create account'}
+            {mode === 'login' ? 'Welcome back' : 'Create account'}
           </h2>
           <p
             className={`m-0 text-center leading-relaxed opacity-65 ${compact ? 'mt-1 text-[0.78rem]' : 'mt-1.5 text-[0.86rem]'}`}
             style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
           >
-            {done
-              ? mode === 'login'
-                ? doneAsAdmin
-                  ? 'You are signed in as admin.'
-                  : 'You are signed in. Continue shopping with Tasneem.'
-                : 'Your account is ready. Continue shopping with Tasneem.'
-              : mode === 'login'
-                ? 'Enter your details to continue shopping with Tasneem.'
-                : 'Join for wholesale updates, favourites, and faster checkout.'}
+            {mode === 'login'
+              ? 'Enter your details to continue shopping with Tasneem.'
+              : 'Join for wholesale updates, favourites, and faster checkout.'}
           </p>
 
           <AnimatePresence mode="wait">
-            {done ? (
-              <motion.div
-                key="done"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="mt-6 w-full"
-              >
-                <div
-                  className="rounded-none border px-4 py-4"
-                  style={{
-                    borderColor: 'rgba(184,134,11,0.35)',
-                    background:
-                      'linear-gradient(145deg, rgba(184,134,11,0.12), rgba(242,244,245,0.5))',
-                  }}
-                >
-                  <p
-                    className="m-0 text-[0.9rem] font-semibold"
-                    style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
-                  >
-                    {mode === 'login' ? 'Signed in' : 'Signed up'}
-                  </p>
-                  <p
-                    className="mt-1 m-0 text-[0.78rem] opacity-70"
-                    style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
-                  >
-                    {doneAsAdmin
-                      ? 'Opening your admin panel…'
-                      : 'Your session is saved securely on this device.'}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={goHome}
-                  className="mt-4 w-full cursor-pointer rounded-none py-3 text-[0.88rem] font-semibold tracking-wide transition hover:brightness-110"
-                  style={{
-                    backgroundColor: INK,
-                    color: CREAM,
-                    fontFamily: 'Inter, sans-serif',
-                    boxShadow: '0 16px 36px -16px rgba(10,46,34,0.7)',
-                  }}
-                >
-                  Continue browsing
-                </button>
-              </motion.div>
-            ) : (
-              <motion.form
-                key={mode}
-                onSubmit={onSubmit}
-                className={`grid w-full ${compact ? 'mt-4 gap-2.5' : 'mt-5 gap-3'}`}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.22, ease }}
-              >
+            <motion.form
+              key={mode}
+              onSubmit={onSubmit}
+              className={`grid w-full ${compact ? 'mt-4 gap-2.5' : 'mt-5 gap-3'}`}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.22, ease }}
+            >
                 {mode === 'signup' && (
                   <div className="grid grid-cols-1 gap-2.5">
                     <label className="grid gap-1">
@@ -553,7 +486,6 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                   )}
                 </p>
               </motion.form>
-            )}
           </AnimatePresence>
           </div>
         </div>

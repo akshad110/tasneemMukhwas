@@ -1,4 +1,11 @@
-import { useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react'
+import {
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react'
 import {
   motion,
   useScroll,
@@ -12,8 +19,8 @@ const INK = BRAND_INK
 const CREAM = BRAND_CREAM
 const GOLD = '#b8860b'
 const TEXT = 'rgba(242,244,245,0.78)'
-const TRACK = 'rgba(224,210,184,0.45)'
-const STROKE = 6
+const TRACK = 'rgba(224,210,184,0.5)'
+const STROKE = 3.5
 const COUNT = 4
 
 const STEPS = [
@@ -50,59 +57,106 @@ const STEPS = [
 
 const SPRING = { stiffness: 70, damping: 28, mass: 0.35 }
 
-/**
- * One zigzag path. Soft Q-curve corners (straight runs + little round bends).
- * Always returns a valid `d` — defaults keep the line mounted before measure.
- */
-function buildPipePath(w: number, h: number, count: number) {
+type StepBounds = { bottom: number }
+
+type PipeGeom = {
+  d: string
+  width: number
+  height: number
+  left: number
+  right: number
+  top: number
+  bottom: number
+  endOnRight: boolean
+}
+
+/** Fallback when step refs are not measured yet */
+function buildUniformPipePath(w: number, h: number, count: number, narrow: boolean): PipeGeom {
   const width = Math.max(w, 320)
   const height = Math.max(h, 480)
-  const inset = 20
-  const left = inset
-  const right = width - inset
-  const top = inset
-  const bottom = height - inset
+  const insetX = pipeInsetX(width, narrow)
+  const insetY = narrow ? 28 : 24
+  const left = insetX
+  const right = width - insetX
+  const top = insetY
+  const bottom = height - insetY
   const band = (bottom - top) / count
-  const r = Math.min(36, band * 0.22, (right - left) * 0.1)
+  const turnYs = Array.from({ length: count - 1 }, (_, i) => top + (i + 1) * band)
+  return buildMeasuredPipePath(width, height, left, right, top, bottom, turnYs, count)
+}
 
+function pipeInsetX(width: number, narrow: boolean) {
+  return narrow ? Math.max(30, width * 0.09) : Math.max(36, width * 0.055)
+}
+
+/** Serpentine: straight vertical + horizontal segments with sharp 90° corners */
+function buildMeasuredPipePath(
+  width: number,
+  height: number,
+  left: number,
+  right: number,
+  top: number,
+  bottom: number,
+  turnYs: number[],
+  count: number,
+): PipeGeom {
   let d = `M ${left} ${top}`
   let x = left
 
   for (let i = 0; i < count; i++) {
     const isLast = i === count - 1
-    const yEnd = isLast ? bottom : top + (i + 1) * band
-    const onLeft = i % 2 === 0
-    const vertStop = isLast ? yEnd : yEnd - r
+    const yEnd = isLast
+      ? bottom
+      : Math.min(Math.max(turnYs[i] ?? bottom, top + 56), bottom - 24)
 
-    d += ` L ${x} ${vertStop}`
+    d += ` L ${x} ${yEnd}`
     if (isLast) break
 
-    const nextX = onLeft ? right : left
-    if (onLeft) {
-      d += ` Q ${x} ${yEnd} ${x + r} ${yEnd}`
-      d += ` L ${nextX - r} ${yEnd}`
-      d += ` Q ${nextX} ${yEnd} ${nextX} ${yEnd + r}`
-    } else {
-      d += ` Q ${x} ${yEnd} ${x - r} ${yEnd}`
-      d += ` L ${nextX + r} ${yEnd}`
-      d += ` Q ${nextX} ${yEnd} ${nextX} ${yEnd + r}`
-    }
+    const nextX = i % 2 === 0 ? right : left
+    d += ` L ${nextX} ${yEnd}`
     x = nextX
   }
 
   return { d, width, height, left, right, top, bottom, endOnRight: count % 2 === 0 }
 }
 
-/**
- * Single continuous gold rod. Never unmounts. Scroll fills it further.
- */
+function buildPipePath(
+  w: number,
+  h: number,
+  count: number,
+  stepBounds: StepBounds[],
+  narrow: boolean,
+): PipeGeom {
+  const width = Math.max(w, 320)
+  const height = Math.max(h, 480)
+  const insetX = pipeInsetX(width, narrow)
+  const insetY = narrow ? 28 : 24
+  const left = insetX
+  const right = width - insetX
+  const top = insetY
+  const bottom = height - insetY
+
+  const measured =
+    stepBounds.length === count && stepBounds.every((b) => b.bottom > top + 40)
+
+  if (!measured) {
+    return buildUniformPipePath(w, h, count, narrow)
+  }
+
+  const turnYs = stepBounds.slice(0, count - 1).map((b) => b.bottom - (narrow ? 12 : 8))
+  return buildMeasuredPipePath(width, height, left, right, top, bottom, turnYs, count)
+}
+
 function ContinuousGoldLine({
   hostRef,
+  stepBounds,
 }: {
   hostRef: RefObject<HTMLDivElement | null>
+  stepBounds: StepBounds[]
 }) {
   const measurePathRef = useRef<SVGPathElement>(null)
   const [box, setBox] = useState({ w: 640, h: 900 })
+  const [narrow, setNarrow] = useState(false)
   const [pathLen, setPathLen] = useState(0)
 
   useLayoutEffect(() => {
@@ -111,24 +165,26 @@ function ContinuousGoldLine({
     const measure = () => {
       const w = el.offsetWidth
       const h = el.offsetHeight
-      if (w > 0 && h > 0) setBox({ w, h })
+      if (w > 0 && h > 0) {
+        setBox({ w, h })
+        setNarrow(w < 768)
+      }
     }
     measure()
     const ro = new ResizeObserver(measure)
     ro.observe(el)
-    // Remeasure after layout/images settle — never unmount on miss
     const t1 = window.setTimeout(measure, 50)
-    const t2 = window.setTimeout(measure, 300)
+    const t2 = window.setTimeout(measure, 400)
     return () => {
       ro.disconnect()
       window.clearTimeout(t1)
       window.clearTimeout(t2)
     }
-  }, [hostRef])
+  }, [hostRef, stepBounds])
 
   const pipe = useMemo(
-    () => buildPipePath(box.w, box.h, COUNT),
-    [box.w, box.h],
+    () => buildPipePath(box.w, box.h, COUNT, stepBounds, narrow),
+    [box.w, box.h, stepBounds, narrow],
   )
 
   useLayoutEffect(() => {
@@ -154,42 +210,38 @@ function ContinuousGoldLine({
   return (
     <svg
       aria-hidden
-      className="pointer-events-none absolute inset-0 z-[3] h-full w-full"
-      width="100%"
-      height="100%"
+      className="pointer-events-none absolute left-0 top-0 z-[3]"
+      width={pipe.width}
+      height={pipe.height}
       viewBox={`0 0 ${pipe.width} ${pipe.height}`}
-      preserveAspectRatio="none"
+      shapeRendering="geometricPrecision"
     >
-      {/* Invisible measurer */}
       <path ref={measurePathRef} d={pipe.d} fill="none" stroke="none" />
-
-      {/* Full continuous guide rod */}
       <path
         d={pipe.d}
         fill="none"
         stroke={TRACK}
         strokeWidth={STROKE}
         strokeLinecap="round"
-        strokeLinejoin="round"
+        strokeLinejoin="miter"
+        strokeMiterlimit={10}
       />
-
-      {/* One gold fill — dashoffset (reliable on Q curves) */}
       <motion.path
         d={pipe.d}
         fill="none"
         stroke={GOLD}
         strokeWidth={STROKE}
         strokeLinecap="round"
-        strokeLinejoin="round"
+        strokeLinejoin="miter"
+        strokeMiterlimit={10}
         strokeDasharray={pathLen > 0 ? pathLen : undefined}
         style={pathLen > 0 ? { strokeDashoffset: dashOffset } : undefined}
       />
-
-      <circle cx={pipe.left} cy={pipe.top} r={5} fill={GOLD} />
+      <circle cx={pipe.left} cy={pipe.top} r={3.5} fill={GOLD} />
       <motion.circle
         cx={endX}
         cy={pipe.bottom}
-        r={5}
+        r={3.5}
         fill={GOLD}
         style={{ opacity: smooth }}
       />
@@ -202,13 +254,16 @@ function JourneyStep({
   index,
   total,
   progress,
+  stepRef,
 }: {
   step: (typeof STEPS)[number]
   index: number
   total: number
   progress: MotionValue<number>
+  stepRef: (el: HTMLDivElement | null) => void
 }) {
   const imageOnLeft = index % 2 === 1
+  const pipeOnLeft = index % 2 === 0
   const label = String(step.number).padStart(2, '0')
 
   const enter = (index + 0.18) / total
@@ -218,32 +273,40 @@ function JourneyStep({
   const reveal = useSpring(rawReveal, SPRING)
   const rise = useTransform(reveal, [0, 1], [22, 0])
 
+  const pipeSideMd = pipeOnLeft
+    ? 'md:pl-10 lg:pl-12'
+    : 'md:pr-10 lg:pr-12'
+
+  const mobileLayout = pipeOnLeft
+    ? 'max-md:justify-start max-md:pl-[clamp(3.25rem,12vw,5rem)]'
+    : 'max-md:justify-center max-md:pl-[clamp(2.25rem,9vw,3.75rem)] max-md:pr-[clamp(3.25rem,12vw,5rem)]'
+
   const copy = (
     <motion.div
-      className={`flex w-full max-w-[280px] flex-col justify-center ${
-        imageOnLeft ? 'md:ml-auto' : 'md:mr-auto'
+      className={`flex w-full max-w-[280px] flex-col justify-center md:max-w-[300px] ${
+        pipeOnLeft ? '' : 'max-md:items-center max-md:text-center'
       }`}
       style={{ opacity: reveal, y: rise }}
     >
       <p
-        className="m-0"
+        className="m-0 leading-none"
         style={{
           color: GOLD,
-          fontFamily: '"Permanent Marker", cursive',
-          fontSize: 'clamp(2.4rem, 5vw, 3.1rem)',
-          lineHeight: 1,
+          fontFamily: 'Georgia, "Times New Roman", serif',
+          fontSize: 'clamp(2.4rem, 5vw, 3.5rem)',
+          fontWeight: 400,
         }}
       >
         {label}
       </p>
       <h4
-        className="m-0 mt-3 text-[1.15rem] font-bold tracking-tight sm:text-[1.25rem]"
-        style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+        className="m-0 mt-3 text-[1.1rem] font-bold tracking-tight md:mt-4 md:text-[1.25rem]"
+        style={{ color: CREAM, fontFamily: 'Georgia, "Times New Roman", serif' }}
       >
         {step.title}
       </h4>
       <p
-        className="m-0 mt-2 max-w-[240px] text-[0.84rem] leading-relaxed"
+        className="m-0 mt-2.5 text-[0.84rem] leading-[1.65] md:text-[0.875rem]"
         style={{ color: TEXT, fontFamily: 'Inter, sans-serif' }}
       >
         {step.text}
@@ -254,33 +317,20 @@ function JourneyStep({
   const rotateLeft = 'rotateLeft' in step && step.rotateLeft
 
   const media = (
-    <motion.div
-      className="flex w-full items-center justify-center bg-transparent"
-      style={{ opacity: reveal, y: rise }}
-    >
+    <motion.div style={{ opacity: reveal, y: rise }}>
       <div
-        className="relative flex items-center justify-center rounded-sm p-2"
+        className="relative overflow-hidden rounded-2xl bg-[rgba(242,244,245,0.94)] p-2.5 shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
         style={{
-          width: 'clamp(120px, 18vw, 180px)',
-          height: 'clamp(110px, 16vw, 150px)',
-          backgroundColor: 'rgba(242,244,245,0.94)',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.22)',
+          width: 'clamp(118px, 28vw, 168px)',
+          aspectRatio: rotateLeft ? '3/4' : '4/3',
         }}
       >
         <img
           src={step.image}
           alt={step.alt}
           loading="lazy"
-          className="block object-contain"
+          className="h-full w-full object-contain"
           style={{
-            maxWidth: rotateLeft
-              ? 'clamp(110px, 16vw, 150px)'
-              : 'clamp(120px, 18vw, 180px)',
-            maxHeight: rotateLeft
-              ? 'clamp(120px, 18vw, 180px)'
-              : 'clamp(110px, 16vw, 150px)',
-            width: 'auto',
-            height: 'auto',
             transform: rotateLeft ? 'rotate(-90deg)' : undefined,
             transformOrigin: 'center center',
           }}
@@ -289,39 +339,119 @@ function JourneyStep({
     </motion.div>
   )
 
+  const copyCell = (
+    <div
+      className={`flex min-w-0 items-center ${mobileLayout} ${pipeSideMd} ${
+        imageOnLeft ? 'md:justify-start md:pl-2' : 'md:justify-end md:pr-2'
+      }`}
+    >
+      {copy}
+    </div>
+  )
+
+  const mediaCell = (
+    <div
+      className={`flex min-w-0 items-center max-md:mt-1 ${mobileLayout} ${
+        imageOnLeft ? 'md:justify-end md:pr-2' : 'md:justify-start md:pl-2'
+      }`}
+    >
+      {media}
+    </div>
+  )
+
   return (
     <div
-      className="grid grid-cols-1 items-center md:grid-cols-2"
+      ref={stepRef}
+      className="grid grid-cols-1 items-center gap-4 md:grid-cols-2 md:gap-x-3 md:gap-y-6"
       style={{
-        paddingTop: index === 0 ? 12 : 44,
-        paddingBottom: 44,
-        columnGap: 52,
-        rowGap: 28,
+        paddingTop: index === 0 ? 8 : 48,
+        paddingBottom: 48,
       }}
     >
-      {imageOnLeft ? (
-        <>
-          <div className="min-w-0">{media}</div>
-          <div className="min-w-0">{copy}</div>
-        </>
-      ) : (
-        <>
-          <div className="min-w-0">{copy}</div>
-          <div className="min-w-0">{media}</div>
-        </>
-      )}
+      <div className="contents md:hidden">
+        {imageOnLeft ? (
+          <>
+            {mediaCell}
+            {copyCell}
+          </>
+        ) : (
+          <>
+            {copyCell}
+            {mediaCell}
+          </>
+        )}
+      </div>
+
+      <div className="hidden md:contents">
+        {imageOnLeft ? (
+          <>
+            {mediaCell}
+            {copyCell}
+          </>
+        ) : (
+          <>
+            {copyCell}
+            {mediaCell}
+          </>
+        )}
+      </div>
     </div>
   )
 }
 
 export default function AboutJourneyFlow() {
   const hostRef = useRef<HTMLDivElement>(null)
+  const stepRefs = useRef<(HTMLDivElement | null)[]>([])
+  const [stepBounds, setStepBounds] = useState<StepBounds[]>([])
+
+  const measureSteps = useCallback(() => {
+    const host = hostRef.current
+    if (!host) return
+    const hostTop = host.getBoundingClientRect().top
+    const bounds = STEPS.map((_, i) => {
+      const el = stepRefs.current[i]
+      if (!el) return { bottom: 0 }
+      const rect = el.getBoundingClientRect()
+      return { bottom: rect.bottom - hostTop }
+    })
+    if (bounds.some((b) => b.bottom <= 0)) return
+    setStepBounds(bounds)
+  }, [])
+
+  useLayoutEffect(() => {
+    measureSteps()
+    const host = hostRef.current
+    if (!host) return
+    const ro = new ResizeObserver(() => measureSteps())
+    ro.observe(host)
+    stepRefs.current.forEach((el) => {
+      if (el) ro.observe(el)
+    })
+    const t1 = window.setTimeout(measureSteps, 80)
+    const t2 = window.setTimeout(measureSteps, 500)
+    window.addEventListener('load', measureSteps)
+    return () => {
+      ro.disconnect()
+      window.clearTimeout(t1)
+      window.clearTimeout(t2)
+      window.removeEventListener('load', measureSteps)
+    }
+  }, [measureSteps])
+
   const { scrollYProgress } = useScroll({
     target: hostRef,
     offset: ['start 0.9', 'end 0.55'],
   })
   const led = useTransform(scrollYProgress, [0, 0.88], [0, 1], { clamp: true })
   const progress = useSpring(led, SPRING)
+
+  const setStepRef = useCallback(
+    (index: number) => (el: HTMLDivElement | null) => {
+      stepRefs.current[index] = el
+      if (el) window.requestAnimationFrame(() => measureSteps())
+    },
+    [measureSteps],
+  )
 
   return (
     <section
@@ -347,7 +477,7 @@ export default function AboutJourneyFlow() {
         />
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-[860px]">
+      <div className="relative z-10 mx-auto w-full max-w-[980px]">
         <p
           className="m-0 text-center text-[0.6rem] font-semibold tracking-[0.18em] uppercase"
           style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}
@@ -367,11 +497,8 @@ export default function AboutJourneyFlow() {
           Awards, trade-fair certificates, and industry honours that mark our journey in quality food craft.
         </p>
 
-        <div
-          ref={hostRef}
-          className="relative min-h-[480px] px-8 py-3 sm:px-11 md:px-12"
-        >
-          <ContinuousGoldLine hostRef={hostRef} />
+        <div ref={hostRef} className="relative min-h-[520px] px-1 py-6 md:px-4 md:py-8">
+          <ContinuousGoldLine hostRef={hostRef} stepBounds={stepBounds} />
 
           <div className="relative z-[2]">
             {STEPS.map((step, index) => (
@@ -381,6 +508,7 @@ export default function AboutJourneyFlow() {
                 index={index}
                 total={COUNT}
                 progress={progress}
+                stepRef={setStepRef(index)}
               />
             ))}
           </div>

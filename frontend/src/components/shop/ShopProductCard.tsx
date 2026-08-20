@@ -7,6 +7,7 @@ import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 import {
   getComparePrice,
   getProductImages,
+  getProductPanelFill,
   getSellPrice,
   type ShopProduct,
 } from '../../lib/shopCatalog'
@@ -15,7 +16,6 @@ const INK = '#0a2e22'
 const CREAM = '#f2f4f5'
 const GOLD = '#b8860b'
 const CARD_BG = '#f8f9fa'
-const CARD_PANEL = '#f3ebe0'
 const MUTED = 'rgba(10,46,34,0.58)'
 const BORDER = 'rgba(10,46,34,0.1)'
 const REVEAL_EASE = [0.22, 1, 0.36, 1] as const
@@ -59,6 +59,7 @@ export default function ShopProductCard({
   const { addItem, clearCart, getQty, setQty } = useCart()
 
   const activeImage = images[Math.min(imageIndex, Math.max(0, images.length - 1))] ?? product.image
+  const panelFill = getProductPanelFill(product)
   const variantId = product.variants[0]?.id ?? 'default'
   const cartQty = getQty(product.id, variantId)
   const sellPrice = getSellPrice(product)
@@ -141,8 +142,8 @@ export default function ShopProductCard({
       }}
     >
       <div
-        className="relative flex aspect-[4/3] max-h-[148px] items-end justify-center overflow-hidden rounded-lg sm:max-h-[160px]"
-        style={{ backgroundColor: CARD_PANEL }}
+        className="relative aspect-[3/4] max-h-[168px] overflow-hidden rounded-lg sm:max-h-[180px]"
+        style={{ backgroundColor: panelFill }}
         onMouseEnter={() => setImageHovered(true)}
         onMouseLeave={() => setImageHovered(false)}
       >
@@ -151,19 +152,13 @@ export default function ShopProductCard({
           alt={product.name}
           loading="lazy"
           decoding="async"
-          className="relative z-[1] h-[72%] w-auto max-w-[82%] origin-bottom object-contain"
+          className="relative z-[1] h-full w-full object-contain object-center"
           draggable={false}
           animate={{
-            y: imageHovered && !outOfStock ? -14 : 0,
-            scale: imageHovered && !outOfStock ? 1.1 : 1,
+            scale: imageHovered && !outOfStock ? 1.06 : 1,
             opacity: outOfStock ? 0.45 : 1,
           }}
           transition={{ duration: 0.38, ease: REVEAL_EASE }}
-          style={{
-            filter: imageHovered && !outOfStock
-              ? 'drop-shadow(0 18px 24px rgba(10,46,34,0.28))'
-              : 'drop-shadow(0 10px 16px rgba(10,46,34,0.16))',
-          }}
         />
 
         {outOfStock && (

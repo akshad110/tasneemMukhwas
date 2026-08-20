@@ -7,7 +7,7 @@ import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
 import { APP_ROUTES, navigateApp } from '../lib/appRoutes'
 import { scrollAppToTop } from '../lib/scrollControl'
-import { getSellPrice, type ShopProduct } from '../lib/shopCatalog'
+import { getProductPanelFill, getSellPrice, type ShopProduct } from '../lib/shopCatalog'
 
 const INK = '#0a2e22'
 const CREAM = '#f2f4f5'
@@ -45,11 +45,11 @@ function WishlistItemRow({
       exit={{ opacity: 0, scale: 0.96, x: -12 }}
       transition={{ duration: 0.32, delay: Math.min(index * 0.05, 0.25) }}
     >
-      <div className="wishlist-item__thumb">
+      <div className="wishlist-item__thumb" style={{ backgroundColor: getProductPanelFill(product) }}>
         <motion.img
           src={product.image}
           alt={product.name}
-          className="h-[78%] w-auto max-w-[88%] object-contain"
+          className="h-full w-full object-contain object-center p-1"
           draggable={false}
           whileHover={{ scale: 1.06, rotate: -2 }}
           transition={{ type: 'spring', stiffness: 320, damping: 22 }}

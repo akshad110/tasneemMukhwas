@@ -7,6 +7,9 @@ import NavbarNotifications from './NavbarNotifications'
 import {
   APP_ROUTES,
   isAppPagePath,
+  isAuthPath,
+  isCheckoutPath,
+  isAdminPath,
   isKnowMorePath,
   isHomeScrollPath,
   isNavNeutralAppPath,
@@ -15,6 +18,7 @@ import {
   isContactPath,
   navigateApp,
 } from '../../lib/appRoutes'
+import MobileBottomNav from './MobileBottomNav'
 import {
   getActiveSectionId,
   pathForSection,
@@ -42,6 +46,20 @@ const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
 /** Hysteresis avoids flicker when navbar height change shifts scroll position near the threshold */
 const SCROLL_COMPACT_AT = 96
 const SCROLL_EXPAND_AT = 8
+
+function shouldShowMobileBottomNav(pathname: string) {
+  return !isAdminPath(pathname) && !isAuthPath(pathname) && !isCheckoutPath(pathname)
+}
+
+/** Bottom tab highlight follows route only — home stays active for the full home scroll experience. */
+function resolveMobileBottomNavActive(pathname: string): SectionId | null {
+  if (isKnowMorePath(pathname)) return 'about'
+  if (isShopPath(pathname)) return 'products'
+  if (isWholesalePath(pathname)) return 'wholesale'
+  if (isContactPath(pathname)) return 'contact'
+  if (pathname === '/' || isHomeScrollPath(pathname)) return 'home'
+  return null
+}
 
 function CartIcon({ className = '' }: { className?: string }) {
   return (
@@ -255,7 +273,7 @@ function ProfileAvatarMenu({
 
   if (stacked) {
     return (
-      <div className="mt-4 flex w-full flex-col gap-2">
+      <div className="flex w-full flex-col gap-2">
         <button
           type="button"
           onClick={goProfile}
@@ -468,6 +486,23 @@ export default function Navbar() {
     return () => window.removeEventListener('popstate', onPop)
   }, [])
 
+  useEffect(() => {
+    const applyTabBarSpacing = () => {
+      const mobile = window.matchMedia('(max-width: 767px)').matches
+      const show = mobile && shouldShowMobileBottomNav(window.location.pathname)
+      document.body.classList.toggle('tm-mobile-tab-active', show)
+    }
+
+    applyTabBarSpacing()
+    window.addEventListener('popstate', applyTabBarSpacing)
+    window.addEventListener('resize', applyTabBarSpacing)
+    return () => {
+      window.removeEventListener('popstate', applyTabBarSpacing)
+      window.removeEventListener('resize', applyTabBarSpacing)
+      document.body.classList.remove('tm-mobile-tab-active')
+    }
+  }, [pathname])
+
   const isHome = isHomeScrollPath(pathname)
   const isDarkNav = isHome && !scrolled
   const heroOverlay = isHome && !scrolled
@@ -475,8 +510,11 @@ export default function Navbar() {
   const navHover = isDarkNav ? 'hover:bg-white/10' : 'hover:bg-[#0a2e22]/8'
   const navBorder = heroOverlay ? 'border-transparent' : 'border-[#0a2e22]/08'
   const badgeRing = isDarkNav ? 'rgba(10,46,34,0.85)' : PEACH
+  const showMobileBottomNav = shouldShowMobileBottomNav(pathname)
+  const mobileTabActiveId = resolveMobileBottomNavActive(pathname)
 
   return (
+    <>
     <header
       className={`sticky top-0 z-50 w-full border-b ${navBorder}`}
       style={{
@@ -722,17 +760,22 @@ export default function Navbar() {
             backdropFilter: 'blur(12px)',
           }}
         >
-          <NavLinks activeId={activeId} stacked onNavigate={goTo} onDark={isDarkNav} />
+          <p
+            className="m-0 mb-3 text-center text-[0.62rem] font-semibold tracking-[0.18em] uppercase"
+            style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}
+          >
+            Account
+          </p>
           {!authLoading && user ? (
-            <ProfileAvatarMenu stacked onDark={isDarkNav} onAction={() => setMenuOpen(false)} />
+            <ProfileAvatarMenu stacked onDark={false} onAction={() => setMenuOpen(false)} />
           ) : (
             <button
               type="button"
               onClick={openAuth}
-              className="mt-4 flex h-11 w-full cursor-pointer items-center justify-center rounded-full text-[0.9rem] font-semibold"
+              className="flex h-11 w-full cursor-pointer items-center justify-center rounded-full text-[0.9rem] font-semibold"
               style={{
-                backgroundColor: isDarkNav ? GOLD : INK,
-                color: isDarkNav ? INK : PEACH,
+                backgroundColor: INK,
+                color: PEACH,
                 fontFamily: 'Inter, sans-serif',
               }}
             >
@@ -742,5 +785,8 @@ export default function Navbar() {
         </div>
       )}
     </header>
+
+    {showMobileBottomNav ? <MobileBottomNav activeId={mobileTabActiveId} onNavigate={goTo} /> : null}
+    </>
   )
 }
