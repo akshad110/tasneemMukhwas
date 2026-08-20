@@ -7,7 +7,6 @@ import {
 } from '../../lib/contact'
 import { BRAND_BRANCHES } from '../../lib/brandBranches'
 import ContactGlobe from './ContactGlobe'
-import ContactFeedbackForm from './ContactFeedbackForm'
 
 const PAGE = '#f2f4f5'
 const INK = '#0a2e22'
@@ -186,10 +185,6 @@ export default function ContactSection() {
             </dl>
           </article>
         </div>
-      </div>
-
-      <div className="relative z-10 mx-auto mt-14 w-full min-w-0 max-w-6xl md:mt-16">
-        <ContactFeedbackForm compact className="min-w-0" />
       </div>
     </section>
   )
