@@ -103,7 +103,7 @@ export default function UserNotificationsFeed() {
               ) : null}
               <button
                 type="button"
-                onClick={() => void deleteOne(n.id)}
+                onClick={() => void removeOne(n.id)}
                 className="settings-main-card__link-btn mt-2 ml-3"
                 style={{ color: '#a32020' }}
               >

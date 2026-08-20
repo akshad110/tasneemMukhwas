@@ -11,7 +11,7 @@ import { useCart, type CartResolvedItem } from '../context/CartContext'
 import { ApiRequestError } from '../lib/api'
 import { APP_ROUTES, navigateApp } from '../lib/appRoutes'
 import { scrollAppToTop } from '../lib/scrollControl'
-import { ordersApi, paymentsApi, couponsApi, type AuthUser } from '../lib/services'
+import { ordersApi, paymentsApi, couponsApi } from '../lib/services'
 import { openRazorpayCheckout } from '../lib/razorpay'
 
 const INK = '#0a2e22'

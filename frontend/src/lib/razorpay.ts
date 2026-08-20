@@ -54,7 +54,7 @@ export function loadRazorpayScript(): Promise<void> {
   if (window.Razorpay) return Promise.resolve()
   if (scriptPromise) return scriptPromise
 
-  scriptPromise = new Promise((resolve, reject) => {
+  scriptPromise = new Promise<void>((resolve, reject) => {
     const existing = document.getElementById(SCRIPT_ID) as HTMLScriptElement | null
     if (existing) {
       if (window.Razorpay) {
@@ -71,7 +71,7 @@ export function loadRazorpayScript(): Promise<void> {
     script.async = true
     attachScriptListeners(script, resolve, reject)
     document.head.appendChild(script)
-  }).catch((err) => {
+  }).catch((err: unknown) => {
     scriptPromise = null
     throw err
   })

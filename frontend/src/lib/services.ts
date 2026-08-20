@@ -1,4 +1,4 @@
-import { ApiRequestError, apiDownload, apiRequest } from './api'
+import { apiDownload, apiRequest } from './api'
 import type { ShopProduct } from './shopCatalog'
 
 export type AuthUser = {
