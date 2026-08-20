@@ -30,10 +30,17 @@ npm run dev
 
 ### Web Service (API) — `backend`
 - **Root Directory:** `backend`
-- **Runtime:** Node
+- **Runtime:** Node 20+
 - **Build Command:** `npm install`
 - **Start Command:** `npm start`
-- **Env:** `MONGODB_URI`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CLIENT_URL`, `PORT`, admin seed vars
+- **Health check path:** `/api/health`
+- **Env (required on Render):**
+  - `MONGODB_URI` — Atlas connection string
+  - `JWT_SECRET` — long random secret
+  - `CLIENT_URL` = `https://tasneemmukhwas.onrender.com`
+  - `NODE_ENV` = `production`
+
+**If you see 502:** open Render → API service → Logs. Usually `Missing required env variable: MONGODB_URI` or MongoDB Atlas blocking Render (Network Access → allow `0.0.0.0/0`).
 
 After first deploy, from Render shell or locally against Atlas: `npm run seed:force`
 
