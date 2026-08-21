@@ -1,0 +1,17 @@
+# https://tasneemmukhwas.com
+User-agent: *
+Allow: /
+
+# Private / account / checkout — not useful in search
+Disallow: /admin
+Disallow: /cart
+Disallow: /checkout
+Disallow: /login
+Disallow: /signup
+Disallow: /profile
+Disallow: /settings
+Disallow: /my-orders
+Disallow: /myorderpage
+Disallow: /wishlist
+
+Sitemap: https://tasneemmukhwas.com/sitemap.xml
