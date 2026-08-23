@@ -18,6 +18,7 @@ const productSchema = new mongoose.Schema(
     category: { type: String, required: true, trim: true },
     brand: { type: String, default: 'Tasneem', trim: true },
     fill: { type: String, default: '#0a2e22' },
+    showPanelBg: { type: Boolean, default: true },
     lightText: { type: Boolean, default: true },
     image: { type: String, default: '' },
     images: { type: [String], default: [], validate: [(v) => v.length <= 3, 'Max 3 images'] },
@@ -48,6 +49,7 @@ productSchema.methods.toPublicJSON = function toPublicJSON() {
     category: this.category,
     brand: this.brand,
     fill: this.fill,
+    showPanelBg: this.showPanelBg !== false,
     lightText: this.lightText,
     image: images[0] || this.image || '',
     images,
@@ -64,8 +66,8 @@ productSchema.methods.toPublicJSON = function toPublicJSON() {
         ? this.variants
         : [
             {
-              id: 'default',
-              label: 'Default',
+              id: '100g',
+              label: '100 gm',
               color: this.fill || '#0a2e22',
               image: images[0] || this.image || '',
             },

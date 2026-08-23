@@ -1,10 +1,13 @@
 import { useMemo, useState, type ChangeEvent } from 'react'
 import { useCatalog } from '../../context/CatalogContext'
 import {
-  extractPacketBackgroundColor,
-  fillUsesLightText,
-} from '../../lib/extractPacketBackgroundColor'
-import { CATEGORIES, type ShopProduct } from '../../lib/shopCatalog'
+  CATEGORIES,
+  GRAM_OPTIONS,
+  PRODUCT_CARD_PANEL_BG,
+  buildGramVariants,
+  parseGramOptionsFromVariants,
+  type ShopProduct,
+} from '../../lib/shopCatalog'
 
 const INK = '#0a2e22'
 const CREAM = '#f2f4f5'
@@ -12,6 +15,8 @@ const GOLD = '#b8860b'
 const MUTED = 'rgba(10,46,34,0.55)'
 const CARD = '#ffffff'
 const LINE = 'rgba(10,46,34,0.08)'
+
+const BRAND_FILL = '#0a2e22'
 
 type Editable = {
   id: string
@@ -26,7 +31,7 @@ type Editable = {
   brand: string
   rating: number
   reviews: number
-  fill: string
+  gramOptions: number[]
 }
 
 function toEditable(p: ShopProduct): Editable {
@@ -48,7 +53,7 @@ function toEditable(p: ShopProduct): Editable {
     brand: p.brand,
     rating: p.rating,
     reviews: p.reviews,
-    fill: p.fill || '#0a2e22',
+    gramOptions: parseGramOptionsFromVariants(p.variants),
   }
 }
 
@@ -56,22 +61,9 @@ function toShopProduct(e: Editable, existing?: ShopProduct): ShopProduct {
   const images = e.images.map((x) => x.trim()).filter(Boolean).slice(0, 3)
   const image = images[0] ?? existing?.image ?? '/products/shahi-mukhwas.png'
   const gallery = images.length ? images : image ? [image] : []
-  const fill = e.fill || existing?.fill || '#0a2e22'
-
-  const variants = existing?.variants?.length
-    ? existing.variants.map((v, idx) => ({
-        ...v,
-        color: fill,
-        image: idx === 0 ? gallery[0] || v.image : v.image,
-      }))
-    : [
-        {
-          id: 'default',
-          label: 'Default',
-          color: fill,
-          image,
-        },
-      ]
+  const fill = existing?.fill || BRAND_FILL
+  const grams = e.gramOptions.length ? [...e.gramOptions].sort((a, b) => a - b) : [100]
+  const variants = buildGramVariants(grams, fill, gallery[0] || image)
 
   return {
     id: e.id,
@@ -80,7 +72,7 @@ function toShopProduct(e: Editable, existing?: ShopProduct): ShopProduct {
     image,
     images: gallery,
     fill,
-    lightText: fillUsesLightText(fill),
+    lightText: false,
     price: e.price,
     showDiscountedPrice: e.showDiscountedPrice,
     discountedPrice: e.showDiscountedPrice ? e.discountedPrice : undefined,
@@ -139,12 +131,13 @@ export default function AdminProducts() {
     brand: 'Tasneem',
     rating: 5,
     reviews: 0,
-    fill: '#0a2e22',
+    gramOptions: [100, 250, 500],
   })
 
   const save = async (row: Editable) => {
     if (!row.name.trim()) return
     if (row.showDiscountedPrice && !(row.discountedPrice > 0)) return
+    if (!row.gramOptions.length) return
     setSaving(true)
     try {
       // New products use a temp id that is not in `products`, so upsert creates via API
@@ -170,13 +163,7 @@ export default function AdminProducts() {
     const dataUrl = await readFileAsDataUrl(file)
     const images = [...editing.images] as [string, string, string]
     images[index] = dataUrl
-
-    let fill = editing.fill
-    if (index === 0) {
-      fill = await extractPacketBackgroundColor(dataUrl)
-    }
-
-    setEditing({ ...editing, images, fill })
+    setEditing({ ...editing, images })
     e.target.value = ''
   }
 
@@ -241,7 +228,7 @@ export default function AdminProducts() {
                         src={thumb}
                         alt=""
                         className="h-10 w-10 rounded-lg object-contain"
-                        style={{ backgroundColor: r.fill }}
+                        style={{ backgroundColor: PRODUCT_CARD_PANEL_BG }}
                       />
                       <span className="font-semibold" style={{ color: INK }}>
                         {r.name}
@@ -318,7 +305,7 @@ export default function AdminProducts() {
             <div className="mt-4 space-y-3">
               <div>
                 <p className="m-0 mb-2 text-[0.78rem]" style={{ color: MUTED }}>
-                  Images (optional — up to 3). Primary image auto-detects panel color.
+                  Images (optional — up to 3). Shop cards use a fixed light panel behind product photos.
                 </p>
                 <div className="grid grid-cols-3 gap-2">
                   {([0, 1, 2] as const).map((i) => (
@@ -332,7 +319,10 @@ export default function AdminProducts() {
                       </p>
                       <div
                         className="mb-2 flex h-20 items-center justify-center overflow-hidden rounded-lg"
-                        style={{ backgroundColor: form.images[i] ? form.fill : '#f2f4f5' }}
+                        style={{
+                          backgroundColor: PRODUCT_CARD_PANEL_BG,
+                          border: '1px solid rgba(10,46,34,0.08)',
+                        }}
                       >
                         {form.images[i] ? (
                           <img src={form.images[i]} alt="" className="h-full w-full object-contain object-center" />
@@ -364,22 +354,6 @@ export default function AdminProducts() {
                     </div>
                   ))}
                 </div>
-                {form.images[0] ? (
-                  <div
-                    className="mt-2 flex items-center gap-2 rounded-xl border px-3 py-2 text-[0.75rem]"
-                    style={{ borderColor: LINE, color: MUTED }}
-                  >
-                    <span
-                      className="h-5 w-5 shrink-0 rounded-md border"
-                      style={{ backgroundColor: form.fill, borderColor: LINE }}
-                      aria-hidden
-                    />
-                    Panel color detected from image:{' '}
-                    <span className="font-semibold" style={{ color: INK }}>
-                      {form.fill}
-                    </span>
-                  </div>
-                ) : null}
               </div>
 
               <label className="block text-[0.78rem]" style={{ color: MUTED }}>
@@ -464,6 +438,48 @@ export default function AdminProducts() {
                   />
                 </label>
               )}
+
+              <div>
+                <p className="m-0 mb-2 text-[0.78rem] font-semibold" style={{ color: INK }}>
+                  Pack sizes (grams)
+                </p>
+                <p className="m-0 mb-2 text-[0.72rem]" style={{ color: MUTED }}>
+                  Select which weight options appear on the shop card.
+                </p>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {GRAM_OPTIONS.map((grams) => {
+                    const checked = form.gramOptions.includes(grams)
+                    return (
+                      <label
+                        key={grams}
+                        className="flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2.5 text-[0.82rem]"
+                        style={{
+                          borderColor: checked ? GOLD : LINE,
+                          backgroundColor: checked ? 'rgba(184,134,11,0.1)' : '#f7faf8',
+                          color: INK,
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(e) => {
+                            const next = e.target.checked
+                              ? [...form.gramOptions, grams]
+                              : form.gramOptions.filter((g) => g !== grams)
+                            setEditing({ ...form, gramOptions: next.sort((a, b) => a - b) })
+                          }}
+                        />
+                        {grams} gm
+                      </label>
+                    )
+                  })}
+                </div>
+                {!form.gramOptions.length ? (
+                  <p className="mt-2 m-0 text-[0.72rem]" style={{ color: '#a32020' }}>
+                    Select at least one pack size.
+                  </p>
+                ) : null}
+              </div>
             </div>
             <div className="mt-5 flex justify-end gap-2">
               <button
@@ -479,7 +495,7 @@ export default function AdminProducts() {
               </button>
               <button
                 type="button"
-                disabled={saving}
+                disabled={saving || !form.gramOptions.length}
                 onClick={() => void save(form)}
                 className="cursor-pointer rounded-xl border-0 px-4 py-2 text-[0.8rem] font-semibold disabled:opacity-60"
                 style={{ backgroundColor: INK, color: CREAM }}

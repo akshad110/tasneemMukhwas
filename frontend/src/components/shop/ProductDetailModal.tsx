@@ -9,6 +9,7 @@ import {
   getProductImages,
   getProductPanelFill,
   getSellPrice,
+  normalizeProductVariants,
   type ShopProduct,
 } from '../../lib/shopCatalog'
 
@@ -38,16 +39,22 @@ type ProductDetailModalProps = {
 
 export default function ProductDetailModal({ product, promoLabel, onClose }: ProductDetailModalProps) {
   const images = useMemo(() => (product ? getProductImages(product) : []), [product])
+  const variants = useMemo(
+    () => (product ? normalizeProductVariants(product.variants) : []),
+    [product],
+  )
   const [imageIndex, setImageIndex] = useState(0)
   const { user } = useAuth()
   const { addItem, clearCart, getQty, setQty } = useCart()
   const { isWishlisted, toggle } = useWishlist()
   const [wishBusy, setWishBusy] = useState(false)
+  const [variantId, setVariantId] = useState('100g')
 
   useEffect(() => {
     if (!product) return
     setImageIndex(0)
-  }, [product])
+    setVariantId(variants[0]?.id ?? '100g')
+  }, [product, variants])
 
   useEffect(() => {
     if (!product) {
@@ -65,8 +72,10 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
     }
   }, [product, onClose])
 
-  const variantId = product?.variants[0]?.id ?? 'default'
-  const cartQty = product ? getQty(product.id, variantId) : 0
+  const variantIdResolved = variants.some((v) => v.id === variantId)
+    ? variantId
+    : (variants[0]?.id ?? '100g')
+  const cartQty = product ? getQty(product.id, variantIdResolved) : 0
   const sellPrice = product ? getSellPrice(product) : 0
   const comparePrice = product ? getComparePrice(product) : undefined
   const displayQty = cartQty > 0 ? cartQty : 1
@@ -86,20 +95,20 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
   const handleAddToCart = () => {
     if (!product || outOfStock) return
     if (!requireAuth()) return
-    setQty(product.id, variantId, 1)
+    setQty(product.id, variantIdResolved, 1)
   }
 
   const changeQty = (delta: number) => {
     if (!product || outOfStock) return
     if (!requireAuth()) return
-    setQty(product.id, variantId, cartQty + delta)
+    setQty(product.id, variantIdResolved, cartQty + delta)
   }
 
   const handlePayNow = () => {
     if (!product || outOfStock) return
     if (!requireAuth()) return
     clearCart()
-    addItem(product.id, variantId, displayQty)
+    addItem(product.id, variantIdResolved, displayQty)
     onClose()
     navigateApp(APP_ROUTES.checkout)
   }
@@ -246,14 +255,38 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
 
                 <div className="mt-4 flex items-baseline gap-2.5">
                   <span className="text-[1.65rem] font-bold" style={{ color: INK }}>
-                    ₹{sellPrice}
+                    ₹{sellPrice.toFixed(2)}
                   </span>
                   {comparePrice != null && comparePrice > sellPrice && (
-                    <span className="text-[1rem] line-through" style={{ color: MUTED }}>
-                      ₹{comparePrice}
+                    <span className="text-[1rem] line-through" style={{ color: GOLD }}>
+                      ₹{comparePrice.toFixed(2)}
                     </span>
                   )}
                 </div>
+
+                {variants.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {variants.map((variant) => {
+                      const selected = variant.id === variantIdResolved
+                      return (
+                        <button
+                          key={variant.id}
+                          type="button"
+                          onClick={() => setVariantId(variant.id)}
+                          className="cursor-pointer rounded-full border px-3 py-1.5 text-[0.72rem] font-semibold tracking-wide uppercase transition"
+                          style={{
+                            borderColor: selected ? GOLD : 'rgba(184,134,11,0.45)',
+                            backgroundColor: selected ? 'rgba(184,134,11,0.16)' : 'transparent',
+                            color: selected ? INK : MUTED,
+                          }}
+                          aria-pressed={selected}
+                        >
+                          {variant.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
 
                 <p
                   className="mt-4 m-0 text-[0.88rem] leading-relaxed"

@@ -8,6 +8,7 @@ export const productCreateSchema = z.object({
   category: z.string().trim().min(2).max(80),
   brand: z.string().trim().max(80).optional().default('Tasneem'),
   fill: z.string().trim().max(32).optional().default('#0a2e22'),
+  showPanelBg: z.boolean().optional().default(true),
   lightText: z.boolean().optional().default(true),
   image: z.string().optional().default(''),
   images: z.array(z.string()).max(3).optional().default([]),

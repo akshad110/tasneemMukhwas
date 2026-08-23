@@ -5,12 +5,69 @@ export type ShopVariant = {
   image: string
 }
 
+/** Admin-selectable pack sizes (grams) */
+export const GRAM_OPTIONS = [100, 250, 500, 750, 1000] as const
+
+export type GramOption = (typeof GRAM_OPTIONS)[number]
+
+export function isLegacyDefaultVariant(variant: ShopVariant) {
+  return variant.id === 'default' || /^default$/i.test(variant.label.trim())
+}
+
+export function parseGramOptionsFromVariants(variants: ShopVariant[]): number[] {
+  const found = variants
+    .map((v) => {
+      if (isLegacyDefaultVariant(v)) return 100
+      const fromId = /^(\d+)g$/i.exec(v.id)?.[1]
+      const fromLabel = /(\d+)\s*g/i.exec(v.label)?.[1]
+      const n = Number(fromId ?? fromLabel)
+      return Number.isFinite(n) ? n : null
+    })
+    .filter((n): n is number => n != null)
+
+  const valid = [...new Set(found.filter((g) => (GRAM_OPTIONS as readonly number[]).includes(g)))]
+  if (valid.length) return valid.sort((a, b) => a - b)
+  return [100]
+}
+
+export function buildGramVariants(grams: number[], fill: string, image: string): ShopVariant[] {
+  const sorted = [...new Set(grams)].sort((a, b) => a - b)
+  return sorted.map((g) => ({
+    id: `${g}g`,
+    label: `${g} gm`,
+    color: fill,
+    image,
+  }))
+}
+
+/** Uniform light panel behind product imagery on shop cards */
+export const PRODUCT_CARD_PANEL_BG = '#eef0ec'
+
+/** Map old "Default" variants to 100 gm for display and cart. */
+export function normalizeProductVariants(variants: ShopVariant[]): ShopVariant[] {
+  if (!variants.length) {
+    return [{ id: '100g', label: '100 gm', color: '#0a2e22', image: '' }]
+  }
+
+  return variants.map((variant) => {
+    if (isLegacyDefaultVariant(variant)) {
+      return { ...variant, id: '100g', label: '100 gm' }
+    }
+    const grams = /^(\d+)g$/i.exec(variant.id)?.[1]
+    if (grams) {
+      return { ...variant, label: `${grams} gm` }
+    }
+    return variant
+  })
+}
+
 export type ShopProduct = {
   id: string
   name: string
   description: string
   image: string
   fill?: string
+  showPanelBg?: boolean
   lightText?: boolean
   price: number
   compareAt?: number
@@ -49,9 +106,9 @@ export function getProductImages(p: ShopProduct): string[] {
   return p.image ? [p.image] : []
 }
 
-/** Brand panel color behind shop / wishlist product imagery. */
-export function getProductPanelFill(p: ShopProduct): string {
-  return p.fill?.trim() || p.variants[0]?.color?.trim() || '#0a2e22'
+/** Fixed panel color for shop / cart / wishlist product imagery. */
+export function getProductPanelFill(_p?: ShopProduct): string {
+  return PRODUCT_CARD_PANEL_BG
 }
 
 export const CATEGORIES = [
