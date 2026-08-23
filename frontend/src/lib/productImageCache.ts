@@ -32,7 +32,9 @@ export function getCachedProductImages(productId: string): string[] {
 
 export function subscribeProductImages(listener: (productId: string) => void) {
   listeners.add(listener)
-  return () => listeners.delete(listener)
+  return () => {
+    listeners.delete(listener)
+  }
 }
 
 export function productNeedsImageFetch(product: ShopProduct) {
