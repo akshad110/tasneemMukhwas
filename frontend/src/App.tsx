@@ -1,7 +1,6 @@
-import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from './context/AuthContext'
 import SmoothScroll, { RouteScrollReset } from './components/scroll/SmoothScroll'
-import PageFallback from './components/shared/PageFallback'
 import {
   isAdminPath,
   isAppPagePath,
@@ -25,24 +24,19 @@ import {
 } from './lib/appRoutes'
 import { scrollAppToTop } from './lib/scrollControl'
 import { resetPathToHome } from './lib/sectionNav'
+import AdminPage from './pages/AdminPage'
 import AuthPage from './pages/AuthPage'
+import CartPage from './pages/CartPage'
+import CheckoutPage from './pages/CheckoutPage'
 import Home from './pages/Home'
-
-const ShopPage = lazy(() => import('./pages/ShopPage'))
-const CartPage = lazy(() => import('./pages/CartPage'))
-const CheckoutPage = lazy(() => import('./pages/CheckoutPage'))
-const ProfilePage = lazy(() => import('./pages/ProfilePage'))
-const SettingsPage = lazy(() => import('./pages/SettingsPage'))
-const MyOrdersPage = lazy(() => import('./pages/MyOrdersPage'))
-const WishlistPage = lazy(() => import('./pages/WishlistPage'))
-const KnowMorePage = lazy(() => import('./pages/KnowMorePage'))
-const WholesalePage = lazy(() => import('./pages/WholesalePage'))
-const ContactPage = lazy(() => import('./pages/ContactPage'))
-const AdminPage = lazy(() => import('./pages/AdminPage'))
-
-function LazyPage({ children }: { children: ReactNode }) {
-  return <Suspense fallback={<PageFallback />}>{children}</Suspense>
-}
+import KnowMorePage from './pages/KnowMorePage'
+import ContactPage from './pages/ContactPage'
+import WholesalePage from './pages/WholesalePage'
+import MyOrdersPage from './pages/MyOrdersPage'
+import ProfilePage from './pages/ProfilePage'
+import SettingsPage from './pages/SettingsPage'
+import ShopPage from './pages/ShopPage'
+import WishlistPage from './pages/WishlistPage'
 
 function AppRoutes({ path }: { path: string }) {
   const { user, loading } = useAuth()
@@ -67,17 +61,17 @@ function AppRoutes({ path }: { path: string }) {
   }
 
   if (auth) return <AuthPage initialMode={authMode} />
-  if (shop) return <LazyPage><ShopPage /></LazyPage>
-  if (cart) return <LazyPage><CartPage /></LazyPage>
-  if (checkout) return <LazyPage><CheckoutPage /></LazyPage>
-  if (profile) return <LazyPage><ProfilePage /></LazyPage>
-  if (settings) return <LazyPage><SettingsPage /></LazyPage>
-  if (myOrders) return <LazyPage><MyOrdersPage /></LazyPage>
-  if (wishlist) return <LazyPage><WishlistPage /></LazyPage>
-  if (knowMore) return <LazyPage><KnowMorePage /></LazyPage>
-  if (wholesale) return <LazyPage><WholesalePage /></LazyPage>
-  if (contact) return <LazyPage><ContactPage /></LazyPage>
-  if (admin) return <LazyPage><AdminPage /></LazyPage>
+  if (shop) return <ShopPage />
+  if (cart) return <CartPage />
+  if (checkout) return <CheckoutPage />
+  if (profile) return <ProfilePage />
+  if (settings) return <SettingsPage />
+  if (myOrders) return <MyOrdersPage />
+  if (wishlist) return <WishlistPage />
+  if (knowMore) return <KnowMorePage />
+  if (wholesale) return <WholesalePage />
+  if (contact) return <ContactPage />
+  if (admin) return <AdminPage />
 
   return <Home ready />
 }
