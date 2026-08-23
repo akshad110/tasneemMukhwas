@@ -312,54 +312,95 @@ export default function ShopPage() {
 
           <div className="flex flex-1 items-start">
             <div
-              className={`${filtersOpen ? 'fixed inset-0 z-40 lg:static lg:inset-auto lg:z-auto' : 'hidden lg:block'} lg:self-stretch`}
+              className={`${filtersOpen ? 'fixed inset-0 z-50 lg:static lg:inset-auto lg:z-auto' : 'hidden lg:block'} lg:self-stretch`}
             >
               {filtersOpen && (
                 <button
                   type="button"
-                  className="absolute inset-0 cursor-pointer border-0 bg-[rgba(6,14,11,0.35)] lg:hidden"
+                  className="absolute inset-0 cursor-pointer border-0 bg-[rgba(6,14,11,0.4)] lg:hidden"
                   aria-label="Close filters"
                   onClick={() => setFiltersOpen(false)}
                 />
               )}
-              <div className="relative z-[1] h-full w-[min(280px,88vw)] max-h-[85svh] overflow-y-auto shadow-xl lg:h-full lg:max-h-none lg:w-auto lg:overflow-visible lg:shadow-none">
-                {sidebar}
+              <div
+                className="fixed inset-x-0 bottom-0 top-[calc(env(safe-area-inset-top,0px)+7.25rem)] z-[1] flex max-h-[min(78svh,640px)] w-full flex-col overflow-hidden rounded-t-[1.25rem] shadow-[0_-12px_40px_-16px_rgba(10,46,34,0.35)] lg:static lg:max-h-none lg:w-auto lg:rounded-none lg:shadow-none"
+                style={{ backgroundColor: PANEL }}
+              >
+                <div
+                  className="flex shrink-0 items-center justify-between border-b px-4 py-3 lg:hidden"
+                  style={{ borderColor: BORDER }}
+                >
+                  <p
+                    className="m-0 text-[0.78rem] font-semibold tracking-[0.12em] uppercase"
+                    style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
+                  >
+                    Filters
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setFiltersOpen(false)}
+                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border-0 text-[1.1rem] leading-none"
+                    style={{ backgroundColor: 'rgba(10,46,34,0.08)', color: INK }}
+                    aria-label="Close filters"
+                  >
+                    ×
+                  </button>
+                </div>
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{sidebar}</div>
               </div>
             </div>
 
             <div className="min-w-0 flex-1">
               <div
-                className="shop-toolbar sticky top-[calc(env(safe-area-inset-top,0px)+3.75rem)] z-40 flex flex-wrap items-center gap-3 border-b px-3 py-3 backdrop-blur-md md:top-[calc(env(safe-area-inset-top,0px)+4rem)] sm:px-5"
+                className="shop-toolbar sticky top-[calc(env(safe-area-inset-top,0px)+3.75rem)] z-40 border-b px-3 py-2.5 backdrop-blur-md sm:px-5 sm:py-3 md:top-[calc(env(safe-area-inset-top,0px)+4rem)]"
                 style={{
                   borderColor: BORDER,
                   backgroundColor: 'rgba(248,249,250,0.92)',
                   boxShadow: '0 1px 0 rgba(10,46,34,0.06)',
                 }}
               >
-                <button
-                  type="button"
-                  onClick={() => setFiltersOpen((v) => !v)}
-                  className="cursor-pointer rounded-lg border px-3 py-2 text-[0.72rem] font-semibold tracking-[0.12em] uppercase lg:hidden"
-                  style={{
-                    color: INK,
-                    borderColor: BORDER,
-                    backgroundColor: PANEL,
-                    fontFamily: 'Inter, sans-serif',
-                  }}
-                >
-                  {filtersOpen ? 'Hide filters' : 'Filters'}
-                </button>
+                <div className="flex w-full min-w-0 flex-col gap-2.5 lg:flex-row lg:flex-wrap lg:items-center lg:gap-3">
+                  <div className="flex w-full min-w-0 items-center gap-2 lg:w-auto lg:shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setFiltersOpen((v) => !v)}
+                      className="shrink-0 cursor-pointer rounded-lg border px-2.5 py-2 text-[0.68rem] font-semibold tracking-[0.1em] uppercase lg:hidden"
+                      style={{
+                        color: INK,
+                        borderColor: BORDER,
+                        backgroundColor: PANEL,
+                        fontFamily: 'Inter, sans-serif',
+                      }}
+                    >
+                      {filtersOpen ? 'Hide' : 'Filters'}
+                    </button>
 
-                <p
-                  className="m-0 shrink-0 text-[0.78rem] whitespace-nowrap sm:text-[0.82rem]"
-                  style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
-                >
-                  Showing <span style={{ color: GOLD, fontWeight: 600 }}>{sorted.length}</span> of{' '}
-                  {products.length} products
-                </p>
+                    <p
+                      className="m-0 min-w-0 flex-1 truncate text-[0.72rem] sm:text-[0.82rem] lg:flex-none lg:whitespace-nowrap"
+                      style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
+                    >
+                      Showing <span style={{ color: GOLD, fontWeight: 600 }}>{sorted.length}</span> of{' '}
+                      {products.length}
+                    </p>
 
-                <div className="flex min-w-0 flex-1 items-center gap-2 sm:max-w-lg">
-                  <div className="relative min-w-0 flex-1 sm:min-w-[220px]">
+                    <button
+                      type="button"
+                      onClick={cycleSort}
+                      className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border transition hover:bg-white/70 lg:order-last"
+                      style={{ borderColor: BORDER, color: INK, backgroundColor: PANEL }}
+                      aria-label={`Sort products${sort !== 'default' ? `: ${sortLabel}` : ''}`}
+                      title={sort === 'default' ? 'Sort A → Z' : sort === 'name-asc' ? 'Sort Z → A' : 'Clear sort'}
+                    >
+                      <SortIcon mode={sort === 'name-desc' ? 'name-desc' : 'name-asc'} />
+                    </button>
+                    {sort !== 'default' && (
+                      <span className="hidden shrink-0 text-[0.72rem] font-semibold tracking-wide sm:inline lg:order-last" style={{ color: GOLD }}>
+                        {sortLabel}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="relative w-full min-w-0 lg:max-w-lg lg:flex-1">
                     <label htmlFor="shop-search" className="sr-only">
                       Search products
                     </label>
@@ -379,7 +420,9 @@ export default function ShopPage() {
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                       placeholder="Search mukhwas, paan, seeds…"
-                      className="w-full rounded-xl border py-2.5 pr-3 pl-9 text-[0.86rem] outline-none transition placeholder:opacity-45 focus:border-[#b8860b]/70"
+                      enterKeyHint="search"
+                      autoComplete="off"
+                      className="w-full min-w-0 rounded-xl border py-2.5 pr-3 pl-9 text-base outline-none transition placeholder:opacity-45 focus:border-[#b8860b]/70 sm:text-[0.86rem]"
                       style={{
                         color: INK,
                         backgroundColor: 'rgba(255,255,255,0.88)',
@@ -387,24 +430,6 @@ export default function ShopPage() {
                         fontFamily: 'Inter, sans-serif',
                       }}
                     />
-                  </div>
-
-                  <div className="flex shrink-0 items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={cycleSort}
-                      className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border transition hover:bg-white/70"
-                      style={{ borderColor: BORDER, color: INK, backgroundColor: PANEL }}
-                      aria-label={`Sort products${sort !== 'default' ? `: ${sortLabel}` : ''}`}
-                      title={sort === 'default' ? 'Sort A → Z' : sort === 'name-asc' ? 'Sort Z → A' : 'Clear sort'}
-                    >
-                      <SortIcon mode={sort === 'name-desc' ? 'name-desc' : 'name-asc'} />
-                    </button>
-                    {sort !== 'default' && (
-                      <span className="hidden text-[0.72rem] font-semibold tracking-wide sm:inline" style={{ color: GOLD }}>
-                        {sortLabel}
-                      </span>
-                    )}
                   </div>
                 </div>
               </div>

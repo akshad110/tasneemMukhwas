@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties, type Reac
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 import {
   getCachedProductImages,
-  prefetchProductImages,
+  queueAdminProductImage,
   resolveProductThumb,
   subscribeProductImages,
 } from '../../lib/productImageCache'
@@ -426,16 +426,32 @@ function DashboardPeriodPicker({
 }
 
 function DashboardProductThumb({ product }: { product: ShopProduct }) {
-  const [src, setSrc] = useState(() => resolveProductThumb(product))
+  const [src, setSrc] = useState<string | null>(() => resolveProductThumb(product) || null)
 
   useEffect(() => {
-    setSrc(resolveProductThumb(product))
+    const initial = resolveProductThumb(product)
+    if (initial) {
+      setSrc(initial)
+    } else if (product.hasStoredImage !== false) {
+      queueAdminProductImage(product.id)
+    }
+
     return subscribeProductImages((id) => {
       if (id !== product.id) return
       const next = getCachedProductImages(product.id)[0]
       if (next) setSrc(next)
     })
   }, [product])
+
+  if (!src) {
+    return (
+      <div
+        className="h-10 w-10 shrink-0 rounded-lg animate-pulse"
+        style={{ backgroundColor: '#f3f7f4' }}
+        aria-hidden
+      />
+    )
+  }
 
   return (
     <img
@@ -622,49 +638,40 @@ export default function AdminDashboard() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [reloadKey, setReloadKey] = useState(0)
+
+  const periodKey =
+    period.mode === 'month' ? `month:${period.year}:${period.month}` : 'all'
 
   useEffect(() => {
     let cancelled = false
+    const controller = new AbortController()
     setLoading(true)
     setError(null)
+
     dashboardApi
-      .get(period)
+      .get(period, controller.signal)
       .then((res) => {
         if (!cancelled) setData(res)
       })
       .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load dashboard')
+        if (cancelled || controller.signal.aborted) return
+        if (err instanceof DOMException && err.name === 'AbortError') return
+        setError(err instanceof Error ? err.message : 'Failed to load dashboard')
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
       })
+
     return () => {
       cancelled = true
+      controller.abort()
     }
-  }, [period])
+  }, [periodKey, reloadKey])
 
-  useEffect(() => {
-    if (!data?.topProducts?.length) return
-    void prefetchProductImages(data.topProducts)
-  }, [data?.topProducts])
+  const retry = () => setReloadKey((k) => k + 1)
 
-  if (error && !data) {
-    return (
-      <div>
-        <div className="admin-page-head">
-          <h1 className="admin-page-title tracking-tight">Dashboard</h1>
-          <div className="admin-toolbar">
-            <DashboardPeriodPicker period={period} onChange={setPeriod} />
-          </div>
-        </div>
-        <p className="mt-4 m-0 text-[0.95rem]" style={{ color: '#a32020' }}>
-          {error}
-        </p>
-      </div>
-    )
-  }
-
-  if (!data) {
+  if (loading && !data) {
     return (
       <div>
         <div className="admin-page-head">
@@ -678,6 +685,34 @@ export default function AdminDashboard() {
         </p>
       </div>
     )
+  }
+
+  if (error && !data) {
+    return (
+      <div>
+        <div className="admin-page-head">
+          <h1 className="admin-page-title tracking-tight">Dashboard</h1>
+          <div className="admin-toolbar">
+            <DashboardPeriodPicker period={period} onChange={setPeriod} />
+          </div>
+        </div>
+        <p className="mt-4 m-0 text-[0.95rem]" style={{ color: '#a32020' }}>
+          {error}
+        </p>
+        <button
+          type="button"
+          onClick={retry}
+          className="mt-4 cursor-pointer rounded-xl border-0 px-4 py-2.5 text-[0.85rem] font-semibold"
+          style={{ backgroundColor: INK, color: '#f2f4f5' }}
+        >
+          Try again
+        </button>
+      </div>
+    )
+  }
+
+  if (!data) {
+    return null
   }
 
   const {

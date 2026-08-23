@@ -1,9 +1,11 @@
 import { z } from 'zod'
+import { descriptionsForProduct } from '../lib/productDescriptions.js'
 import { Product, serializeProductAdminList, serializeProductList } from '../models/Product.js'
 import { ApiError, asyncHandler, sendSuccess } from '../utils/asyncHandler.js'
 
 export const productCreateSchema = z.object({
   name: z.string().trim().min(2).max(160),
+  shortDescription: z.string().trim().max(200).optional().default(''),
   description: z.string().trim().max(2000).optional().default(''),
   category: z.string().trim().min(2).max(80),
   brand: z.string().trim().max(80).optional().default('Tasneem'),
@@ -79,7 +81,7 @@ export const listProducts = asyncHandler(async (req, res) => {
   }
   if (q) {
     const rx = new RegExp(String(q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
-    filter.$or = [{ name: rx }, { category: rx }, { brand: rx }, { description: rx }]
+    filter.$or = [{ name: rx }, { category: rx }, { brand: rx }, { shortDescription: rx }, { description: rx }]
   }
 
   const pageNum = Math.max(1, Number(page) || 1)
@@ -90,7 +92,7 @@ export const listProducts = asyncHandler(async (req, res) => {
     view === 'full' ? 'full' : view === 'summary' ? 'summary' : isAdmin ? 'admin' : 'summary'
 
   const summarySelect =
-    'name category brand description price showDiscountedPrice discountedPrice compareAt outOfStock stock rating reviews variants fill hasImage'
+    'name shortDescription description category brand price showDiscountedPrice discountedPrice compareAt outOfStock stock rating reviews variants fill hasImage'
   const adminSelect = `${summarySelect} showPanelBg lightText isActive sales createdAt updatedAt`
 
   const listQuery = Product.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limitNum)
@@ -231,4 +233,27 @@ export const deleteProduct = asyncHandler(async (req, res) => {
   const product = await Product.findByIdAndDelete(req.params.id)
   if (!product) throw new ApiError(404, 'Product not found')
   return sendSuccess(res, { message: 'Product deleted', data: { id: req.params.id } })
+})
+
+export const backfillProductDescriptions = asyncHandler(async (_req, res) => {
+  const products = await Product.find({})
+  let updated = 0
+
+  for (const product of products) {
+    const copy = descriptionsForProduct(product)
+    const needsShort = !String(product.shortDescription || '').trim()
+    const desc = String(product.description || '').trim()
+    const needsLong = !desc || desc.length < 20
+    if (!needsShort && !needsLong) continue
+
+    if (needsShort) product.shortDescription = copy.shortDescription
+    if (needsLong) product.description = copy.description
+    await product.save()
+    updated += 1
+  }
+
+  return sendSuccess(res, {
+    message: 'Product descriptions backfilled',
+    data: { updated, total: products.length },
+  })
 })

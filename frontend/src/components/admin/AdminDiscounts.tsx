@@ -45,7 +45,7 @@ function discountLabel(c: CouponRecord) {
 }
 
 export default function AdminDiscounts() {
-  const { products } = useCatalog()
+  const { products, ensureLoaded } = useCatalog()
   const [tab, setTab] = useState<Tab>('coupons')
   const [coupons, setCoupons] = useState<CouponRecord[]>([])
   const [campaigns, setCampaigns] = useState<CampaignRecord[]>([])
@@ -87,6 +87,10 @@ export default function AdminDiscounts() {
   useEffect(() => {
     void load()
   }, [load])
+
+  useEffect(() => {
+    void ensureLoaded()
+  }, [ensureLoaded])
 
   useEffect(() => {
     if (tab !== 'campaigns') return

@@ -29,7 +29,7 @@ async function wishlistProducts(wishlist) {
     isActive: true,
   })
     .select(
-      'name category brand description price showDiscountedPrice discountedPrice compareAt outOfStock stock rating reviews variants fill hasImage',
+      'name shortDescription description category brand price showDiscountedPrice discountedPrice compareAt outOfStock stock rating reviews variants fill hasImage',
     )
     .lean()
   const byId = new Map(products.map((p) => [p._id.toString(), p]))

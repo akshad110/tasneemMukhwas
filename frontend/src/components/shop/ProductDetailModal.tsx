@@ -5,9 +5,11 @@ import { useCart } from '../../context/CartContext'
 import { useWishlist } from '../../context/WishlistContext'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 import { loadProductImages } from '../../lib/productImageCache'
+import { productsApi } from '../../lib/services'
 import {
   getComparePrice,
   getProductImages,
+  getProductModalDescription,
   getProductPanelFill,
   getSellPrice,
   normalizeProductVariants,
@@ -40,7 +42,8 @@ type ProductDetailModalProps = {
 
 export default function ProductDetailModal({ product, promoLabel, onClose }: ProductDetailModalProps) {
   const [galleryImages, setGalleryImages] = useState<string[]>([])
-  const activeProduct = product
+  const [resolvedProduct, setResolvedProduct] = useState<ShopProduct | null>(null)
+  const activeProduct = resolvedProduct ?? product
   const images = useMemo(() => {
     if (galleryImages.length) return galleryImages
     return activeProduct ? getProductImages(activeProduct) : []
@@ -56,6 +59,30 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
   const [wishBusy, setWishBusy] = useState(false)
   const [variantId, setVariantId] = useState('100g')
   const [imagesLoading, setImagesLoading] = useState(false)
+
+  useEffect(() => {
+    if (!product) {
+      setResolvedProduct(null)
+      setGalleryImages([])
+      setImagesLoading(false)
+      return
+    }
+
+    setResolvedProduct(product)
+    let cancelled = false
+    void productsApi
+      .get(product.id)
+      .then((full) => {
+        if (!cancelled) setResolvedProduct((prev) => ({ ...(prev ?? product), ...full }))
+      })
+      .catch(() => {
+        /* keep catalog snapshot */
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [product])
 
   useEffect(() => {
     if (!product?.id) {
@@ -117,6 +144,7 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
   const liked = activeProduct ? isWishlisted(activeProduct.id) : false
   const activeImage = images[Math.min(imageIndex, Math.max(0, images.length - 1))] ?? ''
   const panelFill = activeProduct ? getProductPanelFill(activeProduct) : CREAM
+  const modalDescription = activeProduct ? getProductModalDescription(activeProduct) : ''
 
   const requireAuth = () => {
     if (user) return true
@@ -329,12 +357,22 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
                   </div>
                 )}
 
-                <p
-                  className="mt-4 m-0 text-[0.88rem] leading-relaxed"
-                  style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
-                >
-                  {activeProduct.description}
-                </p>
+                {modalDescription ? (
+                  <div className="mt-4">
+                    <p
+                      className="m-0 text-[0.68rem] font-semibold tracking-[0.12em] uppercase"
+                      style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}
+                    >
+                      About this product
+                    </p>
+                    <p
+                      className="mt-2 m-0 line-clamp-3 text-[0.82rem] leading-relaxed"
+                      style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
+                    >
+                      {modalDescription}
+                    </p>
+                  </div>
+                ) : null}
 
                 <div
                   className="mt-6 flex items-center justify-between rounded-xl border px-4 py-3"

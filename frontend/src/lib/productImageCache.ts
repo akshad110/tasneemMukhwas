@@ -43,6 +43,32 @@ export function productNeedsImageFetch(product: ShopProduct) {
   return product.hasStoredImage !== false
 }
 
+const adminQueue: string[] = []
+let adminActive = 0
+const ADMIN_CONCURRENCY = 2
+
+function pumpAdminImageQueue() {
+  while (adminActive < ADMIN_CONCURRENCY && adminQueue.length) {
+    const id = adminQueue.shift()!
+    if (imageCache.has(id) || imageInflight.has(id)) continue
+    adminActive += 1
+    loadProductImages(id)
+      .catch(() => {})
+      .finally(() => {
+        adminActive -= 1
+        pumpAdminImageQueue()
+      })
+  }
+}
+
+/** Queue a single product image for admin thumbs — low concurrency, no batch API. */
+export function queueAdminProductImage(productId: string) {
+  if (!productId || imageCache.has(productId) || imageInflight.has(productId)) return
+  if (adminQueue.includes(productId)) return
+  adminQueue.push(productId)
+  pumpAdminImageQueue()
+}
+
 export function whenImagesPrefetchDone() {
   return prefetchPromise ?? Promise.resolve()
 }
@@ -129,7 +155,7 @@ export function primeProductImages(productId: string, data: ImagePayload) {
   store(productId, data)
 }
 
-export function resolveProductThumb(product: ShopProduct, fallback = '/products/shahi-mukhwas.png') {
+export function resolveProductThumb(product: ShopProduct, fallback = '') {
   const cached = getCachedProductImages(product.id)
   if (cached[0]) return cached[0]
   const inline = getProductImages(product)

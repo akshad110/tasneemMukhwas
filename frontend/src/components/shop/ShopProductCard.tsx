@@ -13,6 +13,7 @@ import {
 } from '../../lib/productImageCache'
 import {
   getComparePrice,
+  getProductCardTeaser,
   getProductImages,
   getProductPanelFill,
   getSellPrice,
@@ -25,6 +26,8 @@ const CREAM = '#f2f4f5'
 const GOLD = '#b8860b'
 const CARD = '#ffffff'
 const MUTED = 'rgba(10,46,34,0.58)'
+const BTN_GOLD_GRADIENT = `linear-gradient(180deg, #d4b56a 0%, ${GOLD} 55%, #9a6f08 100%)`
+const BTN_TEXT = '#ffffff'
 const OUTER_BORDER = '2px solid rgba(184,134,11,0.38)'
 const INNER_BORDER = '1px solid rgba(184,134,11,0.22)'
 const REVEAL_EASE = [0.22, 1, 0.36, 1] as const
@@ -134,6 +137,8 @@ export default function ShopProductCard({
   const sellPrice = getSellPrice(product)
   const comparePrice = getComparePrice(product)
   const outOfStock = Boolean(product.outOfStock)
+  const cardTeaser = getProductCardTeaser(product)
+  const showSeeMore = Boolean(onOpenDetail)
 
   const requireAuth = () => {
     if (user) return true
@@ -179,6 +184,11 @@ export default function ShopProductCard({
   const selectVariant = (e: MouseEvent, id: string) => {
     stop(e)
     setVariantId(id)
+  }
+
+  const openDetail = (e: MouseEvent) => {
+    stop(e)
+    onOpenDetail?.()
   }
 
   const handleCardClick = (e: MouseEvent<HTMLElement>) => {
@@ -315,7 +325,35 @@ export default function ShopProductCard({
           {product.name}
         </h3>
 
-        <div className="mt-1 flex flex-col items-center gap-1 min-[480px]:flex-row min-[480px]:items-center min-[480px]:justify-between min-[480px]:gap-2">
+        {(cardTeaser || showSeeMore) && (
+          <div className="mt-1.5 px-0.5 text-left min-[480px]:mt-2 min-[480px]:px-1">
+            {cardTeaser ? (
+              <p
+                className="m-0 line-clamp-3 text-[0.65rem] leading-relaxed min-[480px]:text-[0.72rem]"
+                style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
+              >
+                {cardTeaser}
+              </p>
+            ) : null}
+            {showSeeMore ? (
+              <button
+                type="button"
+                data-card-action
+                onClick={openDetail}
+                className="mt-1 inline-block cursor-pointer border-0 bg-transparent p-0 text-[0.62rem] font-semibold underline decoration-solid underline-offset-[3px] transition hover:opacity-80 min-[480px]:text-[0.68rem]"
+                style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}
+              >
+                See more
+              </button>
+            ) : null}
+          </div>
+        )}
+
+        <div
+          className="mt-1 flex flex-col items-center gap-1 min-[480px]:flex-row min-[480px]:items-center min-[480px]:justify-between min-[480px]:gap-2"
+          data-card-action
+          onClick={stop}
+        >
           <span
             className="inline-flex max-w-full truncate rounded-full border px-1.5 py-0.5 text-[0.44rem] font-semibold tracking-[0.07em] uppercase min-[480px]:max-w-[58%] min-[480px]:px-2 min-[480px]:text-[0.48rem]"
             style={{
@@ -335,7 +373,11 @@ export default function ShopProductCard({
           </div>
         </div>
 
-        <div className="mt-1 flex min-h-0 flex-col gap-1.5 min-[480px]:h-[44px] min-[480px]:flex-row min-[480px]:items-start min-[480px]:justify-between min-[480px]:gap-2 min-[480px]:overflow-hidden">
+        <div
+          className="mt-1 flex min-h-0 flex-col gap-1.5 min-[480px]:h-[44px] min-[480px]:flex-row min-[480px]:items-start min-[480px]:justify-between min-[480px]:gap-2 min-[480px]:overflow-hidden"
+          data-card-action
+          onClick={stop}
+        >
           <div className="flex shrink-0 flex-row items-baseline gap-1.5 min-[480px]:flex-col min-[480px]:items-start min-[480px]:leading-none">
             <span className="text-[0.82rem] font-bold min-[480px]:text-[0.9rem]" style={{ color: INK, fontFamily: 'Inter, sans-serif' }}>
               {formatRupee(sellPrice)}
@@ -397,21 +439,24 @@ export default function ShopProductCard({
               {cartQty > 0 ? (
                 <div
                   className="flex min-h-[40px] items-center justify-between rounded-full border px-1.5 py-1 min-[480px]:min-h-0 touch-manipulation"
-                  style={{ borderColor: 'rgba(184,134,11,0.55)', backgroundColor: 'rgba(184,134,11,0.08)' }}
+                  style={{
+                    borderColor: 'rgba(184,134,11,0.55)',
+                    background: BTN_GOLD_GRADIENT,
+                  }}
                   onClick={stop}
                 >
                   <button
                     type="button"
                     onClick={(e) => changeQty(e, -1)}
                     className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-0 text-[0.9rem] leading-none"
-                    style={{ color: INK }}
+                    style={{ color: BTN_TEXT }}
                     aria-label="Decrease quantity"
                   >
                     −
                   </button>
                   <span
                     className="min-w-[1.1rem] text-center text-[0.72rem] font-bold tabular-nums"
-                    style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
+                    style={{ color: BTN_TEXT, fontFamily: 'Inter, sans-serif' }}
                     aria-live="polite"
                   >
                     {cartQty}
@@ -420,7 +465,7 @@ export default function ShopProductCard({
                     type="button"
                     onClick={(e) => changeQty(e, 1)}
                     className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-0 text-[0.9rem] leading-none"
-                    style={{ color: INK }}
+                    style={{ color: BTN_TEXT }}
                     aria-label="Increase quantity"
                   >
                     +
@@ -430,10 +475,10 @@ export default function ShopProductCard({
                 <button
                   type="button"
                   onClick={addToCart}
-                  className="min-h-[40px] cursor-pointer rounded-full border-0 py-2 text-[0.52rem] font-semibold tracking-[0.06em] uppercase transition hover:brightness-105 min-[480px]:min-h-0 min-[480px]:text-[0.58rem] sm:text-[0.6rem] touch-manipulation"
+                  className="shop-card-btn shop-card-btn--cart min-h-[40px] cursor-pointer rounded-full border-0 py-2 text-[0.52rem] font-semibold tracking-[0.06em] uppercase min-[480px]:min-h-0 min-[480px]:text-[0.58rem] sm:text-[0.6rem] touch-manipulation"
                   style={{
-                    background: `linear-gradient(180deg, #d4b56a 0%, ${GOLD} 55%, #9a6f08 100%)`,
-                    color: INK,
+                    background: BTN_GOLD_GRADIENT,
+                    color: BTN_TEXT,
                     fontFamily: 'Inter, sans-serif',
                   }}
                 >
@@ -443,10 +488,10 @@ export default function ShopProductCard({
               <button
                 type="button"
                 onClick={payNow}
-                className="min-h-[40px] cursor-pointer rounded-full border py-2 text-[0.52rem] font-semibold tracking-[0.06em] uppercase transition hover:brightness-110 min-[480px]:min-h-0 min-[480px]:text-[0.58rem] sm:text-[0.6rem] touch-manipulation"
+                className="shop-card-btn shop-card-btn--pay min-h-[40px] cursor-pointer rounded-full border py-2 text-[0.52rem] font-semibold tracking-[0.06em] uppercase min-[480px]:min-h-0 min-[480px]:text-[0.58rem] sm:text-[0.6rem] touch-manipulation"
                 style={{
                   borderColor: GOLD,
-                  color: GOLD,
+                  color: BTN_TEXT,
                   backgroundColor: INK,
                   fontFamily: 'Inter, sans-serif',
                 }}

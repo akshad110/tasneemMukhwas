@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import {
+  backfillProductDescriptions,
   batchProductImages,
   createProduct,
   deleteProduct,
@@ -16,6 +17,7 @@ import { validate } from '../middleware/validate.js'
 const router = Router()
 
 router.get('/', optionalAuth, listProducts)
+router.post('/backfill-descriptions', authenticate, requireAdmin, backfillProductDescriptions)
 router.post('/images/batch', optionalAuth, batchProductImages)
 router.get('/:id/images', optionalAuth, getProductImages)
 router.get('/:id', optionalAuth, getProduct)

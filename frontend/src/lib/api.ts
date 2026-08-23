@@ -181,13 +181,14 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       signal: options.signal,
       cache: 'no-store',
     })
-  } catch {
-    const err = new ApiRequestError(0, 'Could not reach the server. Wait a moment and try again.')
-    if (retry < MAX_API_RETRIES - 1 && RETRYABLE_STATUS.has(err.status)) {
+  } catch (err) {
+    if (options.signal?.aborted) throw err
+    const apiErr = new ApiRequestError(0, 'Could not reach the server. Wait a moment and try again.')
+    if (retry < MAX_API_RETRIES - 1 && RETRYABLE_STATUS.has(apiErr.status)) {
       await sleep(retryDelayMs(retry))
       return apiRequest<T>(path, { ...options, _retry: retry + 1 })
     }
-    throw err
+    throw apiErr
   }
 
   let json: { success?: boolean; message?: string; data?: T; errors?: ApiErrorBody['errors'] } = {}

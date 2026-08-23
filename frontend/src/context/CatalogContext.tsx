@@ -10,6 +10,7 @@ import {
 } from 'react'
 import { ApiRequestError } from '../lib/api'
 import {
+  adminSectionFromPath,
   isAdminPath,
   isCartPath,
   isCheckoutPath,
@@ -57,13 +58,18 @@ function sleep(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms))
 }
 
+function adminNeedsCatalog(pathname: string) {
+  const section = adminSectionFromPath(pathname)
+  return section === 'products' || section === 'discounts'
+}
+
 function isCatalogPath(pathname: string) {
   return (
     isShopPath(pathname) ||
     isCartPath(pathname) ||
     isCheckoutPath(pathname) ||
-    isAdminPath(pathname) ||
-    isWishlistPath(pathname)
+    isWishlistPath(pathname) ||
+    (isAdminPath(pathname) && adminNeedsCatalog(pathname))
   )
 }
 
@@ -199,7 +205,8 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (loading || !products.length) return
     const view = catalogViewForPath()
-    if (view !== 'summary' && view !== 'admin') return
+    // Shop only — admin thumbs load on demand; avoids blocking dashboard API with image batches
+    if (view !== 'summary') return
     const key = `${view}:${products.map((p) => p.id).join('|')}`
     if (imagePrefetchKeyRef.current === key) return
     imagePrefetchKeyRef.current = key
@@ -221,6 +228,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   }, [ensureLoaded])
 
   useEffect(() => {
+    if (isAdminPath(window.location.pathname)) return
     const prefetchSoon = () => prefetch()
     if (typeof window.requestIdleCallback === 'function') {
       const id = window.requestIdleCallback(prefetchSoon, { timeout: 800 })

@@ -294,7 +294,7 @@ export const transactionsApi = {
 }
 
 export const dashboardApi = {
-  get: (period?: DashboardPeriod) => {
+  get: (period?: DashboardPeriod, signal?: AbortSignal) => {
     const qs = new URLSearchParams()
     if (period?.mode === 'month') {
       qs.set('period', 'month')
@@ -304,7 +304,7 @@ export const dashboardApi = {
       qs.set('period', 'all')
     }
     const q = qs.toString()
-    return apiRequest<DashboardData>(`/dashboard${q ? `?${q}` : ''}`)
+    return apiRequest<DashboardData>(`/dashboard${q ? `?${q}` : ''}`, { signal })
   },
 }
 

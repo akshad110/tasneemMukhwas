@@ -2708,3 +2708,17 @@ body {
     bottom: calc(4.35rem + env(safe-area-inset-bottom, 0px));
   }
 }
+
+/* Shop product card — gold + dark green action buttons */
+.shop-card-btn {
+  transition: filter 0.2s ease, transform 0.15s ease;
+}
+
+.shop-card-btn--cart:hover,
+.shop-card-btn--pay:hover {
+  filter: brightness(1.06);
+}
+
+.shop-card-btn:active {
+  transform: scale(0.98);
+}

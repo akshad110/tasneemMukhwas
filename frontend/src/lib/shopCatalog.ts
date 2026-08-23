@@ -64,6 +64,9 @@ export function normalizeProductVariants(variants: ShopVariant[]): ShopVariant[]
 export type ShopProduct = {
   id: string
   name: string
+  /** One-line teaser shown on shop cards */
+  shortDescription?: string
+  /** Full product description shown in detail modal */
   description: string
   image: string
   fill?: string
@@ -111,6 +114,62 @@ export function getProductImages(p: ShopProduct): string[] {
 /** Fixed panel color for shop / cart / wishlist product imagery. */
 export function getProductPanelFill(_p?: ShopProduct): string {
   return PRODUCT_CARD_PANEL_BG
+}
+
+/** Teaser line for shop cards — prefers shortDescription, else first line of long text. */
+export function getProductCardTeaser(p: ShopProduct): string {
+  const short = p.shortDescription?.trim()
+  if (short) return short
+  const long = p.description?.trim()
+  if (!long) return ''
+  const firstLine = long.split(/\n/)[0]?.trim() ?? long
+  return firstLine.length > 120 ? `${firstLine.slice(0, 117)}…` : firstLine
+}
+
+/** Whether the detail modal has more copy than the card teaser. */
+export function productHasLongDescription(p: ShopProduct): boolean {
+  const long = p.description?.trim()
+  if (!long) return false
+  const teaser = getProductCardTeaser(p)
+  return long.length > teaser.length || long.includes('\n')
+}
+
+function normalizeCopy(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+}
+
+/** Full stored description — description field only, never duplicated with short. */
+export function getProductLongDescription(p: ShopProduct): string {
+  return p.description?.trim() || p.shortDescription?.trim() || ''
+}
+
+/** Modal / expanded copy — intro only, skips card teaser overlap, ingredients & boilerplate. */
+export function getProductModalDescription(p: ShopProduct): string {
+  const long = p.description?.trim() || ''
+  const short = p.shortDescription?.trim() || ''
+  if (!long) return short
+
+  const paragraphs = long
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((line) => !line.startsWith('Ingredients:') && !line.startsWith('Hygiene-packed'))
+
+  if (!paragraphs.length) return short || long.split(/\n+/)[0]?.trim() || long
+
+  const shortNorm = normalizeCopy(short)
+  let start = 0
+  if (shortNorm) {
+    const firstNorm = normalizeCopy(paragraphs[0])
+    const sharesOpening =
+      firstNorm.slice(0, 36) === shortNorm.slice(0, 36) ||
+      firstNorm.includes(shortNorm.slice(0, 24)) ||
+      shortNorm.includes(firstNorm.slice(0, 24))
+    if (sharesOpening && paragraphs.length > 1) start = 1
+  }
+
+  const intro = paragraphs.slice(start, start + 2).join(' ')
+  return intro || paragraphs[0] || short
 }
 
 export const CATEGORIES = [

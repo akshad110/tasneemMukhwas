@@ -120,10 +120,14 @@ export const getDashboard = asyncHandler(async (req, res) => {
           revenue: { $sum: '$items.lineTotal' },
         },
       },
+      { $sort: { qty: -1 } },
+      { $limit: 24 },
     ]),
     Order.find(orderDateFilter)
+      .select('orderNumber customerName status total createdAt')
       .sort({ createdAt: -1 })
-      .limit(6),
+      .limit(6)
+      .lean(),
   ])
 
   let salesByMonth
@@ -205,6 +209,15 @@ export const getDashboard = asyncHandler(async (req, res) => {
   topProducts.sort(
     (a, b) => (b.reviews ?? 0) - (a.reviews ?? 0) || (b.sales ?? 0) - (a.sales ?? 0) || a.name.localeCompare(b.name),
   )
+  topProducts = topProducts.slice(0, 12)
+
+  const recentOrderRows = recentOrders.map((o) => ({
+    id: o.orderNumber,
+    customer: o.customerName,
+    status: o.status,
+    total: o.total,
+    date: o.createdAt ? new Date(o.createdAt).toISOString().slice(0, 10) : '',
+  }))
 
   return sendSuccess(res, {
     data: {
@@ -232,7 +245,7 @@ export const getDashboard = asyncHandler(async (req, res) => {
         { label: 'Video', a: 41, b: 28 },
       ],
       topProducts,
-      recentOrders: recentOrders.map((o) => o.toPublicJSON()),
+      recentOrders: recentOrderRows,
     },
   })
 })

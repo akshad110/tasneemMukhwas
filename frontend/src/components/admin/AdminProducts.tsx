@@ -4,6 +4,7 @@ import { compressProductImage } from '../../lib/compressProductImage'
 import {
   getCachedProductImages,
   loadProductImages,
+  queueAdminProductImage,
   subscribeProductImages,
 } from '../../lib/productImageCache'
 import {
@@ -33,6 +34,7 @@ type Editable = {
   discountedPrice: number
   outOfStock: boolean
   images: [string, string, string]
+  shortDescription: string
   description: string
   brand: string
   rating: number
@@ -55,6 +57,7 @@ function toEditable(p: ShopProduct): Editable {
     discountedPrice: p.discountedPrice ?? p.compareAt ?? Math.round(p.price * 0.85),
     outOfStock: Boolean(p.outOfStock),
     images: imgs,
+    shortDescription: p.shortDescription ?? '',
     description: p.description,
     brand: p.brand,
     rating: p.rating,
@@ -74,7 +77,8 @@ function toShopProduct(e: Editable, existing?: ShopProduct): ShopProduct {
   return {
     id: e.id,
     name: e.name.trim(),
-    description: e.description.trim() || existing?.description || e.name.trim(),
+    shortDescription: e.shortDescription.trim(),
+    description: e.description.trim() || existing?.description || e.shortDescription.trim() || e.name.trim(),
     image,
     images: gallery,
     fill,
@@ -97,12 +101,28 @@ function stockStatus(outOfStock: boolean) {
   return { label: 'In Stock', bg: '#d8f3e0', fg: '#1b7a3e' }
 }
 
-function AdminProductThumb({ productId, inline }: { productId: string; inline?: string }) {
-  const [src, setSrc] = useState(() => inline || getCachedProductImages(productId)[0] || '/products/shahi-mukhwas.png')
+function AdminProductThumb({
+  productId,
+  inline,
+  needsFetch,
+}: {
+  productId: string
+  inline?: string
+  needsFetch?: boolean
+}) {
+  const [src, setSrc] = useState<string | null>(() => inline || getCachedProductImages(productId)[0] || null)
 
   useEffect(() => {
     const cached = getCachedProductImages(productId)
-    if (cached[0]) setSrc(cached[0])
+    if (cached[0]) {
+      setSrc(cached[0])
+      return
+    }
+    if (!needsFetch) return
+    queueAdminProductImage(productId)
+  }, [productId, needsFetch])
+
+  useEffect(() => {
     return subscribeProductImages((id) => {
       if (id !== productId) return
       const next = getCachedProductImages(productId)[0]
@@ -110,24 +130,39 @@ function AdminProductThumb({ productId, inline }: { productId: string; inline?: 
     })
   }, [productId])
 
+  if (!src) {
+    return (
+      <div
+        className="h-10 w-10 shrink-0 rounded-lg animate-pulse"
+        style={{ backgroundColor: PRODUCT_CARD_PANEL_BG }}
+        aria-hidden
+      />
+    )
+  }
+
   return (
     <img
       src={src}
       alt=""
-      className="h-10 w-10 rounded-lg object-contain"
+      className="h-10 w-10 shrink-0 rounded-lg object-contain"
       style={{ backgroundColor: PRODUCT_CARD_PANEL_BG }}
     />
   )
 }
 
 export default function AdminProducts() {
-  const { products, upsertProduct, removeProduct } = useCatalog()
+  const { products, upsertProduct, removeProduct, ensureLoaded } = useCatalog()
   const [editing, setEditing] = useState<Editable | null>(null)
   const [creating, setCreating] = useState(false)
   const [q, setQ] = useState('')
   const [saving, setSaving] = useState(false)
 
+  useEffect(() => {
+    void ensureLoaded()
+  }, [ensureLoaded])
+
   const rows = useMemo(() => products.map(toEditable), [products])
+  const productById = useMemo(() => new Map(products.map((p) => [p.id, p])), [products])
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase()
@@ -147,6 +182,7 @@ export default function AdminProducts() {
     discountedPrice: 149,
     outOfStock: false,
     images: ['', '', ''],
+    shortDescription: '',
     description: '',
     brand: 'Tasneem',
     rating: 5,
@@ -242,7 +278,11 @@ export default function AdminProducts() {
                 <tr key={r.id} className="border-t" style={{ borderColor: LINE }}>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <AdminProductThumb productId={r.id} inline={r.images.find(Boolean) || undefined} />
+                      <AdminProductThumb
+                        productId={r.id}
+                        inline={r.images.find(Boolean) || undefined}
+                        needsFetch={productById.get(r.id)?.hasStoredImage !== false}
+                      />
                       <span className="font-semibold" style={{ color: INK }}>
                         {r.name}
                       </span>
@@ -389,6 +429,32 @@ export default function AdminProducts() {
                   value={form.name}
                   onChange={(e) => setEditing({ ...form, name: e.target.value })}
                   required
+                />
+              </label>
+
+              <label className="block text-[0.78rem]" style={{ color: MUTED }}>
+                One-line description
+                <span className="ml-1 text-[0.68rem] opacity-80">(shown on shop cards)</span>
+                <input
+                  className="mt-1 w-full rounded-xl border px-3 py-2.5 text-[0.9rem] outline-none"
+                  style={{ borderColor: LINE, color: INK }}
+                  value={form.shortDescription}
+                  maxLength={200}
+                  placeholder="e.g. Refreshing paan blend with natural fennel and rose petals"
+                  onChange={(e) => setEditing({ ...form, shortDescription: e.target.value })}
+                />
+              </label>
+
+              <label className="block text-[0.78rem]" style={{ color: MUTED }}>
+                Long description
+                <span className="ml-1 text-[0.68rem] opacity-80">(opens in product detail)</span>
+                <textarea
+                  className="mt-1 min-h-[7rem] w-full resize-y rounded-xl border px-3 py-2.5 text-[0.9rem] outline-none"
+                  style={{ borderColor: LINE, color: INK }}
+                  value={form.description}
+                  maxLength={2000}
+                  placeholder="Ingredients, taste notes, storage, and serving suggestions…"
+                  onChange={(e) => setEditing({ ...form, description: e.target.value })}
                 />
               </label>
 

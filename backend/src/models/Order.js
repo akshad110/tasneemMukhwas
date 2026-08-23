@@ -55,6 +55,50 @@ const orderSchema = new mongoose.Schema(
   { timestamps: true },
 )
 
+orderSchema.index({ createdAt: -1 })
+orderSchema.index({ status: 1, createdAt: -1 })
+
+orderSchema.methods.toAdminListJSON = function toAdminListJSON() {
+  const lineItems = (this.items || []).map((item) => ({
+    productId: item.productId,
+    name: item.name,
+    variantId: item.variantId,
+    variantLabel: item.variantLabel,
+    qty: item.qty,
+    unitPrice: item.unitPrice,
+    lineTotal: item.lineTotal,
+    image: '',
+  }))
+
+  return {
+    id: this.orderNumber,
+    mongoId: this._id.toString(),
+    customer: this.customerName,
+    customerEmail: this.customerEmail,
+    customerPhone: this.customerPhone,
+    address: this.address,
+    city: this.city,
+    country: this.country,
+    postal: this.postal,
+    items: this.itemCount || this.items.reduce((s, i) => s + i.qty, 0),
+    lineItems,
+    subtotal: this.subtotal,
+    deliveryFee: this.deliveryFee,
+    discountAmount: this.discountAmount || 0,
+    couponCode: this.couponCode || undefined,
+    total: this.total,
+    status: this.status,
+    payment: this.payment,
+    paymentStatus: this.paymentStatus,
+    razorpayOrderId: this.razorpayOrderId || undefined,
+    razorpayPaymentId: this.razorpayPaymentId || undefined,
+    tracking: this.tracking || undefined,
+    date: this.createdAt ? this.createdAt.toISOString().slice(0, 10) : '',
+    createdAt: this.createdAt,
+    updatedAt: this.updatedAt,
+  }
+}
+
 orderSchema.methods.toPublicJSON = function toPublicJSON() {
   return {
     id: this.orderNumber,

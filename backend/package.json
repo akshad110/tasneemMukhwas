@@ -12,7 +12,8 @@
     "start": "node src/index.js",
     "seed": "node src/scripts/ensureAdmin.js",
     "ensure-admin": "node src/scripts/ensureAdmin.js",
-    "clear-commerce": "node src/scripts/clearCommerce.js"
+    "clear-commerce": "node src/scripts/clearCommerce.js",
+    "seed-descriptions": "node src/scripts/seedProductDescriptions.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

@@ -14,6 +14,7 @@ const productSchema = new mongoose.Schema(
   {
     slug: { type: String, unique: true, sparse: true, trim: true },
     name: { type: String, required: true, trim: true, maxlength: 160 },
+    shortDescription: { type: String, default: '', maxlength: 200 },
     description: { type: String, default: '', maxlength: 2000 },
     category: { type: String, required: true, trim: true },
     brand: { type: String, default: 'Tasneem', trim: true },
@@ -46,6 +47,7 @@ productSchema.methods.toPublicJSON = function toPublicJSON() {
   return {
     id: this._id.toString(),
     name: this.name,
+    shortDescription: this.shortDescription || '',
     description: this.description,
     category: this.category,
     brand: this.brand,
@@ -110,6 +112,7 @@ export function serializeProductList(doc) {
   return {
     id: raw._id?.toString?.() ?? String(raw.id),
     name: raw.name,
+    shortDescription: raw.shortDescription || '',
     description: raw.description || '',
     category: raw.category,
     brand: raw.brand,

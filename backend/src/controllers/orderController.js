@@ -55,10 +55,13 @@ export const listOrders = asyncHandler(async (req, res) => {
     ]
   }
 
-  const orders = await Order.find(filter).sort({ createdAt: -1 }).limit(200)
+  const orders = await Order.find(filter)
+    .select('-items.image')
+    .sort({ createdAt: -1 })
+    .limit(200)
   return sendSuccess(res, {
     data: {
-      items: orders.map((o) => o.toPublicJSON()),
+      items: orders.map((o) => o.toAdminListJSON()),
       counts: await Order.aggregate([
         { $group: { _id: '$status', count: { $sum: 1 } } },
       ]).then((rows) =>
