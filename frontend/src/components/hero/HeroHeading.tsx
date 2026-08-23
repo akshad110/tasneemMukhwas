@@ -3,6 +3,8 @@ import { motion } from 'framer-motion'
 const CREAM = '#f2f4f5'
 const WHITE = '#ffffff'
 
+const ease = [0.22, 1, 0.36, 1] as const
+
 function SplashMark() {
   return (
     <svg
@@ -18,17 +20,33 @@ function SplashMark() {
   )
 }
 
+type HeroHeadingProps = {
+  active: boolean
+}
+
 /** Curved Permanent Marker heading — creamy + white like the reference. */
-export default function HeroHeading() {
+export default function HeroHeading({ active }: HeroHeadingProps) {
   return (
     <h1 className="permanent-marker-regular relative mx-auto w-full max-w-4xl px-2">
       <span className="sr-only">The True Taste of Tradition.</span>
 
-      <motion.div initial={false}>
+      <motion.div
+        initial={{ opacity: 0, y: 12, scale: 0.72 }}
+        animate={
+          active
+            ? { opacity: 1, y: 0, scale: 1 }
+            : { opacity: 0, y: 12, scale: 0.72 }
+        }
+        transition={{ duration: 0.55, ease, delay: active ? 0.08 : 0 }}
+      >
         <SplashMark />
       </motion.div>
 
-      <motion.div initial={false}>
+      <motion.div
+        initial={{ opacity: 0, y: 32 }}
+        animate={active ? { opacity: 1, y: 0 } : { opacity: 0, y: 32 }}
+        transition={{ duration: 0.9, ease, delay: active ? 0.22 : 0 }}
+      >
         <svg
           viewBox="0 0 900 160"
           className="mx-auto h-auto w-full max-w-[52rem]"
