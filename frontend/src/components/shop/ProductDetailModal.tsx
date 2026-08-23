@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
 import { useWishlist } from '../../context/WishlistContext'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
+import { productsApi } from '../../lib/services'
 import {
   getComparePrice,
   getProductImages,
@@ -38,10 +39,12 @@ type ProductDetailModalProps = {
 }
 
 export default function ProductDetailModal({ product, promoLabel, onClose }: ProductDetailModalProps) {
-  const images = useMemo(() => (product ? getProductImages(product) : []), [product])
+  const [detail, setDetail] = useState<ShopProduct | null>(product)
+  const activeProduct = detail ?? product
+  const images = useMemo(() => (activeProduct ? getProductImages(activeProduct) : []), [activeProduct])
   const variants = useMemo(
-    () => (product ? normalizeProductVariants(product.variants) : []),
-    [product],
+    () => (activeProduct ? normalizeProductVariants(activeProduct.variants) : []),
+    [activeProduct],
   )
   const [imageIndex, setImageIndex] = useState(0)
   const { user } = useAuth()
@@ -51,10 +54,30 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
   const [variantId, setVariantId] = useState('100g')
 
   useEffect(() => {
-    if (!product) return
+    if (!product) {
+      setDetail(null)
+      return
+    }
+    setDetail(product)
+    let cancelled = false
+    void productsApi
+      .get(product.id)
+      .then((full) => {
+        if (!cancelled) setDetail(full)
+      })
+      .catch(() => {
+        /* keep summary product */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [product])
+
+  useEffect(() => {
+    if (!activeProduct) return
     setImageIndex(0)
     setVariantId(variants[0]?.id ?? '100g')
-  }, [product, variants])
+  }, [activeProduct, variants])
 
   useEffect(() => {
     if (!product) {
@@ -75,16 +98,17 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
   const variantIdResolved = variants.some((v) => v.id === variantId)
     ? variantId
     : (variants[0]?.id ?? '100g')
-  const cartQty = product ? getQty(product.id, variantIdResolved) : 0
-  const sellPrice = product ? getSellPrice(product) : 0
-  const comparePrice = product ? getComparePrice(product) : undefined
+  const cartQty = activeProduct ? getQty(activeProduct.id, variantIdResolved) : 0
+  const sellPrice = activeProduct ? getSellPrice(activeProduct) : 0
+  const comparePrice = activeProduct ? getComparePrice(activeProduct) : undefined
   const displayQty = cartQty > 0 ? cartQty : 1
   const total = sellPrice * displayQty
-  const outOfStock = Boolean(product?.outOfStock)
-  const liked = product ? isWishlisted(product.id) : false
+  const outOfStock = Boolean(activeProduct?.outOfStock)
+  const liked = activeProduct ? isWishlisted(activeProduct.id) : false
   const activeImage =
-    product && (images[Math.min(imageIndex, Math.max(0, images.length - 1))] ?? product.image)
-  const panelFill = product ? getProductPanelFill(product) : CREAM
+    activeProduct &&
+    (images[Math.min(imageIndex, Math.max(0, images.length - 1))] ?? activeProduct.image)
+  const panelFill = activeProduct ? getProductPanelFill(activeProduct) : CREAM
 
   const requireAuth = () => {
     if (user) return true
@@ -93,32 +117,32 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
   }
 
   const handleAddToCart = () => {
-    if (!product || outOfStock) return
+    if (!activeProduct || outOfStock) return
     if (!requireAuth()) return
-    setQty(product.id, variantIdResolved, 1)
+    setQty(activeProduct.id, variantIdResolved, 1)
   }
 
   const changeQty = (delta: number) => {
-    if (!product || outOfStock) return
+    if (!activeProduct || outOfStock) return
     if (!requireAuth()) return
-    setQty(product.id, variantIdResolved, cartQty + delta)
+    setQty(activeProduct.id, variantIdResolved, cartQty + delta)
   }
 
   const handlePayNow = () => {
-    if (!product || outOfStock) return
+    if (!activeProduct || outOfStock) return
     if (!requireAuth()) return
     clearCart()
-    addItem(product.id, variantIdResolved, displayQty)
+    addItem(activeProduct.id, variantIdResolved, displayQty)
     onClose()
     navigateApp(APP_ROUTES.checkout)
   }
 
   const toggleWishlist = async () => {
-    if (!product || !requireAuth()) return
+    if (!activeProduct || !requireAuth()) return
     if (wishBusy) return
     setWishBusy(true)
     try {
-      await toggle(product.id)
+      await toggle(activeProduct.id)
     } finally {
       setWishBusy(false)
     }
@@ -126,7 +150,7 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
 
   return (
     <AnimatePresence>
-      {product && activeImage && (
+      {product && activeProduct && activeImage && (
         <motion.div
           className="fixed inset-0 z-[80] flex items-end justify-center p-0 sm:items-center sm:p-4"
           initial={{ opacity: 0 }}
@@ -176,7 +200,7 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
                   <motion.img
                     key={activeImage}
                     src={activeImage}
-                    alt={product.name}
+                    alt={activeProduct.name}
                     className="h-full w-full object-contain object-center"
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: outOfStock ? 0.5 : 1, scale: 1 }}
@@ -223,7 +247,7 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
                     backgroundColor: 'rgba(184,134,11,0.1)',
                   }}
                 >
-                  {product.category}
+                  {activeProduct.category}
                 </span>
 
                 <h2
@@ -231,13 +255,13 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
                   className="mt-3 m-0 text-[clamp(1.35rem,3vw,1.85rem)] font-bold leading-tight tracking-tight"
                   style={{ color: INK, fontFamily: '"Playfair Display", Georgia, serif' }}
                 >
-                  {product.name}
+                  {activeProduct.name}
                 </h2>
 
                 <div className="mt-2 flex flex-wrap items-center gap-3">
-                  <Stars rating={product.rating} />
+                  <Stars rating={activeProduct.rating} />
                   <span className="text-[0.82rem]" style={{ color: MUTED }}>
-                    ({product.reviews} reviews)
+                    ({activeProduct.reviews} reviews)
                   </span>
                   <button
                     type="button"
@@ -292,7 +316,7 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
                   className="mt-4 m-0 text-[0.88rem] leading-relaxed"
                   style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
                 >
-                  {product.description}
+                  {activeProduct.description}
                 </p>
 
                 <div

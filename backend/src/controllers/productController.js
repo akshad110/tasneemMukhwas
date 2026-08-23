@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { Product } from '../models/Product.js'
+import { Product, serializeProductList } from '../models/Product.js'
 import { ApiError, asyncHandler, sendSuccess } from '../utils/asyncHandler.js'
 
 export const productCreateSchema = z.object({
@@ -39,7 +39,11 @@ export const productUpdateSchema = productCreateSchema.partial()
 function normalizeImages(body) {
   const images = (body.images || []).filter(Boolean).slice(0, 3)
   const image = images[0] || body.image || ''
-  return { images: images.length ? images : image ? [image] : [], image }
+  return {
+    images: images.length ? images : image ? [image] : [],
+    image,
+    hasImage: Boolean(images.length || image),
+  }
 }
 
 export const listProducts = asyncHandler(async (req, res) => {
@@ -81,19 +85,37 @@ export const listProducts = asyncHandler(async (req, res) => {
   const pageNum = Math.max(1, Number(page) || 1)
   const limitNum = Math.min(100, Math.max(1, Number(limit) || 50))
   const skip = (pageNum - 1) * limitNum
+  const fullView = req.query.view === 'full' || (isAdmin && req.query.view !== 'summary')
 
-  const [items, total] = await Promise.all([
-    Product.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limitNum),
+  const [items, total, categories] = await Promise.all([
+    fullView
+      ? Product.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limitNum).lean()
+      : Product.find(filter)
+          .select(
+            'name category brand price showDiscountedPrice discountedPrice compareAt outOfStock stock rating reviews variants fill hasImage',
+          )
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limitNum)
+          .lean(),
     Product.countDocuments(filter),
+    Product.distinct('category', { isActive: true }),
   ])
+
+  const serialize = fullView
+    ? (p) => {
+        const doc = new Product(p)
+        return doc.toPublicJSON()
+      }
+    : serializeProductList
 
   return sendSuccess(res, {
     data: {
-      items: items.map((p) => p.toPublicJSON()),
+      items: items.map(serialize),
       total,
       page: pageNum,
       limit: limitNum,
-      categories: await Product.distinct('category', { isActive: true }),
+      categories,
     },
   })
 })
@@ -106,6 +128,21 @@ export const getProduct = asyncHandler(async (req, res) => {
   return sendSuccess(res, { data: product.toPublicJSON() })
 })
 
+export const getProductImages = asyncHandler(async (req, res) => {
+  const product = await Product.findById(req.params.id).select('image images isActive').lean()
+  if (!product || (!product.isActive && req.user?.role !== 'admin')) {
+    throw new ApiError(404, 'Product not found')
+  }
+  const images = (product.images?.length ? product.images : product.image ? [product.image] : []).slice(0, 3)
+  const primary = images[0] || product.image || ''
+  return sendSuccess(res, {
+    data: {
+      image: primary,
+      images: images.length ? images : primary ? [primary] : [],
+    },
+  })
+})
+
 export const createProduct = asyncHandler(async (req, res) => {
   const body = { ...req.body, ...normalizeImages(req.body) }
   delete body.id
@@ -116,7 +153,7 @@ export const createProduct = asyncHandler(async (req, res) => {
   if (body.outOfStock) body.stock = 0
   if (!body.variants?.length && body.image) {
     body.variants = [
-      { id: 'default', label: 'Default', color: body.fill || '#0a2e22', image: body.image },
+      { id: '100g', label: '100 gm', color: body.fill || '#0a2e22', image: body.image },
     ]
   }
 

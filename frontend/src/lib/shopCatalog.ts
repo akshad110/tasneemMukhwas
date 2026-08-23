@@ -82,6 +82,8 @@ export type ShopProduct = {
   brand: string
   variants: ShopVariant[]
   sales?: number
+  /** True when product has image data stored server-side (may be lazy-loaded). */
+  hasStoredImage?: boolean
 }
 
 /** Selling price used in cart / cards */

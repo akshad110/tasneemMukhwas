@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion'
-import { useEffect, useMemo, useState, type MouseEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
 import { useWishlist } from '../../context/WishlistContext'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
+import { loadProductImages } from '../../lib/productImageCache'
 import {
   getComparePrice,
   getProductImages,
@@ -57,6 +58,10 @@ export default function ShopProductCard({
 }: ShopProductCardProps) {
   const images = useMemo(() => getProductImages(product), [product])
   const variants = useMemo(() => normalizeProductVariants(product.variants), [product.variants])
+  const imageHostRef = useRef<HTMLDivElement>(null)
+  const [lazyImages, setLazyImages] = useState<string[]>(() =>
+    images.length ? images : [],
+  )
   const [imageIndex] = useState(0)
   const { user } = useAuth()
   const { isWishlisted, toggle } = useWishlist()
@@ -71,7 +76,53 @@ export default function ShopProductCard({
     setVariantId(variants[0]?.id ?? '100g')
   }, [product.id, variants])
 
-  const activeImage = images[Math.min(imageIndex, Math.max(0, images.length - 1))] ?? product.image
+  useEffect(() => {
+    if (images.length) {
+      setLazyImages(images)
+      return
+    }
+    if (!product.hasStoredImage && !product.image) return
+
+    const host = imageHostRef.current
+    if (!host) return
+
+    let cancelled = false
+    const loadImages = () => {
+      void loadProductImages(product.id)
+        .then((data) => {
+          if (cancelled) return
+          const next = (data.images?.length ? data.images : data.image ? [data.image] : []).filter(Boolean)
+          if (next.length) setLazyImages(next)
+        })
+        .catch(() => {
+          /* keep empty panel */
+        })
+    }
+
+    if (typeof IntersectionObserver === 'undefined') {
+      loadImages()
+      return () => {
+        cancelled = true
+      }
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return
+        observer.disconnect()
+        loadImages()
+      },
+      { rootMargin: '240px' },
+    )
+    observer.observe(host)
+    return () => {
+      cancelled = true
+      observer.disconnect()
+    }
+  }, [images, product.hasStoredImage, product.id, product.image])
+
+  const activeImage =
+    lazyImages[Math.min(imageIndex, Math.max(0, lazyImages.length - 1))] ?? product.image
   const panelFill = getProductPanelFill(product)
   const cartQty = getQty(product.id, variantId)
   const sellPrice = getSellPrice(product)
@@ -168,6 +219,7 @@ export default function ShopProductCard({
       >
         <div className="flex h-full flex-col rounded-[1.05rem] p-3 sm:p-3.5">
         <div
+          ref={imageHostRef}
           className="relative aspect-[4/5] max-h-[190px] overflow-hidden rounded-xl border sm:max-h-[210px]"
           style={{
             backgroundColor: panelFill,
@@ -176,6 +228,7 @@ export default function ShopProductCard({
           onMouseEnter={() => setImageHovered(true)}
           onMouseLeave={() => setImageHovered(false)}
         >
+          {activeImage ? (
           <motion.img
             src={activeImage}
             alt={product.name}
@@ -189,6 +242,13 @@ export default function ShopProductCard({
             }}
             transition={{ duration: 0.38, ease: REVEAL_EASE }}
           />
+          ) : (
+            <div
+              className="absolute inset-0 animate-pulse"
+              style={{ backgroundColor: 'rgba(10,46,34,0.06)' }}
+              aria-hidden
+            />
+          )}
 
           {outOfStock && (
             <span

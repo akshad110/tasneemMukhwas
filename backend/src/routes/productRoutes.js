@@ -3,6 +3,7 @@ import {
   createProduct,
   deleteProduct,
   getProduct,
+  getProductImages,
   listProducts,
   productCreateSchema,
   productUpdateSchema,
@@ -14,6 +15,7 @@ import { validate } from '../middleware/validate.js'
 const router = Router()
 
 router.get('/', optionalAuth, listProducts)
+router.get('/:id/images', optionalAuth, getProductImages)
 router.get('/:id', optionalAuth, getProduct)
 router.post('/', authenticate, requireAdmin, validate(productCreateSchema), createProduct)
 router.patch('/:id', authenticate, requireAdmin, validate(productUpdateSchema), updateProduct)

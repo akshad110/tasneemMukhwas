@@ -42,7 +42,11 @@ const CatalogContext = createContext<CatalogContextValue | null>(null)
 const MAX_LOAD_ATTEMPTS = 2
 const CART_STORAGE_KEY = 'tm-cart-v1'
 const CACHE_KEY = 'tm-catalog-v1'
-const CACHE_TTL_MS = 5 * 60_000
+const CACHE_TTL_MS = 10 * 60_000
+
+function catalogViewForPath(pathname = window.location.pathname): 'summary' | 'full' {
+  return isAdminPath(pathname) ? 'full' : 'summary'
+}
 
 function loadDelayMs(attempt: number) {
   return Math.min(350 * 2 ** attempt, 1500)
@@ -116,12 +120,14 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const hasLoadedRef = useRef(Boolean(cached?.items.length))
+  const catalogViewRef = useRef<'summary' | 'full'>(catalogViewForPath())
   const loadGenRef = useRef(0)
   const loadPromiseRef = useRef<Promise<void> | null>(null)
 
   const refresh = useCallback(async (options?: RefreshOptions) => {
     const gen = ++loadGenRef.current
-    const silent = options?.silent && hasLoadedRef.current
+    const view = catalogViewForPath()
+    const silent = options?.silent && hasLoadedRef.current && catalogViewRef.current === view
 
     if (!silent) {
       setLoading(!hasLoadedRef.current)
@@ -132,12 +138,15 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       if (gen !== loadGenRef.current) return
 
       try {
-        const data = await productsApi.list({ limit: 100 })
+        const data = await productsApi.list({ limit: 100, view })
         if (gen !== loadGenRef.current) return
 
         setProducts(data.items)
         setCategories(data.categories?.length ? data.categories : [])
-        writeCache(data.items, data.categories?.length ? data.categories : [])
+        if (view === 'summary') {
+          writeCache(data.items, data.categories?.length ? data.categories : [])
+        }
+        catalogViewRef.current = view
         hasLoadedRef.current = true
         setError(null)
         setLoading(false)
@@ -165,12 +174,13 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const ensureLoaded = useCallback(async () => {
-    if (hasLoadedRef.current && !error) return
+    const view = catalogViewForPath()
+    if (hasLoadedRef.current && !error && catalogViewRef.current === view) return
     if (loadPromiseRef.current) {
       await loadPromiseRef.current
       return
     }
-    const promise = refresh({ silent: hasLoadedRef.current })
+    const promise = refresh({ silent: hasLoadedRef.current && catalogViewRef.current === view })
     loadPromiseRef.current = promise
     try {
       await promise
@@ -199,10 +209,10 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const prefetchSoon = () => prefetch()
     if (typeof window.requestIdleCallback === 'function') {
-      const id = window.requestIdleCallback(prefetchSoon, { timeout: 2500 })
+      const id = window.requestIdleCallback(prefetchSoon, { timeout: 800 })
       return () => window.cancelIdleCallback(id)
     }
-    const t = window.setTimeout(prefetchSoon, 1200)
+    const t = window.setTimeout(prefetchSoon, 400)
     return () => window.clearTimeout(t)
   }, [prefetch])
 

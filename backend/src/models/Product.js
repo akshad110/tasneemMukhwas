@@ -22,6 +22,7 @@ const productSchema = new mongoose.Schema(
     lightText: { type: Boolean, default: true },
     image: { type: String, default: '' },
     images: { type: [String], default: [], validate: [(v) => v.length <= 3, 'Max 3 images'] },
+    hasImage: { type: Boolean, default: false },
     price: { type: Number, required: true, min: 0 },
     showDiscountedPrice: { type: Boolean, default: false },
     discountedPrice: { type: Number, min: 0 },
@@ -76,6 +77,58 @@ productSchema.methods.toPublicJSON = function toPublicJSON() {
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
   }
+}
+
+/** Lightweight payload for shop grid — one image, no duplicate variant blobs. */
+function publicImageRef(src) {
+  if (!src || typeof src !== 'string') return ''
+  if (src.startsWith('data:')) return ''
+  return src
+}
+
+export function serializeProductList(doc) {
+  const raw = doc?.toObject ? doc.toObject() : doc
+  const images = (raw.images?.length ? raw.images : raw.image ? [raw.image] : []).slice(0, 3)
+  const primaryImage = publicImageRef(images[0] || raw.image || '')
+  const variants =
+    raw.variants?.length > 0
+      ? raw.variants.map((v) => ({
+          id: v.id,
+          label: v.label,
+          color: v.color || raw.fill || '#0a2e22',
+          image: '',
+        }))
+      : [
+          {
+            id: '100g',
+            label: '100 gm',
+            color: raw.fill || '#0a2e22',
+            image: '',
+          },
+        ]
+
+  return {
+    id: raw._id?.toString?.() ?? String(raw.id),
+    name: raw.name,
+    description: '',
+    category: raw.category,
+    brand: raw.brand,
+    image: primaryImage,
+    images: primaryImage ? [primaryImage] : [],
+    hasStoredImage: raw.hasImage ?? true,
+    price: raw.price,
+    showDiscountedPrice: raw.showDiscountedPrice,
+    discountedPrice: raw.discountedPrice,
+    compareAt: raw.compareAt,
+    outOfStock: raw.outOfStock || raw.stock <= 0,
+    rating: raw.rating,
+    reviews: raw.reviews,
+    variants,
+  }
+}
+
+productSchema.methods.toListJSON = function toListJSON() {
+  return serializeProductList(this)
 }
 
 export const Product = mongoose.model('Product', productSchema)
