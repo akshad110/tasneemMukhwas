@@ -1,6 +1,6 @@
 import gsap from 'gsap'
 import { useLenis } from 'lenis/react'
-import { useEffect, useRef, useState, type MouseEvent } from 'react'
+import { useLayoutEffect, useRef, useState, type MouseEvent } from 'react'
 import { HERO_PACKETS } from '../../lib/products'
 import { scrollToSection } from '../../lib/sectionNav'
 
@@ -13,11 +13,7 @@ const FAN = [
 const CREAM = '#f2f4f5'
 const INK = '#0a2e22'
 
-type ProductPacketsProps = {
-  active: boolean
-}
-
-export default function ProductPackets({ active }: ProductPacketsProps) {
+export default function ProductPackets() {
   const rootRef = useRef<HTMLDivElement>(null)
   const floatTweens = useRef<gsap.core.Tween[]>([])
   const [hoveredId, setHoveredId] = useState<string | null>(null)
@@ -28,31 +24,20 @@ export default function ProductPackets({ active }: ProductPacketsProps) {
     scrollToSection('products', lenis)
   }
 
-  useEffect(() => {
-    if (!active || !rootRef.current) return
+  useLayoutEffect(() => {
+    if (!rootRef.current) return
 
     const packets = rootRef.current.querySelectorAll<HTMLElement>('[data-packet]')
     floatTweens.current = []
 
     const ctx = gsap.context(() => {
       gsap.set(packets, {
-        opacity: 0,
-        y: 120,
-        scale: 0.82,
-        xPercent: (i) => FAN[i]?.xPercent ?? -50,
-        rotate: (i) => (FAN[i]?.rotate ?? 0) * 1.8,
-        transformOrigin: '50% 100%',
-      })
-
-      gsap.to(packets, {
         opacity: 1,
         y: (i) => FAN[i]?.y ?? 0,
         scale: (i) => FAN[i]?.scale ?? 1,
         rotate: (i) => FAN[i]?.rotate ?? 0,
-        duration: 1.05,
-        stagger: 0.12,
-        ease: 'power3.out',
-        delay: 0.35,
+        xPercent: (i) => FAN[i]?.xPercent ?? -50,
+        transformOrigin: '50% 100%',
       })
 
       packets.forEach((el, i) => {
@@ -62,7 +47,7 @@ export default function ProductPackets({ active }: ProductPacketsProps) {
           repeat: -1,
           yoyo: true,
           ease: 'sine.inOut',
-          delay: 1.6 + i * 0.15,
+          delay: 0.4 + i * 0.15,
         })
         floatTweens.current.push(tween)
       })
@@ -72,7 +57,7 @@ export default function ProductPackets({ active }: ProductPacketsProps) {
       floatTweens.current = []
       ctx.revert()
     }
-  }, [active])
+  }, [])
 
   const handleEnter = (id: string, index: number) => {
     setHoveredId(id)
@@ -101,12 +86,12 @@ export default function ProductPackets({ active }: ProductPacketsProps) {
             className="absolute bottom-[16%] left-1/2 w-[min(36vw,200px)] will-change-transform sm:w-[min(40vw,240px)] md:w-[min(42vw,280px)]"
             style={{
               zIndex: isHovered ? 20 : baseZ,
-              opacity: 0,
+              opacity: 1,
+              transform: `translate(-50%, ${FAN[i].y}px) translateX(${FAN[i].xPercent}%) rotate(${FAN[i].rotate}deg) scale(${FAN[i].scale})`,
             }}
             onMouseEnter={() => handleEnter(packet.id, i)}
             onMouseLeave={() => handleLeave(i)}
           >
-            {/* Small popup above the pouch */}
             <div
               className="pointer-events-none absolute left-1/2 top-0 z-30 -translate-x-1/2"
               style={{
@@ -132,7 +117,6 @@ export default function ProductPackets({ active }: ProductPacketsProps) {
                 <p className="m-0 mt-0.5 text-[0.68rem] font-medium tracking-wide opacity-80">
                   Order now
                 </p>
-                {/* caret */}
                 <span
                   aria-hidden
                   className="absolute left-1/2 top-full -mt-px -translate-x-1/2"
@@ -159,9 +143,9 @@ export default function ProductPackets({ active }: ProductPacketsProps) {
                 src={packet.src}
                 alt={packet.alt}
                 draggable={false}
-                decoding="async"
-                fetchPriority={i === 0 ? 'high' : 'auto'}
-                loading={i === 0 ? 'eager' : 'lazy'}
+                decoding="sync"
+                fetchPriority={i === 1 ? 'high' : 'auto'}
+                loading="eager"
                 className="h-auto w-full select-none drop-shadow-[0_28px_40px_rgba(0,0,0,0.45)] transition-transform duration-300 ease-out"
                 style={{
                   transform: isHovered ? 'scale(1.04)' : 'scale(1)',

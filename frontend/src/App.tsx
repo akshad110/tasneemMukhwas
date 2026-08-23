@@ -54,7 +54,9 @@ function AppRoutes({ path }: { path: string }) {
   const admin = isAdminPath(path)
   const authMode = path === '/signup' ? 'signup' : 'login'
 
-  if (loading && !isAuthPath(path)) return <Home ready={false} />
+  if (loading && !isAuthPath(path) && !isPublicPath(path)) {
+    return null
+  }
 
   if (!user && !isPublicPath(path)) {
     return <AuthPage initialMode="login" />

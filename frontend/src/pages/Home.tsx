@@ -39,7 +39,7 @@ export default function Home({ ready = true }: HomeProps) {
   return (
     <main className="bg-white">
       <Navbar />
-      <Hero active={ready} />
+      <Hero />
       <TrustBadges />
 
       <DeferredMount minHeight="85vh" fallback={<SectionPlaceholder minHeight="85vh" className="bg-[#0a2e22]" />}>
