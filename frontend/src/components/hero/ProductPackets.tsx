@@ -5,9 +5,9 @@ import { HERO_PACKETS } from '../../lib/products'
 import { scrollToSection } from '../../lib/sectionNav'
 
 const FAN = [
-  { xPercent: -92, rotate: -14, z: 1, y: 12, scale: 0.92 },
-  { xPercent: -50, rotate: 0, z: 3, y: -8, scale: 1.08 },
-  { xPercent: -8, rotate: 14, z: 2, y: 12, scale: 0.92 },
+  { rotate: -14, z: 1, y: 12, scale: 0.92 },
+  { rotate: 0, z: 3, y: -8, scale: 1.08 },
+  { rotate: 14, z: 2, y: 12, scale: 0.92 },
 ] as const
 
 const CREAM = '#f2f4f5'
@@ -31,18 +31,10 @@ export default function ProductPackets() {
     floatTweens.current = []
 
     const ctx = gsap.context(() => {
-      gsap.set(packets, {
-        opacity: 1,
-        y: (i) => FAN[i]?.y ?? 0,
-        scale: (i) => FAN[i]?.scale ?? 1,
-        rotate: (i) => FAN[i]?.rotate ?? 0,
-        xPercent: (i) => FAN[i]?.xPercent ?? -50,
-        transformOrigin: '50% 100%',
-      })
-
       packets.forEach((el, i) => {
+        const baseY = FAN[i]?.y ?? 0
         const tween = gsap.to(el, {
-          y: (FAN[i]?.y ?? 0) - (i === 1 ? 10 : 6),
+          y: baseY - (i === 1 ? 10 : 6),
           duration: 2.1 + i * 0.18,
           repeat: -1,
           yoyo: true,
@@ -72,22 +64,23 @@ export default function ProductPackets() {
   return (
     <div
       ref={rootRef}
-      className="relative mx-auto flex h-[min(42vh,380px)] w-full max-w-5xl items-center justify-center sm:h-[min(48vh,440px)] md:h-[min(50vh,460px)]"
+      className="relative mx-auto flex h-[min(42vh,380px)] w-full max-w-5xl items-end justify-center px-2 sm:h-[min(48vh,440px)] md:h-[min(50vh,460px)]"
       aria-label="Featured mukhwas packets"
     >
       {HERO_PACKETS.map((packet, i) => {
         const isHovered = hoveredId === packet.id
-        const baseZ = FAN[i].z
+        const fan = FAN[i]
 
         return (
           <div
             key={packet.id}
             data-packet
-            className="absolute bottom-[16%] left-1/2 w-[min(36vw,200px)] will-change-transform sm:w-[min(40vw,240px)] md:w-[min(42vw,280px)]"
+            className="relative w-[min(30vw,168px)] shrink-0 sm:w-[min(28vw,210px)] md:w-[min(24vw,250px)] lg:w-[min(22vw,280px)]"
             style={{
-              zIndex: isHovered ? 20 : baseZ,
-              opacity: 1,
-              transform: `translate(-50%, ${FAN[i].y}px) translateX(${FAN[i].xPercent}%) rotate(${FAN[i].rotate}deg) scale(${FAN[i].scale})`,
+              zIndex: isHovered ? 20 : fan.z,
+              marginInline: i === 1 ? '-0.65rem' : '-1.15rem',
+              transform: `rotate(${fan.rotate}deg) translateY(${fan.y}px) scale(${fan.scale})`,
+              transformOrigin: '50% 100%',
             }}
             onMouseEnter={() => handleEnter(packet.id, i)}
             onMouseLeave={() => handleLeave(i)}

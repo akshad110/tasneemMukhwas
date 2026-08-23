@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { ApiRequestError, warmApi } from '../lib/api'
+import { ApiRequestError } from '../lib/api'
 import {
   isAdminPath,
   isCartPath,
@@ -31,6 +31,7 @@ type CatalogContextValue = {
   error: string | null
   refresh: (options?: RefreshOptions) => Promise<void>
   ensureLoaded: () => Promise<void>
+  prefetch: () => void
   upsertProduct: (product: ShopProduct) => Promise<ShopProduct>
   removeProduct: (id: string) => Promise<void>
   getProduct: (id: string) => ShopProduct | undefined
@@ -38,11 +39,13 @@ type CatalogContextValue = {
 
 const CatalogContext = createContext<CatalogContextValue | null>(null)
 
-const MAX_LOAD_ATTEMPTS = 4
+const MAX_LOAD_ATTEMPTS = 2
 const CART_STORAGE_KEY = 'tm-cart-v1'
+const CACHE_KEY = 'tm-catalog-v1'
+const CACHE_TTL_MS = 5 * 60_000
 
 function loadDelayMs(attempt: number) {
-  return Math.min(500 * 2 ** attempt, 3000)
+  return Math.min(350 * 2 ** attempt, 1500)
 }
 
 function sleep(ms: number) {
@@ -70,16 +73,49 @@ function hasPersistedCartLines() {
   }
 }
 
+function readCache(): { items: ShopProduct[]; categories: string[] } | null {
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as {
+      items?: ShopProduct[]
+      categories?: string[]
+      ts?: number
+    }
+    if (!parsed.items?.length || !parsed.ts || Date.now() - parsed.ts > CACHE_TTL_MS) {
+      return null
+    }
+    return {
+      items: parsed.items,
+      categories: parsed.categories ?? [],
+    }
+  } catch {
+    return null
+  }
+}
+
+function writeCache(items: ShopProduct[], categories: string[]) {
+  try {
+    sessionStorage.setItem(
+      CACHE_KEY,
+      JSON.stringify({ items, categories, ts: Date.now() }),
+    )
+  } catch {
+    /* quota / private mode */
+  }
+}
+
 function shouldLoadCatalog(pathname = window.location.pathname) {
   return isCatalogPath(pathname) || hasPersistedCartLines()
 }
 
 export function CatalogProvider({ children }: { children: ReactNode }) {
-  const [products, setProducts] = useState<ShopProduct[]>([])
-  const [categories, setCategories] = useState<string[]>([])
+  const cached = readCache()
+  const [products, setProducts] = useState<ShopProduct[]>(() => cached?.items ?? [])
+  const [categories, setCategories] = useState<string[]>(() => cached?.categories ?? [])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const hasLoadedRef = useRef(false)
+  const hasLoadedRef = useRef(Boolean(cached?.items.length))
   const loadGenRef = useRef(0)
   const loadPromiseRef = useRef<Promise<void> | null>(null)
 
@@ -88,13 +124,9 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
     const silent = options?.silent && hasLoadedRef.current
 
     if (!silent) {
-      setLoading(true)
+      setLoading(!hasLoadedRef.current)
     }
     setError(null)
-
-    if (!hasLoadedRef.current) {
-      await warmApi(2)
-    }
 
     for (let attempt = 0; attempt < MAX_LOAD_ATTEMPTS; attempt += 1) {
       if (gen !== loadGenRef.current) return
@@ -105,6 +137,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
 
         setProducts(data.items)
         setCategories(data.categories?.length ? data.categories : [])
+        writeCache(data.items, data.categories?.length ? data.categories : [])
         hasLoadedRef.current = true
         setError(null)
         setLoading(false)
@@ -118,7 +151,6 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
 
         if (retryable && attempt < MAX_LOAD_ATTEMPTS - 1) {
           await sleep(loadDelayMs(attempt))
-          if (attempt >= 1) await warmApi(1)
           continue
         }
 
@@ -133,19 +165,24 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const ensureLoaded = useCallback(async () => {
-    if (hasLoadedRef.current) return
+    if (hasLoadedRef.current && !error) return
     if (loadPromiseRef.current) {
       await loadPromiseRef.current
       return
     }
-    const promise = refresh()
+    const promise = refresh({ silent: hasLoadedRef.current })
     loadPromiseRef.current = promise
     try {
       await promise
     } finally {
       loadPromiseRef.current = null
     }
-  }, [refresh])
+  }, [error, refresh])
+
+  const prefetch = useCallback(() => {
+    if (hasLoadedRef.current || loadPromiseRef.current) return
+    void refresh({ silent: products.length > 0 })
+  }, [refresh, products.length])
 
   useEffect(() => {
     const maybeLoad = () => {
@@ -158,6 +195,16 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
     window.addEventListener('popstate', maybeLoad)
     return () => window.removeEventListener('popstate', maybeLoad)
   }, [ensureLoaded])
+
+  useEffect(() => {
+    const prefetchSoon = () => prefetch()
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(prefetchSoon, { timeout: 2500 })
+      return () => window.cancelIdleCallback(id)
+    }
+    const t = window.setTimeout(prefetchSoon, 1200)
+    return () => window.clearTimeout(t)
+  }, [prefetch])
 
   useEffect(() => {
     const retryIfNeeded = () => {
@@ -216,11 +263,12 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       error,
       refresh,
       ensureLoaded,
+      prefetch,
       upsertProduct,
       removeProduct,
       getProduct,
     }),
-    [products, categories, loading, error, refresh, ensureLoaded, upsertProduct, removeProduct, getProduct],
+    [products, categories, loading, error, refresh, ensureLoaded, prefetch, upsertProduct, removeProduct, getProduct],
   )
 
   return <CatalogContext.Provider value={value}>{children}</CatalogContext.Provider>

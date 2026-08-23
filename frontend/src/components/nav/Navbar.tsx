@@ -2,6 +2,7 @@ import { useLenis } from 'lenis/react'
 import { useEffect, useState, type MouseEvent } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
+import { useCatalog } from '../../context/CatalogContext'
 import { useWishlist } from '../../context/WishlistContext'
 import NavbarNotifications from './NavbarNotifications'
 import {
@@ -191,11 +192,13 @@ function NavLinks({
   activeId,
   stacked,
   onNavigate,
+  onPrefetchShop,
   onDark = false,
 }: {
   activeId: SectionId | null
   stacked?: boolean
   onNavigate?: (id: SectionId) => void
+  onPrefetchShop?: () => void
   onDark?: boolean
 }) {
   return (
@@ -227,6 +230,15 @@ function NavLinks({
               onClick={(e: MouseEvent<HTMLAnchorElement>) => {
                 e.preventDefault()
                 onNavigate?.(link.id)
+              }}
+              onMouseEnter={() => {
+                if (link.id === 'products') onPrefetchShop?.()
+              }}
+              onFocus={() => {
+                if (link.id === 'products') onPrefetchShop?.()
+              }}
+              onTouchStart={() => {
+                if (link.id === 'products') onPrefetchShop?.()
               }}
               className="nav-link group cursor-pointer border-b-2 pb-0.5 text-[0.82rem] font-medium tracking-wide no-underline transition-[color,border-color,font-weight] duration-200"
               style={{
@@ -402,6 +414,7 @@ export default function Navbar() {
     })
   })
   const { user, loading: authLoading } = useAuth()
+  const { prefetch: prefetchCatalog } = useCatalog()
   const { count: wishlistCount } = useWishlist()
 
   const openAuth = () => {
@@ -442,6 +455,7 @@ export default function Navbar() {
 
     // Shop → /shop page
     if (id === 'products') {
+      prefetchCatalog()
       setActiveId('products')
       navigateApp(APP_ROUTES.shop)
       return
@@ -608,7 +622,7 @@ export default function Navbar() {
             <BrandNameLockup layout="stacked" stackedPreset="hero" tone={isDarkNav ? 'bright' : 'default'} />
           </a>
           <div className="pointer-events-auto" style={{ paddingBottom: scrolled ? 0 : 4, paddingTop: scrolled ? 0 : 2 }}>
-            <NavLinks activeId={activeId} onNavigate={goTo} onDark={isDarkNav} />
+            <NavLinks activeId={activeId} onNavigate={goTo} onPrefetchShop={prefetchCatalog} onDark={isDarkNav} />
           </div>
         </div>
 

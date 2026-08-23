@@ -140,10 +140,6 @@ export default function ShopPage() {
     }
   }, [])
 
-  useEffect(() => {
-    void refresh()
-  }, [refresh])
-
   const priceCeiling = useMemo(
     () => Math.max(...products.map((p) => getSellPrice(p)), 1000),
     [products],
