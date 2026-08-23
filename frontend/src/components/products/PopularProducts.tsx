@@ -2,9 +2,7 @@ import type { MouseEvent } from 'react'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 import ProductAccordion from './ProductAccordion'
 
-const CREAM = '#f2f4f5'
 const INK = '#0a2e22'
-const SECTION_TEXTURE = '/image.png_2K_202608092240.jpeg'
 
 /**
  * Popular Products — expandable pouch showcase (name → image → description).
@@ -19,33 +17,14 @@ export default function PopularProducts() {
   return (
     <section
       id="products"
-      className="relative w-full overflow-x-clip px-4 pb-12 pt-10 md:px-8 md:pb-16 md:pt-12 lg:px-10"
-      style={{ backgroundColor: INK }}
+      className="relative w-full overflow-x-clip bg-white px-4 pb-12 pt-10 md:px-8 md:pb-16 md:pt-12 lg:px-10"
       aria-label="Popular products"
     >
-      {/* Textured green plate + hero-style fade */}
-      <div className="pointer-events-none absolute inset-0 z-0">
-        <img
-          src={SECTION_TEXTURE}
-          alt=""
-          aria-hidden
-          className="absolute inset-0 h-full w-full object-cover brightness-[0.88] saturate-[0.92]"
-        />
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background:
-              'radial-gradient(ellipse 55% 50% at 50% 58%, rgba(8,16,12,0.05) 0%, rgba(6,12,10,0.22) 55%, rgba(4,10,8,0.32) 100%)',
-          }}
-        />
-      </div>
-
       <div className="relative z-10 mx-auto mb-6 max-w-7xl text-center md:mb-8">
         <h2
           className="m-0 uppercase"
           style={{
-            color: CREAM,
+            color: INK,
             fontFamily: 'Anton, Impact, sans-serif',
             fontSize: 'clamp(1.5rem, 3.8vw, 2.65rem)',
             fontWeight: 400,
@@ -65,11 +44,11 @@ export default function PopularProducts() {
         <a
           href="/shop"
           onClick={goShop}
-          className="cursor-pointer rounded-full border px-7 py-2.5 text-[0.78rem] font-semibold tracking-[0.14em] uppercase no-underline transition-colors hover:bg-[#f2f4f5] hover:text-[#0a2e22]"
+          className="cursor-pointer rounded-full border px-7 py-2.5 text-[0.78rem] font-semibold tracking-[0.14em] uppercase no-underline transition-colors hover:bg-[#0a2e22] hover:text-white"
           style={{
             fontFamily: 'Inter, sans-serif',
-            color: CREAM,
-            borderColor: 'rgba(242,244,245,0.45)',
+            color: INK,
+            borderColor: 'rgba(10,46,34,0.28)',
             backgroundColor: 'transparent',
           }}
         >

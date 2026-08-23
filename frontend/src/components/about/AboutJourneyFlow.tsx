@@ -13,12 +13,11 @@ import {
   useTransform,
   type MotionValue,
 } from 'framer-motion'
-import { BRAND_CREAM, BRAND_INK, BRAND_TEXTURE } from '../../lib/brand'
+import { BRAND_INK } from '../../lib/brand'
 
 const INK = BRAND_INK
-const CREAM = BRAND_CREAM
 const GOLD = '#b8860b'
-const TEXT = 'rgba(242,244,245,0.78)'
+const TEXT = 'rgba(10,46,34,0.72)'
 const TRACK = 'rgba(224,210,184,0.5)'
 const STROKE = 3.5
 const COUNT = 4
@@ -301,7 +300,7 @@ function JourneyStep({
       </p>
       <h4
         className="m-0 mt-3 text-[1.1rem] font-bold tracking-tight md:mt-4 md:text-[1.25rem]"
-        style={{ color: CREAM, fontFamily: 'Georgia, "Times New Roman", serif' }}
+        style={{ color: INK, fontFamily: 'Georgia, "Times New Roman", serif' }}
       >
         {step.title}
       </h4>
@@ -456,27 +455,9 @@ export default function AboutJourneyFlow() {
   return (
     <section
       id="journey"
-      className="relative isolate z-20 w-full overflow-x-clip px-4 py-12 sm:px-8 sm:py-16"
-      style={{ backgroundColor: INK }}
+      className="relative isolate z-20 w-full overflow-x-clip bg-white px-4 py-12 sm:px-8 sm:py-16"
       aria-label="Our licenses and recognitions"
     >
-      <div className="pointer-events-none absolute inset-0 z-0">
-        <img
-          src={BRAND_TEXTURE}
-          alt=""
-          aria-hidden
-          className="absolute inset-0 h-full w-full object-cover brightness-[0.88] saturate-[0.92]"
-        />
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background:
-              'radial-gradient(ellipse 55% 50% at 50% 58%, rgba(8,16,12,0.05) 0%, rgba(6,12,10,0.22) 55%, rgba(4,10,8,0.32) 100%)',
-          }}
-        />
-      </div>
-
       <div className="relative z-10 mx-auto w-full max-w-[980px]">
         <p
           className="m-0 text-center text-[0.6rem] font-semibold tracking-[0.18em] uppercase"
@@ -486,7 +467,7 @@ export default function AboutJourneyFlow() {
         </p>
         <h3
           className="mt-1.5 m-0 text-center text-[clamp(1.2rem,3.5vw,1.75rem)] leading-tight"
-          style={{ color: CREAM, fontFamily: '"Permanent Marker", cursive' }}
+          style={{ color: INK, fontFamily: '"Permanent Marker", cursive' }}
         >
           Our Licenses
         </h3>

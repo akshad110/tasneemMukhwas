@@ -20,6 +20,9 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  optimizeDeps: {
+    include: ['three'],
+  },
   server: {
     proxy: {
       '/api': {
@@ -27,5 +30,26 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('framer-motion')) return 'framer-motion'
+            if (id.includes('lenis')) return 'lenis'
+            if (id.includes('gsap')) return 'gsap'
+            if (id.includes('/three/') || id.includes('node_modules/three')) return 'three'
+            if (id.includes('lucide-react')) return 'icons'
+            if (id.includes('@radix-ui')) return 'radix'
+            return 'vendor'
+          }
+          if (id.includes('/components/framer/') || id.includes('_framer-runtime')) {
+            return 'framer'
+          }
+        },
+      },
+    },
+    chunkSizeWarningLimit: 700,
   },
 })

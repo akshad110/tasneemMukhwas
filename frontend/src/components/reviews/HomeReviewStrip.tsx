@@ -5,7 +5,9 @@ import { buildReviewWhatsAppUrl } from '../../lib/contact'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 import { BRAND_SERIF } from '../../lib/brand'
 
-const CREAM = '#f2f4f5'
+const INK = '#0a2e22'
+const GOLD = '#b8860b'
+const MUTED = 'rgba(10,46,34,0.62)'
 const EASE = [0.22, 1, 0.36, 1] as const
 
 const RATING_LABELS = ['', 'Could be better', 'Okay', 'Good', 'Great', 'Loved it!']
@@ -41,7 +43,7 @@ function StarPicker({
               onBlur={() => onHover(0)}
               onClick={() => onPick(n)}
               className="home-review-star cursor-pointer border-0 bg-transparent p-0.5 text-[1.35rem] leading-none transition-transform duration-150 hover:scale-110 sm:text-[1.55rem]"
-              style={{ color: filled ? '#FFD966' : 'rgba(242,244,245,0.28)' }}
+              style={{ color: filled ? '#FFD966' : 'rgba(10,46,34,0.22)' }}
             >
               ★
             </button>
@@ -50,7 +52,7 @@ function StarPicker({
       </div>
       <span
         className="min-h-[1rem] text-[0.62rem] font-medium tracking-wide"
-        style={{ color: 'rgba(242,244,245,0.55)', fontFamily: 'Inter, sans-serif' }}
+        style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
         aria-live="polite"
       >
         {active > 0 ? RATING_LABELS[active] : 'Tap to rate'}
@@ -96,36 +98,25 @@ export default function HomeReviewStrip() {
 
   return (
     <motion.section
-      className="home-review-strip relative w-full overflow-hidden px-3 py-8 sm:px-6 sm:py-10 md:px-8"
+      className="home-review-strip relative w-full overflow-hidden bg-white px-3 py-8 sm:px-6 sm:py-10 md:px-8"
       aria-label="Leave a quick review"
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.35 }}
       transition={{ duration: 0.55, ease: EASE }}
     >
-      <div
-        className="pointer-events-none absolute inset-0"
-        aria-hidden
-        style={{
-          background: `
-            linear-gradient(105deg, #062018 0%, #0a2e22 38%, #0d3a2a 62%, #062018 100%),
-            radial-gradient(ellipse 45% 80% at 88% 40%, rgba(242,244,245,0.06) 0%, transparent 55%)
-          `,
-        }}
-      />
-
       <div className="relative mx-auto max-w-5xl">
         <div className="mb-5 flex flex-col gap-1 sm:mb-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p
               className="m-0 text-[0.62rem] font-semibold tracking-[0.22em] uppercase"
-              style={{ color: 'rgba(255,214,102,0.85)', fontFamily: 'Inter, sans-serif' }}
+              style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}
             >
               30-second review
             </p>
             <h2
               className="m-0 mt-1 text-[clamp(1.35rem,3.2vw,1.85rem)] leading-tight"
-              style={{ color: CREAM, fontFamily: BRAND_SERIF }}
+              style={{ color: INK, fontFamily: BRAND_SERIF }}
             >
               How was your mukhwas?
             </h2>
@@ -135,7 +126,7 @@ export default function HomeReviewStrip() {
               type="button"
               onClick={() => navigateApp(APP_ROUTES.myOrders)}
               className="mt-1 w-fit cursor-pointer border-0 bg-transparent p-0 text-[0.72rem] font-medium underline-offset-2 hover:underline sm:mt-0"
-              style={{ color: 'rgba(242,244,245,0.62)', fontFamily: 'Inter, sans-serif' }}
+              style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
             >
               Review a past order →
             </button>
@@ -146,9 +137,8 @@ export default function HomeReviewStrip() {
           onSubmit={onSubmit}
           className="home-review-form rounded-2xl border p-4 sm:p-5"
           style={{
-            borderColor: 'rgba(242,244,245,0.1)',
-            backgroundColor: 'rgba(255,255,255,0.04)',
-            backdropFilter: 'blur(6px)',
+            borderColor: 'rgba(10,46,34,0.12)',
+            backgroundColor: 'rgba(248,249,250,0.92)',
           }}
           noValidate
         >

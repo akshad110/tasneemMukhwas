@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { notificationsApi, type AppNotification } from '../../lib/services'
+import DeleteNotificationDialog from '../shared/DeleteNotificationDialog'
 
 const INK = '#0a2e22'
 const GOLD = '#b8860b'
@@ -23,6 +24,11 @@ const TYPE_STYLE: Record<string, { bg: string; fg: string }> = {
   discount_campaign: { bg: '#f3ebe0', fg: INK },
 }
 
+type PendingDelete =
+  | { mode: 'one'; notification: AppNotification }
+  | { mode: 'all' }
+  | null
+
 export default function AdminNotifications() {
   const [filter, setFilter] = useState('all')
   const [items, setItems] = useState<AppNotification[]>([])
@@ -30,6 +36,24 @@ export default function AdminNotifications() {
   const [mailConfigured, setMailConfigured] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null)
+
+  const load = (nextFilter = filter) => {
+    setLoading(true)
+    setError('')
+    return notificationsApi
+      .adminList(nextFilter)
+      .then((res) => {
+        setItems(res.items)
+        setCounts(res.counts)
+        setMailConfigured(res.mailConfigured)
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : 'Failed to load notifications')
+      })
+      .finally(() => setLoading(false))
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -54,6 +78,25 @@ export default function AdminNotifications() {
     }
   }, [filter])
 
+  const confirmDelete = async () => {
+    if (!pendingDelete) return
+    setDeleting(true)
+    setError('')
+    try {
+      if (pendingDelete.mode === 'one') {
+        await notificationsApi.adminRemove(pendingDelete.notification.id)
+      } else {
+        await notificationsApi.adminDeleteAll()
+      }
+      setPendingDelete(null)
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete notification')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   const filters = [
     { id: 'all', label: 'All' },
     { id: 'order_placed', label: 'Orders' },
@@ -65,6 +108,13 @@ export default function AdminNotifications() {
 
   const totalCount = Object.values(counts).reduce((a, b) => a + b, 0)
 
+  const deleteMessage =
+    pendingDelete?.mode === 'all'
+      ? 'This will permanently remove all admin order alerts. This cannot be undone.'
+      : pendingDelete?.mode === 'one'
+        ? `Remove "${pendingDelete.notification.title}" from your alerts? This cannot be undone.`
+        : ''
+
   return (
     <div>
       <div className="admin-page-head">
@@ -74,6 +124,16 @@ export default function AdminNotifications() {
             Order confirmations, payments, shipping updates, and bulk discount campaigns — no email delivery logs.
           </p>
         </div>
+        {items.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setPendingDelete({ mode: 'all' })}
+            className="cursor-pointer rounded-xl border px-3 py-2 text-[0.78rem] font-semibold transition hover:bg-black/[0.03]"
+            style={{ borderColor: LINE, backgroundColor: CARD, color: '#a32020' }}
+          >
+            Delete all
+          </button>
+        )}
       </div>
 
       {!mailConfigured && (
@@ -137,13 +197,14 @@ export default function AdminNotifications() {
         </p>
       ) : (
         <div className="mt-5 overflow-x-auto rounded-xl border" style={{ borderColor: LINE, backgroundColor: CARD }}>
-          <table className="w-full min-w-[560px] border-collapse text-left text-[0.82rem]">
+          <table className="w-full min-w-[640px] border-collapse text-left text-[0.82rem]">
             <thead>
               <tr style={{ borderBottom: `1px solid ${LINE}`, color: MUTED }}>
                 <th className="px-3 py-2.5 font-semibold">When</th>
                 <th className="px-3 py-2.5 font-semibold">Type</th>
                 <th className="px-3 py-2.5 font-semibold">Title</th>
                 <th className="px-3 py-2.5 font-semibold">Details</th>
+                <th className="px-3 py-2.5 font-semibold text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -178,12 +239,22 @@ export default function AdminNotifications() {
                         </span>
                       ) : null}
                     </td>
+                    <td className="px-3 py-2.5 text-right">
+                      <button
+                        type="button"
+                        onClick={() => setPendingDelete({ mode: 'one', notification: n })}
+                        className="cursor-pointer border-0 bg-transparent text-[0.75rem] font-semibold"
+                        style={{ color: '#a32020' }}
+                      >
+                        Delete
+                      </button>
+                    </td>
                   </tr>
                 )
               })}
               {!items.length && (
                 <tr>
-                  <td colSpan={4} className="px-3 py-8 text-center" style={{ color: MUTED }}>
+                  <td colSpan={5} className="px-3 py-8 text-center" style={{ color: MUTED }}>
                     No order alerts yet. They appear when customers confirm orders or you send a campaign.
                   </td>
                 </tr>
@@ -192,6 +263,17 @@ export default function AdminNotifications() {
           </table>
         </div>
       )}
+
+      <DeleteNotificationDialog
+        open={Boolean(pendingDelete)}
+        title={pendingDelete?.mode === 'all' ? 'Delete all notifications?' : 'Delete notification?'}
+        message={deleteMessage}
+        deleting={deleting}
+        onCancel={() => {
+          if (!deleting) setPendingDelete(null)
+        }}
+        onConfirm={() => void confirmDelete()}
+      />
     </div>
   )
 }

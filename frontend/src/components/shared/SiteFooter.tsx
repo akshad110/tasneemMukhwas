@@ -13,10 +13,9 @@ import { scrollToSection, type SectionId } from '../../lib/sectionNav'
 import BrandLogo from './BrandLogo'
 
 const INK = '#0a2e22'
-const CREAM = '#f2f4f5'
 const GOLD = '#b8860b'
-const TEXTURE = '/image.png_2K_202608092240.jpeg'
-const MUTED = 'rgba(242,244,245,0.62)'
+const MUTED = 'rgba(10,46,34,0.62)'
+const LINE = 'rgba(10,46,34,0.1)'
 
 const ease = [0.22, 1, 0.36, 1] as const
 
@@ -54,7 +53,7 @@ function TickerSegment({ ariaHidden = false }: { ariaHidden?: boolean }) {
         <span key={`${item}-${i}`} className="flex items-center gap-10">
           <span
             className="text-[1rem] tracking-[0.04em] opacity-50 sm:text-[1.15rem]"
-            style={{ color: CREAM, fontFamily: 'Anton, Impact, sans-serif' }}
+            style={{ color: INK, fontFamily: 'Anton, Impact, sans-serif' }}
           >
             {item}
           </span>
@@ -128,7 +127,7 @@ function WireMesh() {
             key={i}
             d={d}
             fill="none"
-            stroke={i % 3 === 0 ? 'rgba(184,134,11,0.13)' : 'rgba(242,244,245,0.11)'}
+            stroke={i % 3 === 0 ? 'rgba(184,134,11,0.16)' : 'rgba(10,46,34,0.08)'}
             strokeWidth={0.16}
             vectorEffect="non-scaling-stroke"
           />
@@ -138,7 +137,7 @@ function WireMesh() {
         className="absolute inset-0"
         style={{
           background:
-            'radial-gradient(ellipse 70% 55% at 30% 35%, rgba(184,134,11,0.07) 0%, transparent 55%), linear-gradient(180deg, rgba(10,46,34,0.2) 0%, transparent 42%, rgba(6,28,20,0.58) 100%)',
+            'radial-gradient(ellipse 70% 55% at 30% 35%, rgba(184,134,11,0.06) 0%, transparent 55%), linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(248,249,250,0.85) 100%)',
         }}
       />
     </div>
@@ -150,7 +149,7 @@ function SectionTitle({ children, className = '' }: { children: string; classNam
     <div className={className}>
       <h3
         className="m-0 text-[0.72rem] font-bold tracking-[0.14em] uppercase"
-        style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+        style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
       >
         {children}
       </h3>
@@ -199,15 +198,15 @@ function ContactRow({
   const body = (
     <>
       <span
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10"
-        style={{ backgroundColor: 'rgba(255,255,255,0.06)', color: GOLD }}
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border"
+        style={{ backgroundColor: 'rgba(10,46,34,0.04)', color: GOLD, borderColor: LINE }}
       >
         {icon}
       </span>
       <span className="min-w-0">
         <span
           className="block text-[0.72rem] font-bold tracking-wide uppercase"
-          style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+          style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
         >
           {title}
         </span>
@@ -255,32 +254,14 @@ export default function SiteFooter() {
 
   return (
     <footer
-      className="relative w-full overflow-hidden"
-      style={{ backgroundColor: INK }}
+      className="relative w-full overflow-hidden bg-white"
       aria-label="Site footer"
     >
-      <div className="pointer-events-none absolute inset-0 z-0">
-        <img
-          src={TEXTURE}
-          alt=""
-          aria-hidden
-          className="absolute inset-0 h-full w-full object-cover brightness-[0.88] saturate-[0.92]"
-        />
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background:
-              'linear-gradient(180deg, rgba(10,46,34,0.62) 0%, rgba(10,46,34,0.42) 28%, rgba(10,46,34,0.58) 62%, rgba(6,28,20,0.9) 100%)',
-          }}
-        />
-      </div>
-
       <WireMesh />
 
       <motion.div
-        className="relative z-10 w-full border-b border-white/10 backdrop-blur-md"
-        style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}
+        className="relative z-10 w-full border-b backdrop-blur-md"
+        style={{ backgroundColor: 'rgba(248,249,250,0.95)', borderColor: LINE }}
         initial={{ opacity: 0, y: 12 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: false, amount: 0.5 }}
@@ -294,14 +275,14 @@ export default function SiteFooter() {
             />
             <span
               className="text-[0.62rem] font-semibold tracking-[0.18em] uppercase"
-              style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+              style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
             >
               Fresh Batch Online
             </span>
           </div>
           <span
             className="text-[0.62rem] tracking-[0.16em] uppercase opacity-55"
-            style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+            style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
           >
             India · FSSAI Aligned · Dispatch Ready
           </span>
@@ -326,7 +307,7 @@ export default function SiteFooter() {
               style={{
                 fontFamily: 'Anton, Impact, sans-serif',
                 backgroundImage:
-                  'linear-gradient(96deg, #f2f4f5 0%, #d4b56a 28%, #f6f7f8 48%, #b8860b 72%, #f2f4f5 100%)',
+                  'linear-gradient(96deg, #0a2e22 0%, #b8860b 42%, #0a2e22 100%)',
                 WebkitBackgroundClip: 'text',
                 backgroundClip: 'text',
                 color: 'transparent',
@@ -349,10 +330,11 @@ export default function SiteFooter() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={s.label}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 no-underline transition hover:border-[rgba(184,134,11,0.45)]"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border no-underline transition hover:border-[rgba(184,134,11,0.45)]"
                   style={{
-                    color: CREAM,
-                    backgroundColor: 'rgba(255,255,255,0.06)',
+                    color: INK,
+                    borderColor: LINE,
+                    backgroundColor: 'rgba(10,46,34,0.04)',
                   }}
                 >
                   {s.icon}
@@ -438,7 +420,7 @@ export default function SiteFooter() {
               style={{
                 fontFamily: 'Anton, Impact, sans-serif',
                 backgroundImage:
-                  'linear-gradient(96deg, #f2f4f5 0%, #d4b56a 28%, #f6f7f8 48%, #b8860b 72%, #f2f4f5 100%)',
+                  'linear-gradient(96deg, #0a2e22 0%, #b8860b 42%, #0a2e22 100%)',
                 WebkitBackgroundClip: 'text',
                 backgroundClip: 'text',
                 color: 'transparent',
@@ -468,10 +450,11 @@ export default function SiteFooter() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={s.label}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 no-underline transition hover:border-[rgba(184,134,11,0.45)]"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border no-underline transition hover:border-[rgba(184,134,11,0.45)]"
                   style={{
-                    color: CREAM,
-                    backgroundColor: 'rgba(255,255,255,0.06)',
+                    color: INK,
+                    borderColor: LINE,
+                    backgroundColor: 'rgba(10,46,34,0.04)',
                   }}
                 >
                   {s.icon}
@@ -540,7 +523,8 @@ export default function SiteFooter() {
         </motion.div>
 
         <motion.div
-          className="mt-12 border-t border-white/10 pt-6"
+          className="mt-12 border-t pt-6"
+          style={{ borderColor: LINE }}
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: false, amount: 0.4 }}
@@ -548,7 +532,7 @@ export default function SiteFooter() {
         >
           <p
             className="m-0 text-[0.72rem] tracking-wide opacity-50"
-            style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+            style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
           >
             © {new Date().getFullYear()} Tasneem Mukhwas. All rights reserved.
           </p>
@@ -556,8 +540,8 @@ export default function SiteFooter() {
       </div>
 
       <div
-        className="relative z-10 overflow-x-clip overflow-y-hidden border-t border-white/10"
-        style={{ backgroundColor: 'rgba(4,20,14,0.72)' }}
+        className="relative z-10 overflow-x-clip overflow-y-hidden border-t"
+        style={{ backgroundColor: 'rgba(248,249,250,0.98)', borderColor: LINE }}
       >
         <div className="footer-ticker flex w-max">
           <TickerSegment />

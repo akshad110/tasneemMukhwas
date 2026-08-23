@@ -401,4 +401,6 @@ export const notificationsApi = {
     apiRequest<{ items: AppNotification[]; counts: Record<string, number>; mailConfigured: boolean }>(
       `/notifications/admin?type=${encodeURIComponent(type)}`,
     ),
+  adminRemove: (id: string) => apiRequest<unknown>(`/notifications/admin/${id}`, { method: 'DELETE' }),
+  adminDeleteAll: () => apiRequest<{ deleted: number }>('/notifications/admin', { method: 'DELETE' }),
 }

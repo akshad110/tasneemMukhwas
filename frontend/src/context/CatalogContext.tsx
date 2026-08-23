@@ -9,6 +9,13 @@ import {
   type ReactNode,
 } from 'react'
 import { ApiRequestError, warmApi } from '../lib/api'
+import {
+  isAdminPath,
+  isCartPath,
+  isCheckoutPath,
+  isShopPath,
+  isWishlistPath,
+} from '../lib/appRoutes'
 import { productsApi } from '../lib/services'
 import type { ShopProduct } from '../lib/shopCatalog'
 
@@ -23,6 +30,7 @@ type CatalogContextValue = {
   loading: boolean
   error: string | null
   refresh: (options?: RefreshOptions) => Promise<void>
+  ensureLoaded: () => Promise<void>
   upsertProduct: (product: ShopProduct) => Promise<ShopProduct>
   removeProduct: (id: string) => Promise<void>
   getProduct: (id: string) => ShopProduct | undefined
@@ -30,23 +38,50 @@ type CatalogContextValue = {
 
 const CatalogContext = createContext<CatalogContextValue | null>(null)
 
-const MAX_LOAD_ATTEMPTS = 10
+const MAX_LOAD_ATTEMPTS = 4
+const CART_STORAGE_KEY = 'tm-cart-v1'
 
 function loadDelayMs(attempt: number) {
-  return Math.min(500 * 2 ** attempt, 4000)
+  return Math.min(500 * 2 ** attempt, 3000)
 }
 
 function sleep(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms))
 }
 
+function isCatalogPath(pathname: string) {
+  return (
+    isShopPath(pathname) ||
+    isCartPath(pathname) ||
+    isCheckoutPath(pathname) ||
+    isAdminPath(pathname) ||
+    isWishlistPath(pathname)
+  )
+}
+
+function hasPersistedCartLines() {
+  try {
+    const raw = localStorage.getItem(CART_STORAGE_KEY)
+    if (!raw) return false
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) && parsed.length > 0
+  } catch {
+    return false
+  }
+}
+
+function shouldLoadCatalog(pathname = window.location.pathname) {
+  return isCatalogPath(pathname) || hasPersistedCartLines()
+}
+
 export function CatalogProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState<ShopProduct[]>([])
   const [categories, setCategories] = useState<string[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const hasLoadedRef = useRef(false)
   const loadGenRef = useRef(0)
+  const loadPromiseRef = useRef<Promise<void> | null>(null)
 
   const refresh = useCallback(async (options?: RefreshOptions) => {
     const gen = ++loadGenRef.current
@@ -58,7 +93,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
     setError(null)
 
     if (!hasLoadedRef.current) {
-      await warmApi(4)
+      await warmApi(2)
     }
 
     for (let attempt = 0; attempt < MAX_LOAD_ATTEMPTS; attempt += 1) {
@@ -83,7 +118,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
 
         if (retryable && attempt < MAX_LOAD_ATTEMPTS - 1) {
           await sleep(loadDelayMs(attempt))
-          if (attempt >= 1) await warmApi(2)
+          if (attempt >= 1) await warmApi(1)
           continue
         }
 
@@ -97,14 +132,38 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  useEffect(() => {
-    void refresh()
+  const ensureLoaded = useCallback(async () => {
+    if (hasLoadedRef.current) return
+    if (loadPromiseRef.current) {
+      await loadPromiseRef.current
+      return
+    }
+    const promise = refresh()
+    loadPromiseRef.current = promise
+    try {
+      await promise
+    } finally {
+      loadPromiseRef.current = null
+    }
   }, [refresh])
+
+  useEffect(() => {
+    const maybeLoad = () => {
+      if (shouldLoadCatalog()) {
+        void ensureLoaded()
+      }
+    }
+
+    maybeLoad()
+    window.addEventListener('popstate', maybeLoad)
+    return () => window.removeEventListener('popstate', maybeLoad)
+  }, [ensureLoaded])
 
   useEffect(() => {
     const retryIfNeeded = () => {
       if (document.visibilityState !== 'visible') return
       if (loading) return
+      if (!shouldLoadCatalog()) return
       if (error || !hasLoadedRef.current) {
         void refresh({ silent: hasLoadedRef.current })
       }
@@ -119,7 +178,8 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   }, [error, loading, refresh])
 
   const upsertProduct = useCallback(async (product: ShopProduct) => {
-    const exists = products.some((p) => p.id === product.id)
+    await ensureLoaded()
+    const exists = Boolean(product.id) && products.some((p) => p.id === product.id)
     const saved = exists
       ? await productsApi.update(product.id, product)
       : await productsApi.create(
@@ -136,7 +196,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
     })
     hasLoadedRef.current = true
     return saved
-  }, [products])
+  }, [ensureLoaded, products])
 
   const removeProduct = useCallback(async (id: string) => {
     await productsApi.remove(id)
@@ -155,11 +215,12 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       loading,
       error,
       refresh,
+      ensureLoaded,
       upsertProduct,
       removeProduct,
       getProduct,
     }),
-    [products, categories, loading, error, refresh, upsertProduct, removeProduct, getProduct],
+    [products, categories, loading, error, refresh, ensureLoaded, upsertProduct, removeProduct, getProduct],
   )
 
   return <CatalogContext.Provider value={value}>{children}</CatalogContext.Provider>

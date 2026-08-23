@@ -48,7 +48,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       if (!force && now - lastFetchRef.current < MIN_REFRESH_MS) return
 
       inFlightRef.current = true
-      setLoading(true)
+      const showSpinner = items.length === 0
+      if (showSpinner) setLoading(true)
       try {
         const res = await notificationsApi.mine()
         setItems(res.items)

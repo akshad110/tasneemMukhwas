@@ -6,10 +6,18 @@ import { refreshScrollLayout, scrollAppToTop, setScrollController } from '../../
 /** Cap wheel delta so scroll-driven home sections stay readable without feeling sluggish site-wide. */
 const MAX_WHEEL_DELTA = 80
 
+function debounce<T extends (...args: never[]) => void>(fn: T, ms: number) {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  return (...args: Parameters<T>) => {
+    if (timer !== undefined) window.clearTimeout(timer)
+    timer = window.setTimeout(() => fn(...args), ms)
+  }
+}
+
 const LENIS_OPTIONS: LenisOptions = {
   autoRaf: true,
   smoothWheel: true,
-  lerp: 0.12,
+  lerp: 0.14,
   wheelMultiplier: 0.92,
   touchMultiplier: 1,
   syncTouch: true,
@@ -49,12 +57,13 @@ function KeepLenisHealthy() {
       if (lenis.isStopped) lenis.start()
       lenis.resize()
     }
+    const refreshDebounced = debounce(refresh, 120)
 
     const onLoad = () => refresh()
     window.addEventListener('load', onLoad)
-    window.addEventListener('resize', refresh)
+    window.addEventListener('resize', refreshDebounced)
 
-    const ro = new ResizeObserver(() => refresh())
+    const ro = new ResizeObserver(() => refreshDebounced())
     ro.observe(document.body)
 
     const onWheel = () => {
@@ -70,7 +79,7 @@ function KeepLenisHealthy() {
     return () => {
       setScrollController(null)
       window.removeEventListener('load', onLoad)
-      window.removeEventListener('resize', refresh)
+      window.removeEventListener('resize', refreshDebounced)
       window.removeEventListener('wheel', onWheel)
       window.removeEventListener('touchmove', onWheel)
       ro.disconnect()

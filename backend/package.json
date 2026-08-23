@@ -10,9 +10,9 @@
     "dev": "node --watch-path=src --watch src/index.js",
     "build": "echo Backend build complete",
     "start": "node src/index.js",
-    "seed": "node src/seed/seed.js",
-    "seed:force": "node src/seed/seed.js --force",
-    "ensure-admin": "node src/scripts/ensureAdmin.js"
+    "seed": "node src/scripts/ensureAdmin.js",
+    "ensure-admin": "node src/scripts/ensureAdmin.js",
+    "clear-commerce": "node src/scripts/clearCommerce.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

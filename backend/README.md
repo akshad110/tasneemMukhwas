@@ -5,14 +5,20 @@
 1. Copy `.env.example` to `.env` (already created) and set:
    - `MONGODB_URI`
    - `JWT_SECRET`
-   - optional admin seed credentials
+   - admin credentials (`ADMIN_EMAIL`, `ADMIN_PASSWORD`, …)
 2. Install & run:
 
 ```bash
 cd backend
 npm install
-npm run seed
+npm run ensure-admin
 npm run dev
+```
+
+Add products via the admin panel. To wipe all commerce data and start fresh:
+
+```bash
+npm run clear-commerce
 ```
 
 API base: `http://localhost:5000/api`

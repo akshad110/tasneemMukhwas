@@ -23,6 +23,8 @@ export default function OrbitShowcase() {
             src={SECTION_TEXTURE}
             alt=""
             aria-hidden
+            loading="lazy"
+            decoding="async"
             className="absolute inset-0 h-full w-full object-cover"
             style={{ opacity: 0.12 }}
           />

@@ -26,6 +26,7 @@ const ACCENT_ON_LIGHT = 'rgba(10,46,34,0.55)'
 const EASE = [0.22, 1, 0.36, 1] as const
 
 const INGREDIENTS_BG = encodeURI('/Mukhwas_ingredients_arranged_on_…_202608182142.jpeg')
+const FOUNDER_PORTRAIT = encodeURI('/ChatGPT Image Aug 21, 2026 at 02_51_39 PM.png')
 const DISPLAY = 'Anton, Impact, sans-serif'
 const SANS = 'Inter, system-ui, sans-serif'
 
@@ -921,9 +922,9 @@ export default function KnowMorePage() {
                   style={{ borderColor: 'rgba(242,244,245,0.28)', backgroundColor: 'rgba(255,255,255,0.06)' }}
                 >
                   <img
-                    src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=600&q=80"
+                    src={FOUNDER_PORTRAIT}
                     alt="A Y Patel — founder portrait"
-                    className="block aspect-[4/5] w-full rounded-xl object-cover"
+                    className="block aspect-[4/5] w-full rounded-xl object-cover object-top"
                     loading="lazy"
                   />
                 </div>

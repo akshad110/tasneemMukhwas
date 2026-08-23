@@ -91,6 +91,31 @@ export const deleteAllMyNotifications = asyncHandler(async (req, res) => {
   })
 })
 
+export const deleteAdminNotification = asyncHandler(async (req, res) => {
+  const adminIds = await User.find({ role: 'admin', isActive: true }).distinct('_id')
+  const note = await Notification.findOneAndDelete({
+    _id: req.params.id,
+    user: { $in: adminIds },
+    channel: 'in_app',
+    type: { $in: ADMIN_IN_APP_TYPES },
+  })
+  if (!note) throw new ApiError(404, 'Notification not found')
+  return sendSuccess(res, { message: 'Notification deleted' })
+})
+
+export const deleteAllAdminNotifications = asyncHandler(async (req, res) => {
+  const adminIds = await User.find({ role: 'admin', isActive: true }).distinct('_id')
+  const result = await Notification.deleteMany({
+    user: { $in: adminIds },
+    channel: 'in_app',
+    type: { $in: ADMIN_IN_APP_TYPES },
+  })
+  return sendSuccess(res, {
+    message: 'All admin notifications deleted',
+    data: { deleted: result.deletedCount ?? 0 },
+  })
+})
+
 const readSchema = z.object({
   ids: z.array(z.string()).optional(),
 })

@@ -33,6 +33,8 @@ export default function ContactSection() {
           src={SECTION_TEXTURE}
           alt=""
           aria-hidden
+          loading="lazy"
+          decoding="async"
           className="absolute inset-0 h-full w-full object-cover"
           style={{
             filter: 'brightness(1.55) saturate(0.35) contrast(0.88)',

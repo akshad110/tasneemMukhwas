@@ -14,7 +14,7 @@ backend/    # Express + MongoDB API
 cd backend
 cp .env.example .env   # set MONGODB_URI + JWT_SECRET
 npm install
-npm run seed:force
+npm run ensure-admin
 npm run dev
 ```
 
@@ -44,7 +44,9 @@ npm run dev
 
 **If you see 502:** open Render → API service → Logs. Common fixes: remove `PORT` env var, set Root Directory to `backend`, redeploy.
 
-After first deploy, from Render shell or locally against Atlas: `npm run seed:force`
+After first deploy, from Render shell or locally against Atlas: `npm run ensure-admin`
+
+To remove demo/seeded commerce data: `npm run clear-commerce`
 
 ### Static Site (UI) — `frontend`
 - **Root Directory:** `frontend`
