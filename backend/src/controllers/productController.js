@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { Product, serializeProductList } from '../models/Product.js'
+import { Product, serializeProductAdminList, serializeProductList } from '../models/Product.js'
 import { ApiError, asyncHandler, sendSuccess } from '../utils/asyncHandler.js'
 
 export const productCreateSchema = z.object({
@@ -85,29 +85,33 @@ export const listProducts = asyncHandler(async (req, res) => {
   const pageNum = Math.max(1, Number(page) || 1)
   const limitNum = Math.min(100, Math.max(1, Number(limit) || 50))
   const skip = (pageNum - 1) * limitNum
-  const fullView = req.query.view === 'full' || (isAdmin && req.query.view !== 'summary')
+  const view = String(req.query.view || '').toLowerCase()
+  const viewMode =
+    view === 'full' ? 'full' : view === 'summary' ? 'summary' : isAdmin ? 'admin' : 'summary'
+
+  const summarySelect =
+    'name category brand description price showDiscountedPrice discountedPrice compareAt outOfStock stock rating reviews variants fill hasImage'
+  const adminSelect = `${summarySelect} showPanelBg lightText isActive sales createdAt updatedAt`
+
+  const listQuery = Product.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limitNum)
+  if (viewMode === 'admin') listQuery.select(adminSelect)
+  else if (viewMode === 'summary') listQuery.select(summarySelect)
 
   const [items, total, categories] = await Promise.all([
-    fullView
-      ? Product.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limitNum).lean()
-      : Product.find(filter)
-          .select(
-            'name category brand price showDiscountedPrice discountedPrice compareAt outOfStock stock rating reviews variants fill hasImage',
-          )
-          .sort({ createdAt: -1 })
-          .skip(skip)
-          .limit(limitNum)
-          .lean(),
+    listQuery.lean(),
     Product.countDocuments(filter),
     Product.distinct('category', { isActive: true }),
   ])
 
-  const serialize = fullView
-    ? (p) => {
-        const doc = new Product(p)
-        return doc.toPublicJSON()
-      }
-    : serializeProductList
+  const serialize =
+    viewMode === 'full'
+      ? (p) => {
+          const doc = new Product(p)
+          return doc.toPublicJSON()
+        }
+      : viewMode === 'admin'
+        ? serializeProductAdminList
+        : serializeProductList
 
   return sendSuccess(res, {
     data: {
@@ -125,7 +129,41 @@ export const getProduct = asyncHandler(async (req, res) => {
   if (!product || (!product.isActive && req.user?.role !== 'admin')) {
     throw new ApiError(404, 'Product not found')
   }
-  return sendSuccess(res, { data: product.toPublicJSON() })
+  const withImages = req.query.images === '1' || req.query.view === 'full'
+  return sendSuccess(res, {
+    data: withImages ? product.toPublicJSON() : serializeProductAdminList(product),
+  })
+})
+
+export const batchProductImages = asyncHandler(async (req, res) => {
+  const ids = (Array.isArray(req.body?.ids) ? req.body.ids : [])
+    .slice(0, 48)
+    .filter(Boolean)
+
+  if (!ids.length) {
+    return sendSuccess(res, { data: {} })
+  }
+
+  const isAdmin = req.user?.role === 'admin'
+  const filter = { _id: { $in: ids } }
+  if (!isAdmin) filter.isActive = true
+
+  const products = await Product.find(filter).select('image images isActive').lean()
+
+  const data = {}
+  for (const product of products) {
+    if (!product.isActive && !isAdmin) continue
+    const id = product._id.toString()
+    const images = (product.images?.length ? product.images : product.image ? [product.image] : []).slice(0, 3)
+    const primary = images[0] || product.image || ''
+    data[id] = {
+      image: primary,
+      images: images.length ? images : primary ? [primary] : [],
+    }
+  }
+
+  res.set('Cache-Control', 'public, max-age=300')
+  return sendSuccess(res, { data, cache: 'public, max-age=300' })
 })
 
 export const getProductImages = asyncHandler(async (req, res) => {
@@ -135,11 +173,13 @@ export const getProductImages = asyncHandler(async (req, res) => {
   }
   const images = (product.images?.length ? product.images : product.image ? [product.image] : []).slice(0, 3)
   const primary = images[0] || product.image || ''
+  res.set('Cache-Control', 'public, max-age=300')
   return sendSuccess(res, {
     data: {
       image: primary,
       images: images.length ? images : primary ? [primary] : [],
     },
+    cache: 'public, max-age=300',
   })
 })
 
@@ -161,7 +201,7 @@ export const createProduct = asyncHandler(async (req, res) => {
   return sendSuccess(res, {
     status: 201,
     message: 'Product created',
-    data: product.toPublicJSON(),
+    data: serializeProductAdminList(product),
   })
 })
 
@@ -183,7 +223,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
 
   return sendSuccess(res, {
     message: 'Product updated',
-    data: product.toPublicJSON(),
+    data: serializeProductAdminList(product),
   })
 })
 

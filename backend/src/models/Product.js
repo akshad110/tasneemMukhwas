@@ -110,12 +110,12 @@ export function serializeProductList(doc) {
   return {
     id: raw._id?.toString?.() ?? String(raw.id),
     name: raw.name,
-    description: '',
+    description: raw.description || '',
     category: raw.category,
     brand: raw.brand,
     image: primaryImage,
     images: primaryImage ? [primaryImage] : [],
-    hasStoredImage: raw.hasImage ?? true,
+    hasStoredImage: Boolean(raw.hasImage ?? images.some((src) => src?.startsWith?.('data:'))),
     price: raw.price,
     showDiscountedPrice: raw.showDiscountedPrice,
     discountedPrice: raw.discountedPrice,
@@ -124,6 +124,23 @@ export function serializeProductList(doc) {
     rating: raw.rating,
     reviews: raw.reviews,
     variants,
+  }
+}
+
+/** Admin catalog list — metadata without embedded base64 blobs. */
+export function serializeProductAdminList(doc) {
+  const raw = doc?.toObject ? doc.toObject() : doc
+  return {
+    ...serializeProductList(raw),
+    fill: raw.fill || '#0a2e22',
+    showPanelBg: raw.showPanelBg !== false,
+    lightText: raw.lightText,
+    stock: raw.stock,
+    compareAt: raw.compareAt,
+    sales: raw.sales,
+    isActive: raw.isActive !== false,
+    createdAt: raw.createdAt,
+    updatedAt: raw.updatedAt,
   }
 }
 

@@ -409,9 +409,9 @@ export default function ShopPage() {
                 </div>
               </div>
 
-              <section className="px-3 py-5 sm:px-5 sm:py-6 lg:px-8">
+              <section className="px-2 py-4 sm:px-5 sm:py-6 lg:px-8">
               {loading && products.length === 0 ? (
-                <ProductCardSkeletonGrid count={8} className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4" />
+                <ProductCardSkeletonGrid count={8} className="grid grid-cols-1 gap-2.5 min-[480px]:grid-cols-2 min-[480px]:gap-3 md:grid-cols-3 xl:grid-cols-4 items-stretch" />
               ) : error ? (
                 <div
                   className="rounded-2xl border px-6 py-16 text-center"
@@ -450,7 +450,7 @@ export default function ShopPage() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4">
+                <div className="grid grid-cols-1 gap-2.5 min-[480px]:grid-cols-2 min-[480px]:gap-3 md:grid-cols-3 xl:grid-cols-4 items-stretch">
                   {sorted.map((product, index) => (
                     <ShopProductCard
                       key={product.id}

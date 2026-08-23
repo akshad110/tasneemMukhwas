@@ -1,5 +1,5 @@
 import { Order } from '../models/Order.js'
-import { Product } from '../models/Product.js'
+import { Product, serializeProductList } from '../models/Product.js'
 import { Customer } from '../models/Customer.js'
 import { Transaction } from '../models/Transaction.js'
 import { asyncHandler, sendSuccess } from '../utils/asyncHandler.js'
@@ -174,27 +174,37 @@ export const getDashboard = asyncHandler(async (req, res) => {
   }))
 
   const soldMap = new Map(topProductsAgg.map((r) => [String(r._id), r]))
-  const allProducts = await Product.find({ isActive: true }).sort({ name: 1 })
 
-  let topProducts = allProducts.map((p) => {
-    const row = soldMap.get(p._id.toString())
-    const json = p.toPublicJSON()
+  const productSelect =
+    'name category brand price fill hasImage sales rating reviews stock outOfStock showDiscountedPrice discountedPrice compareAt variants'
+
+  let catalogRows
+  if (period === 'all' && topProductsAgg.length === 0) {
+    catalogRows = await Product.find({ isActive: true })
+      .select(productSelect)
+      .sort({ sales: -1, name: 1 })
+      .limit(50)
+      .lean()
+  } else {
+    const ids = topProductsAgg.map((r) => r._id).filter(Boolean)
+    catalogRows = ids.length
+      ? await Product.find({ _id: { $in: ids }, isActive: true }).select(productSelect).lean()
+      : []
+  }
+
+  let topProducts = catalogRows.map((p) => {
+    const row = soldMap.get(String(p._id))
+    const json = serializeProductList(p)
     return {
       ...json,
-      sales: row?.revenue ?? 0,
+      sales: row?.revenue ?? p.sales ?? 0,
       reviews: row?.qty ?? 0,
     }
   })
 
-  if (period === 'all' && topProductsAgg.length === 0) {
-    topProducts = allProducts
-      .map((p) => p.toPublicJSON())
-      .sort((a, b) => (b.sales ?? 0) - (a.sales ?? 0) || a.name.localeCompare(b.name))
-  } else {
-    topProducts.sort(
-      (a, b) => (b.reviews ?? 0) - (a.reviews ?? 0) || (b.sales ?? 0) - (a.sales ?? 0) || a.name.localeCompare(b.name),
-    )
-  }
+  topProducts.sort(
+    (a, b) => (b.reviews ?? 0) - (a.reviews ?? 0) || (b.sales ?? 0) - (a.sales ?? 0) || a.name.localeCompare(b.name),
+  )
 
   return sendSuccess(res, {
     data: {

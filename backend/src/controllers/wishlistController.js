@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import mongoose from 'mongoose'
 import { Wishlist } from '../models/Wishlist.js'
-import { Product } from '../models/Product.js'
+import { Product, serializeProductList } from '../models/Product.js'
 import { User } from '../models/User.js'
 import { ApiError, asyncHandler, sendSuccess } from '../utils/asyncHandler.js'
 
@@ -28,12 +28,16 @@ async function wishlistProducts(wishlist) {
     _id: { $in: wishlist.products },
     isActive: true,
   })
+    .select(
+      'name category brand description price showDiscountedPrice discountedPrice compareAt outOfStock stock rating reviews variants fill hasImage',
+    )
+    .lean()
   const byId = new Map(products.map((p) => [p._id.toString(), p]))
 
   return wishlist.products
     .map((id) => byId.get(id.toString()))
     .filter(Boolean)
-    .map((p) => p.toPublicJSON())
+    .map((p) => serializeProductList(p))
 }
 
 /** GET /wishlist — current user's saved products */

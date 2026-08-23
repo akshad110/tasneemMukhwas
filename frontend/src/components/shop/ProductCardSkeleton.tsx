@@ -11,7 +11,7 @@ type ProductCardSkeletonProps = {
 export default function ProductCardSkeleton({ index = 0 }: ProductCardSkeletonProps) {
   return (
     <motion.article
-      className="flex flex-col overflow-hidden rounded-xl border p-2.5 sm:p-3"
+      className="flex min-w-0 flex-col overflow-hidden rounded-[1.05rem] border p-1.5 min-[480px]:rounded-xl min-[480px]:p-2.5 sm:p-3"
       style={{
         backgroundColor: CARD_BG,
         borderColor: BORDER,
@@ -22,19 +22,28 @@ export default function ProductCardSkeleton({ index = 0 }: ProductCardSkeletonPr
       transition={{ duration: 0.3, delay: index * 0.05 }}
       aria-hidden
     >
-      <div className="product-skeleton-block aspect-[3/4] max-h-[168px] w-full rounded-lg sm:max-h-[180px]" />
-      <div className="product-skeleton-block mt-2 h-4 w-[78%] rounded-md" />
-      <div className="product-skeleton-block mt-1.5 h-4 w-[42%] rounded-full" />
-      <div className="product-skeleton-block mt-1.5 h-3 w-[55%] rounded-md" />
-      <div className="product-skeleton-block mt-1.5 h-5 w-[38%] rounded-md" />
-      <div className="product-skeleton-block mt-2.5 h-8 w-full rounded-md" />
+      <div className="product-skeleton-block h-[108px] w-full rounded-md min-[480px]:h-[118px] min-[480px]:rounded-lg sm:h-[128px]" />
+      <div className="product-skeleton-block mt-1.5 h-3 w-[55%] self-center rounded-md min-[480px]:mt-2 min-[480px]:h-4" />
+      <div className="product-skeleton-block mt-1 h-4 w-[85%] self-center rounded-md min-[480px]:mt-1.5" />
+      <div className="mt-1.5 flex flex-col items-center gap-1 min-[480px]:flex-row min-[480px]:justify-between">
+        <div className="product-skeleton-block h-3 w-[40%] rounded-full min-[480px]:h-3.5 min-[480px]:w-[45%]" />
+        <div className="product-skeleton-block h-3 w-[28%] rounded-md" />
+      </div>
+      <div className="mt-1.5 flex flex-col gap-1.5 min-[480px]:flex-row min-[480px]:justify-between">
+        <div className="product-skeleton-block h-5 w-[35%] rounded-md" />
+        <div className="product-skeleton-block h-5 w-[50%] rounded-full min-[480px]:w-[45%]" />
+      </div>
+      <div className="mt-auto grid grid-cols-2 gap-1 pt-1.5 min-[480px]:gap-1.5">
+        <div className="product-skeleton-block min-h-[40px] rounded-full min-[480px]:min-h-[36px]" />
+        <div className="product-skeleton-block min-h-[40px] rounded-full min-[480px]:min-h-[36px]" />
+      </div>
     </motion.article>
   )
 }
 
 export function ProductCardSkeletonGrid({
   count = 4,
-  className = 'grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3',
+  className = 'grid grid-cols-1 gap-2.5 min-[480px]:grid-cols-2 min-[480px]:gap-3 md:grid-cols-3 xl:grid-cols-4 items-stretch',
 }: {
   count?: number
   className?: string

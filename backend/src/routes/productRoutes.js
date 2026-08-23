@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import {
+  batchProductImages,
   createProduct,
   deleteProduct,
   getProduct,
@@ -15,6 +16,7 @@ import { validate } from '../middleware/validate.js'
 const router = Router()
 
 router.get('/', optionalAuth, listProducts)
+router.post('/images/batch', optionalAuth, batchProductImages)
 router.get('/:id/images', optionalAuth, getProductImages)
 router.get('/:id', optionalAuth, getProduct)
 router.post('/', authenticate, requireAdmin, validate(productCreateSchema), createProduct)

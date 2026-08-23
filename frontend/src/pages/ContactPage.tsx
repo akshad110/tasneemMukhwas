@@ -7,7 +7,7 @@ import BackToHomeButton from '../components/shared/BackToHomeButton'
 import SiteFooter from '../components/shared/SiteFooter'
 import FloatingActions from '../components/shared/FloatingActions'
 import { BRAND_BRANCHES } from '../lib/brandBranches'
-import { BRAND_INK, BRAND_CREAM, BRAND_TEXTURE } from '../lib/brand'
+import { BRAND_INK, BRAND_CREAM, BRAND_TEXTURE, BRAND_HERO_BANNER } from '../lib/brand'
 import {
   CONTACT_ADDRESS,
   CONTACT_EMAIL,
@@ -46,30 +46,49 @@ export default function ContactPage() {
     <div className="min-h-svh overflow-x-clip" style={{ backgroundColor: PAGE }}>
       <Navbar />
 
-      {/* Header band */}
-      <section className="relative overflow-hidden border-b border-[rgba(10,46,34,0.1)] py-10 sm:py-16">
-        <img src={BRAND_TEXTURE} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover opacity-25" />
-        <div aria-hidden className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(242,244,245,0.92) 0%, rgba(242,244,245,0.75) 100%)' }} />
-        <div className="relative mx-auto max-w-[1100px] px-4 text-center sm:px-8">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, ease: EASE }}
-            className="m-0 text-[clamp(2rem,8vw,4rem)] uppercase leading-none"
-            style={{ color: INK, fontFamily: 'Anton, Impact, sans-serif' }}
-          >
-            Contact Us
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1, ease: EASE }}
-            className="mx-auto mt-3 max-w-xl text-[0.92rem] leading-relaxed sm:mt-4 sm:text-[1rem]"
-            style={{ color: MUTED }}
-          >
-            Reach Tasneem Mukhwas and our sister brands from one Chhapi address — call, email, or WhatsApp
-            our team for orders, bulk enquiries, and partnerships.
-          </motion.p>
+      {/* Hero */}
+      <section className="relative overflow-hidden border-b border-[rgba(10,46,34,0.1)]">
+        <div className="relative h-[15rem] sm:h-[18rem] lg:h-[20rem]">
+          <img src={BRAND_HERO_BANNER} alt="" className="absolute inset-0 h-full w-full object-cover" aria-hidden />
+          <img src={BRAND_TEXTURE} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover opacity-30" />
+          <div
+            aria-hidden
+            className="absolute inset-0"
+            style={{
+              background:
+                'linear-gradient(180deg, rgba(10,46,34,0.55) 0%, rgba(10,46,34,0.35) 50%, rgba(10,46,34,0.72) 100%)',
+            }}
+          />
+          <div className="absolute inset-0 flex flex-col items-center justify-center px-5 text-center">
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: EASE }}
+              className="m-0 text-[0.68rem] font-semibold tracking-[0.22em] uppercase"
+              style={{ color: 'rgba(242,244,245,0.62)' }}
+            >
+              Chhapi · Gujarat · India
+            </motion.p>
+            <motion.h1
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.08, ease: EASE }}
+              className="mt-3 m-0 max-w-3xl text-[clamp(1.85rem,5vw,3.5rem)] leading-tight uppercase"
+              style={{ color: CREAM, fontFamily: 'Anton, Impact, sans-serif' }}
+            >
+              Contact Us
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.14, ease: EASE }}
+              className="mx-auto mt-3 max-w-xl text-[0.88rem] leading-relaxed sm:mt-4 sm:text-[0.95rem]"
+              style={{ color: 'rgba(242,244,245,0.78)' }}
+            >
+              Reach Tasneem Mukhwas and our sister brands from one Chhapi address — call, email, or WhatsApp
+              our team for orders, bulk enquiries, and partnerships.
+            </motion.p>
+          </div>
         </div>
       </section>
 

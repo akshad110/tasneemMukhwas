@@ -179,6 +179,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       headers,
       body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
       signal: options.signal,
+      cache: 'no-store',
     })
   } catch {
     const err = new ApiRequestError(0, 'Could not reach the server. Wait a moment and try again.')

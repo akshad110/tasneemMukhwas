@@ -12,6 +12,7 @@ import { startNotificationCleanupJob } from './services/notificationCleanup.js'
 const app = express()
 
 app.set('trust proxy', 1)
+app.set('etag', false)
 
 function healthPayload() {
   const missing = missingEnvKeys()

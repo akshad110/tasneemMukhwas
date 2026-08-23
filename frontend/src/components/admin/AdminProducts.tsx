@@ -1,5 +1,11 @@
-import { useMemo, useState, type ChangeEvent } from 'react'
+import { useEffect, useMemo, useState, type ChangeEvent } from 'react'
 import { useCatalog } from '../../context/CatalogContext'
+import { compressProductImage } from '../../lib/compressProductImage'
+import {
+  getCachedProductImages,
+  loadProductImages,
+  subscribeProductImages,
+} from '../../lib/productImageCache'
 import {
   CATEGORIES,
   GRAM_OPTIONS,
@@ -91,17 +97,31 @@ function stockStatus(outOfStock: boolean) {
   return { label: 'In Stock', bg: '#d8f3e0', fg: '#1b7a3e' }
 }
 
-function readFileAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(String(reader.result ?? ''))
-    reader.onerror = () => reject(reader.error)
-    reader.readAsDataURL(file)
-  })
+function AdminProductThumb({ productId, inline }: { productId: string; inline?: string }) {
+  const [src, setSrc] = useState(() => inline || getCachedProductImages(productId)[0] || '/products/shahi-mukhwas.png')
+
+  useEffect(() => {
+    const cached = getCachedProductImages(productId)
+    if (cached[0]) setSrc(cached[0])
+    return subscribeProductImages((id) => {
+      if (id !== productId) return
+      const next = getCachedProductImages(productId)[0]
+      if (next) setSrc(next)
+    })
+  }, [productId])
+
+  return (
+    <img
+      src={src}
+      alt=""
+      className="h-10 w-10 rounded-lg object-contain"
+      style={{ backgroundColor: PRODUCT_CARD_PANEL_BG }}
+    />
+  )
 }
 
 export default function AdminProducts() {
-  const { products, upsertProduct, removeProduct, refresh } = useCatalog()
+  const { products, upsertProduct, removeProduct } = useCatalog()
   const [editing, setEditing] = useState<Editable | null>(null)
   const [creating, setCreating] = useState(false)
   const [q, setQ] = useState('')
@@ -143,7 +163,6 @@ export default function AdminProducts() {
       // New products use a temp id that is not in `products`, so upsert creates via API
       const existing = creating ? undefined : products.find((p) => p.id === row.id)
       await upsertProduct(toShopProduct(row, existing))
-      await refresh()
       setEditing(null)
       setCreating(false)
     } finally {
@@ -160,7 +179,7 @@ export default function AdminProducts() {
     if (!editing) return
     const file = e.target.files?.[0]
     if (!file) return
-    const dataUrl = await readFileAsDataUrl(file)
+    const dataUrl = await compressProductImage(file)
     const images = [...editing.images] as [string, string, string]
     images[index] = dataUrl
     setEditing({ ...editing, images })
@@ -219,17 +238,11 @@ export default function AdminProducts() {
           <tbody>
             {filtered.map((r) => {
               const st = stockStatus(r.outOfStock)
-              const thumb = r.images.find(Boolean) || '/products/shahi-mukhwas.png'
               return (
                 <tr key={r.id} className="border-t" style={{ borderColor: LINE }}>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <img
-                        src={thumb}
-                        alt=""
-                        className="h-10 w-10 rounded-lg object-contain"
-                        style={{ backgroundColor: PRODUCT_CARD_PANEL_BG }}
-                      />
+                      <AdminProductThumb productId={r.id} inline={r.images.find(Boolean) || undefined} />
                       <span className="font-semibold" style={{ color: INK }}>
                         {r.name}
                       </span>
@@ -263,8 +276,20 @@ export default function AdminProducts() {
                       <button
                         type="button"
                         onClick={() => {
-                          setCreating(false)
-                          setEditing({ ...r })
+                          void (async () => {
+                            setCreating(false)
+                            const row = { ...r }
+                            if (!row.images.find(Boolean)) {
+                              try {
+                                const data = await loadProductImages(r.id)
+                                const gallery = (data.images?.length ? data.images : data.image ? [data.image] : []).slice(0, 3)
+                                row.images = [...gallery, '', ''].slice(0, 3) as [string, string, string]
+                              } catch {
+                                /* keep empty slots */
+                              }
+                            }
+                            setEditing(row)
+                          })()
                         }}
                         className="cursor-pointer rounded-lg border-0 px-2.5 py-1.5 text-[0.72rem] font-semibold"
                         style={{ backgroundColor: '#e9f5ee', color: INK }}

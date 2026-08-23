@@ -4,7 +4,13 @@ import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
 import { useWishlist } from '../../context/WishlistContext'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
-import { loadProductImages } from '../../lib/productImageCache'
+import {
+  getCachedProductImages,
+  loadProductImages,
+  productNeedsImageFetch,
+  subscribeProductImages,
+  whenImagesPrefetchDone,
+} from '../../lib/productImageCache'
 import {
   getComparePrice,
   getProductImages,
@@ -19,13 +25,13 @@ const CREAM = '#f2f4f5'
 const GOLD = '#b8860b'
 const CARD = '#ffffff'
 const MUTED = 'rgba(10,46,34,0.58)'
-const OUTER_BORDER = `2.5px solid ${GOLD}`
-const INNER_BORDER = '1px solid rgba(184,134,11,0.28)'
+const OUTER_BORDER = '2px solid rgba(184,134,11,0.38)'
+const INNER_BORDER = '1px solid rgba(184,134,11,0.22)'
 const REVEAL_EASE = [0.22, 1, 0.36, 1] as const
 
 function Stars({ rating }: { rating: number }) {
   return (
-    <span className="inline-flex gap-0.5 text-[0.72rem]" aria-label={`${rating} out of 5 stars`}>
+    <span className="inline-flex gap-0.5 text-[0.62rem] min-[480px]:text-[0.72rem]" aria-label={`${rating} out of 5 stars`}>
       {Array.from({ length: 5 }, (_, i) => (
         <span key={i} style={{ color: i < rating ? GOLD : 'rgba(10,46,34,0.16)' }}>
           ★
@@ -56,12 +62,13 @@ export default function ShopProductCard({
   promoLabel,
   onOpenDetail,
 }: ShopProductCardProps) {
-  const images = useMemo(() => getProductImages(product), [product])
   const variants = useMemo(() => normalizeProductVariants(product.variants), [product.variants])
   const imageHostRef = useRef<HTMLDivElement>(null)
-  const [lazyImages, setLazyImages] = useState<string[]>(() =>
-    images.length ? images : [],
-  )
+  const [lazyImages, setLazyImages] = useState<string[]>(() => {
+    const cached = getCachedProductImages(product.id)
+    if (cached.length) return cached
+    return getProductImages(product)
+  })
   const [imageIndex] = useState(0)
   const { user } = useAuth()
   const { isWishlisted, toggle } = useWishlist()
@@ -77,49 +84,48 @@ export default function ShopProductCard({
   }, [product.id, variants])
 
   useEffect(() => {
-    if (images.length) {
-      setLazyImages(images)
-      return
+    const applyImages = () => {
+      const cached = getCachedProductImages(product.id)
+      if (cached.length) {
+        setLazyImages(cached)
+        return true
+      }
+      const fromProduct = getProductImages(product)
+      if (fromProduct.length) {
+        setLazyImages(fromProduct)
+        return true
+      }
+      return false
     }
-    if (!product.hasStoredImage && !product.image) return
 
-    const host = imageHostRef.current
-    if (!host) return
+    if (applyImages()) return
+
+    const unsub = subscribeProductImages((id) => {
+      if (id === product.id) applyImages()
+    })
 
     let cancelled = false
-    const loadImages = () => {
-      void loadProductImages(product.id)
+    void whenImagesPrefetchDone().then(() => {
+      if (cancelled || applyImages()) return
+      if (!productNeedsImageFetch(product)) return
+      return loadProductImages(product.id)
         .then((data) => {
           if (cancelled) return
-          const next = (data.images?.length ? data.images : data.image ? [data.image] : []).filter(Boolean)
+          const next = (data.images?.length ? data.images : data.image ? [data.image] : []).filter(
+            Boolean,
+          )
           if (next.length) setLazyImages(next)
         })
         .catch(() => {
-          /* keep empty panel */
+          /* prefetch + retry handle transient 503 */
         })
-    }
+    })
 
-    if (typeof IntersectionObserver === 'undefined') {
-      loadImages()
-      return () => {
-        cancelled = true
-      }
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!entries[0]?.isIntersecting) return
-        observer.disconnect()
-        loadImages()
-      },
-      { rootMargin: '240px' },
-    )
-    observer.observe(host)
     return () => {
       cancelled = true
-      observer.disconnect()
+      unsub()
     }
-  }, [images, product.hasStoredImage, product.id, product.image])
+  }, [product])
 
   const activeImage =
     lazyImages[Math.min(imageIndex, Math.max(0, lazyImages.length - 1))] ?? product.image
@@ -175,12 +181,18 @@ export default function ShopProductCard({
     setVariantId(id)
   }
 
+  const handleCardClick = (e: MouseEvent<HTMLElement>) => {
+    if (!onOpenDetail) return
+    if ((e.target as HTMLElement).closest('[data-card-action]')) return
+    onOpenDetail()
+  }
+
   return (
     <motion.article
       layout
       role={onOpenDetail ? 'button' : undefined}
       tabIndex={onOpenDetail ? 0 : undefined}
-      onClick={onOpenDetail}
+      onClick={handleCardClick}
       onKeyDown={
         onOpenDetail
           ? (e) => {
@@ -191,7 +203,7 @@ export default function ShopProductCard({
             }
           : undefined
       }
-      className={`shop-product-card group relative overflow-hidden rounded-[1.55rem] p-[6px] transition ${
+      className={`shop-product-card group relative flex h-full min-w-0 flex-col overflow-hidden rounded-[1.05rem] p-[4px] min-[480px]:rounded-[1.35rem] min-[480px]:p-[5px] transition max-sm:hover:translate-y-0 max-sm:hover:shadow-[0_20px_44px_-28px_rgba(10,46,34,0.22)] ${
         onOpenDetail
           ? 'cursor-pointer hover:-translate-y-1 hover:shadow-[0_28px_48px_-24px_rgba(10,46,34,0.35)]'
           : ''
@@ -211,16 +223,16 @@ export default function ShopProductCard({
     >
       {/* Inner gold ring — double boundary with white gap */}
       <div
-        className="flex h-full flex-col overflow-hidden rounded-[1.28rem] p-[5px]"
+        className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[0.9rem] p-[3px] min-[480px]:rounded-[1.12rem] min-[480px]:p-[4px]"
         style={{
           backgroundColor: CARD,
           border: INNER_BORDER,
         }}
       >
-        <div className="flex h-full flex-col rounded-[1.05rem] p-3 sm:p-3.5">
+        <div className="flex min-h-0 flex-1 flex-col rounded-[0.8rem] p-1.5 min-[480px]:rounded-[0.95rem] min-[480px]:p-2 sm:p-2.5">
         <div
           ref={imageHostRef}
-          className="relative aspect-[4/5] max-h-[190px] overflow-hidden rounded-xl border sm:max-h-[210px]"
+          className="relative h-[108px] shrink-0 overflow-hidden rounded-md border min-[480px]:h-[118px] min-[480px]:rounded-lg sm:h-[128px]"
           style={{
             backgroundColor: panelFill,
             borderColor: 'rgba(184,134,11,0.22)',
@@ -234,7 +246,7 @@ export default function ShopProductCard({
             alt={product.name}
             loading="lazy"
             decoding="async"
-            className="relative z-[1] h-full w-full object-contain object-center px-2 pt-2"
+            className="relative z-[1] h-full w-full object-contain object-center px-1.5 pt-1"
             draggable={false}
             animate={{
               scale: imageHovered && !outOfStock ? 1.05 : 1,
@@ -270,9 +282,10 @@ export default function ShopProductCard({
 
           <button
             type="button"
+            data-card-action
             onClick={(e) => void toggleWishlist(e)}
             disabled={wishBusy}
-            className="absolute top-2 right-2 z-10 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border transition hover:scale-105 disabled:opacity-70"
+            className="absolute top-1.5 right-1.5 z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border transition hover:scale-105 disabled:opacity-70 min-[480px]:h-7 min-[480px]:w-7 touch-manipulation"
             style={{
               backgroundColor: liked ? GOLD : 'rgba(255,255,255,0.92)',
               color: INK,
@@ -287,23 +300,24 @@ export default function ShopProductCard({
           </button>
         </div>
 
+        <div className="mt-1 flex flex-col min-[480px]:mt-1.5">
         <p
-          className="mt-3 mb-0 text-center text-[0.72rem] tracking-[0.08em]"
+          className="mb-0 text-center text-[0.58rem] tracking-[0.05em] min-[480px]:text-[0.62rem]"
           style={{ color: MUTED, fontFamily: '"Playfair Display", Georgia, serif' }}
         >
           {product.brand || 'Tasneem Mukhwas'}
         </p>
 
         <h3
-          className="mt-1.5 m-0 line-clamp-2 text-center text-[0.98rem] font-semibold leading-snug tracking-[0.01em] sm:text-[1.05rem]"
+          className="mt-0.5 m-0 line-clamp-2 text-center text-[0.74rem] font-semibold leading-snug tracking-[0.01em] min-[480px]:min-h-[2em] min-[480px]:text-[0.82rem] sm:text-[0.88rem]"
           style={{ color: INK, fontFamily: '"Playfair Display", Georgia, serif' }}
         >
           {product.name}
         </h3>
 
-        <div className="mt-2 flex justify-center">
+        <div className="mt-1 flex flex-col items-center gap-1 min-[480px]:flex-row min-[480px]:items-center min-[480px]:justify-between min-[480px]:gap-2">
           <span
-            className="inline-flex rounded-full border px-2.5 py-0.5 text-[0.55rem] font-semibold tracking-[0.12em] uppercase"
+            className="inline-flex max-w-full truncate rounded-full border px-1.5 py-0.5 text-[0.44rem] font-semibold tracking-[0.07em] uppercase min-[480px]:max-w-[58%] min-[480px]:px-2 min-[480px]:text-[0.48rem]"
             style={{
               color: INK,
               borderColor: 'rgba(184,134,11,0.55)',
@@ -313,58 +327,67 @@ export default function ShopProductCard({
           >
             {product.category}
           </span>
-        </div>
-
-        <div className="mt-2 flex items-center justify-center gap-1.5">
-          <Stars rating={product.rating} />
-          <span className="text-[0.65rem]" style={{ color: MUTED }}>
-            ({product.reviews})
-          </span>
-        </div>
-
-        <div className="mt-2 flex items-baseline justify-center gap-2">
-          <span className="text-[1.05rem] font-bold" style={{ color: INK, fontFamily: 'Inter, sans-serif' }}>
-            {formatRupee(sellPrice)}
-          </span>
-          {comparePrice != null && comparePrice > sellPrice && (
-            <span className="text-[0.78rem] line-through" style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}>
-              {formatRupee(comparePrice)}
+          <div className="flex shrink-0 items-center gap-1">
+            <Stars rating={product.rating} />
+            <span className="text-[0.52rem] min-[480px]:text-[0.56rem]" style={{ color: MUTED }}>
+              ({product.reviews})
             </span>
+          </div>
+        </div>
+
+        <div className="mt-1 flex min-h-0 flex-col gap-1.5 min-[480px]:h-[44px] min-[480px]:flex-row min-[480px]:items-start min-[480px]:justify-between min-[480px]:gap-2 min-[480px]:overflow-hidden">
+          <div className="flex shrink-0 flex-row items-baseline gap-1.5 min-[480px]:flex-col min-[480px]:items-start min-[480px]:leading-none">
+            <span className="text-[0.82rem] font-bold min-[480px]:text-[0.9rem]" style={{ color: INK, fontFamily: 'Inter, sans-serif' }}>
+              {formatRupee(sellPrice)}
+            </span>
+            {comparePrice != null && comparePrice > sellPrice && (
+              <span className="text-[0.58rem] line-through min-[480px]:mt-0.5 min-[480px]:text-[0.62rem]" style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}>
+                {formatRupee(comparePrice)}
+              </span>
+            )}
+          </div>
+
+          {variants.length > 0 ? (
+            <div
+              className="flex min-w-0 flex-1 flex-wrap content-start justify-center gap-1 min-[480px]:justify-end min-[480px]:overflow-hidden"
+              data-card-action
+              onClick={stop}
+            >
+              {variants.map((variant) => {
+                const selected = variant.id === variantId
+                return (
+                  <button
+                    key={variant.id}
+                    type="button"
+                    onClick={(e) => selectVariant(e, variant.id)}
+                    className="cursor-pointer rounded-full border px-1.5 py-0.5 text-[0.46rem] font-semibold tracking-wide uppercase transition min-[480px]:text-[0.5rem] touch-manipulation"
+                    style={{
+                      borderColor: selected ? GOLD : 'rgba(184,134,11,0.45)',
+                      backgroundColor: selected ? 'rgba(184,134,11,0.18)' : 'transparent',
+                      color: selected ? INK : MUTED,
+                      fontFamily: 'Inter, sans-serif',
+                    }}
+                    aria-pressed={selected}
+                  >
+                    {variant.label}
+                  </button>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="flex-1" aria-hidden />
           )}
         </div>
 
-        {variants.length > 0 && (
-          <div className="mt-3 flex flex-wrap justify-center gap-1.5" onClick={stop}>
-            {variants.map((variant) => {
-              const selected = variant.id === variantId
-              return (
-                <button
-                  key={variant.id}
-                  type="button"
-                  onClick={(e) => selectVariant(e, variant.id)}
-                  className="cursor-pointer rounded-full border px-2.5 py-1 text-[0.62rem] font-semibold tracking-wide uppercase transition"
-                  style={{
-                    borderColor: selected ? GOLD : 'rgba(184,134,11,0.45)',
-                    backgroundColor: selected ? 'rgba(184,134,11,0.18)' : 'transparent',
-                    color: selected ? INK : MUTED,
-                    fontFamily: 'Inter, sans-serif',
-                  }}
-                  aria-pressed={selected}
-                >
-                  {variant.label}
-                </button>
-              )
-            })}
-          </div>
-        )}
+        </div>
 
-        <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className="mt-auto shrink-0 grid grid-cols-2 gap-1 pt-1 min-[480px]:gap-1.5 min-[480px]:pt-1.5" data-card-action onClick={stop}>
           {outOfStock ? (
             <button
               type="button"
               disabled
               onClick={stop}
-              className="col-span-2 cursor-not-allowed rounded-full border-0 py-2.5 text-[0.62rem] font-semibold tracking-[0.08em] uppercase opacity-70"
+              className="col-span-2 min-h-[40px] cursor-not-allowed rounded-full border-0 py-2 text-[0.52rem] font-semibold tracking-[0.06em] uppercase opacity-70 min-[480px]:min-h-0 min-[480px]:text-[0.58rem] touch-manipulation"
               style={{ backgroundColor: 'rgba(10,46,34,0.1)', color: INK, fontFamily: 'Inter, sans-serif' }}
             >
               Out of stock
@@ -373,21 +396,21 @@ export default function ShopProductCard({
             <>
               {cartQty > 0 ? (
                 <div
-                  className="flex items-center justify-between rounded-full border px-2 py-1.5"
+                  className="flex min-h-[40px] items-center justify-between rounded-full border px-1.5 py-1 min-[480px]:min-h-0 touch-manipulation"
                   style={{ borderColor: 'rgba(184,134,11,0.55)', backgroundColor: 'rgba(184,134,11,0.08)' }}
                   onClick={stop}
                 >
                   <button
                     type="button"
                     onClick={(e) => changeQty(e, -1)}
-                    className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-0 text-[1rem] leading-none"
+                    className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-0 text-[0.9rem] leading-none"
                     style={{ color: INK }}
                     aria-label="Decrease quantity"
                   >
                     −
                   </button>
                   <span
-                    className="min-w-[1.25rem] text-center text-[0.78rem] font-bold tabular-nums"
+                    className="min-w-[1.1rem] text-center text-[0.72rem] font-bold tabular-nums"
                     style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
                     aria-live="polite"
                   >
@@ -396,7 +419,7 @@ export default function ShopProductCard({
                   <button
                     type="button"
                     onClick={(e) => changeQty(e, 1)}
-                    className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-0 text-[1rem] leading-none"
+                    className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-0 text-[0.9rem] leading-none"
                     style={{ color: INK }}
                     aria-label="Increase quantity"
                   >
@@ -407,7 +430,7 @@ export default function ShopProductCard({
                 <button
                   type="button"
                   onClick={addToCart}
-                  className="cursor-pointer rounded-full border-0 py-2.5 text-[0.62rem] font-semibold tracking-[0.08em] uppercase transition hover:brightness-105 sm:text-[0.65rem]"
+                  className="min-h-[40px] cursor-pointer rounded-full border-0 py-2 text-[0.52rem] font-semibold tracking-[0.06em] uppercase transition hover:brightness-105 min-[480px]:min-h-0 min-[480px]:text-[0.58rem] sm:text-[0.6rem] touch-manipulation"
                   style={{
                     background: `linear-gradient(180deg, #d4b56a 0%, ${GOLD} 55%, #9a6f08 100%)`,
                     color: INK,
@@ -420,7 +443,7 @@ export default function ShopProductCard({
               <button
                 type="button"
                 onClick={payNow}
-                className="cursor-pointer rounded-full border py-2.5 text-[0.62rem] font-semibold tracking-[0.08em] uppercase transition hover:brightness-110 sm:text-[0.65rem]"
+                className="min-h-[40px] cursor-pointer rounded-full border py-2 text-[0.52rem] font-semibold tracking-[0.06em] uppercase transition hover:brightness-110 min-[480px]:min-h-0 min-[480px]:text-[0.58rem] sm:text-[0.6rem] touch-manipulation"
                 style={{
                   borderColor: GOLD,
                   color: GOLD,

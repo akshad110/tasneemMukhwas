@@ -9,6 +9,9 @@ export const BRAND_CREAM = '#f2f4f5'
 export const BRAND_SURFACE = '#f8f9fa'
 export const BRAND_TEXTURE = '/image.png_2K_202608092240.jpeg'
 
+/** Hero banner — mukhwas ingredients flat-lay (Wholesale, Contact, etc.). */
+export const BRAND_HERO_BANNER = encodeURI('/Mukhwas_ingredients_arranged_on_…_202608182142.jpeg')
+
 /**
  * Shiny gold gradient — kept dark enough for legibility on light surfaces (#f2f4f5).
  * Highlight peaks at mid-gold, never near-white (which vanishes on the navbar).

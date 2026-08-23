@@ -13,7 +13,8 @@ export function asyncHandler(fn) {
   }
 }
 
-export function sendSuccess(res, { status = 200, message = 'OK', data = null } = {}) {
+export function sendSuccess(res, { status = 200, message = 'OK', data = null, cache = 'no-store' } = {}) {
+  if (cache) res.set('Cache-Control', cache)
   return res.status(status).json({
     success: true,
     message,

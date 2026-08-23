@@ -19,7 +19,7 @@ import {
   WHOLESALE_STEPS,
   WHOLESALE_TRADE,
 } from '../lib/wholesaleContent'
-import { BRAND_TEXTURE, BRAND_CREAM, BRAND_INK } from '../lib/brand'
+import { BRAND_TEXTURE, BRAND_CREAM, BRAND_INK, BRAND_HERO_BANNER } from '../lib/brand'
 
 const INK = BRAND_INK
 const CREAM = BRAND_CREAM
@@ -27,7 +27,6 @@ const GOLD = '#b8860b'
 const PAGE = '#f2f4f5'
 const MUTED = 'rgba(10,46,34,0.62)'
 const EASE = [0.22, 1, 0.36, 1] as const
-const BANNER = encodeURI('/Mukhwas_ingredients_arranged_on_…_202608182142.jpeg')
 
 export default function WholesalePage() {
   useEffect(() => {
@@ -45,7 +44,7 @@ export default function WholesalePage() {
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-[rgba(10,46,34,0.1)]">
         <div className="relative h-[14rem] sm:h-[17rem] lg:h-[19rem]">
-          <img src={BANNER} alt="" className="absolute inset-0 h-full w-full object-cover" aria-hidden />
+          <img src={BRAND_HERO_BANNER} alt="" className="absolute inset-0 h-full w-full object-cover" aria-hidden />
           <img src={BRAND_TEXTURE} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover opacity-30" />
           <div
             aria-hidden

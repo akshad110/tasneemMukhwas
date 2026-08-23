@@ -137,6 +137,12 @@ export const productsApi = {
   get: (id: string) => apiRequest<ShopProduct>(`/products/${id}`, { auth: false }),
   getImages: (id: string) =>
     apiRequest<{ image: string; images: string[] }>(`/products/${id}/images`, { auth: false }),
+  batchImages: (ids: string[]) =>
+    apiRequest<Record<string, { image: string; images: string[] }>>('/products/images/batch', {
+      method: 'POST',
+      body: { ids },
+      auth: false,
+    }),
   create: (body: Partial<ShopProduct> & { name: string; category: string; price: number }) =>
     apiRequest<ShopProduct>('/products', { method: 'POST', body }),
   update: (id: string, body: Partial<ShopProduct>) =>

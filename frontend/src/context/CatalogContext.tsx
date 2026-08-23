@@ -17,7 +17,8 @@ import {
   isWishlistPath,
 } from '../lib/appRoutes'
 import { productsApi } from '../lib/services'
-import type { ShopProduct } from '../lib/shopCatalog'
+import { prefetchProductImages, primeProductImages } from '../lib/productImageCache'
+import { getProductImages, type ShopProduct } from '../lib/shopCatalog'
 
 type RefreshOptions = {
   /** Keep showing current products while reloading */
@@ -44,8 +45,8 @@ const CART_STORAGE_KEY = 'tm-cart-v1'
 const CACHE_KEY = 'tm-catalog-v1'
 const CACHE_TTL_MS = 10 * 60_000
 
-function catalogViewForPath(pathname = window.location.pathname): 'summary' | 'full' {
-  return isAdminPath(pathname) ? 'full' : 'summary'
+function catalogViewForPath(pathname = window.location.pathname): 'summary' | 'admin' {
+  return isAdminPath(pathname) ? 'admin' : 'summary'
 }
 
 function loadDelayMs(attempt: number) {
@@ -120,9 +121,10 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const hasLoadedRef = useRef(Boolean(cached?.items.length))
-  const catalogViewRef = useRef<'summary' | 'full'>(catalogViewForPath())
+  const catalogViewRef = useRef<'summary' | 'admin'>(catalogViewForPath())
   const loadGenRef = useRef(0)
   const loadPromiseRef = useRef<Promise<void> | null>(null)
+  const imagePrefetchKeyRef = useRef('')
 
   const refresh = useCallback(async (options?: RefreshOptions) => {
     const gen = ++loadGenRef.current
@@ -195,6 +197,18 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   }, [refresh, products.length])
 
   useEffect(() => {
+    if (loading || !products.length) return
+    const view = catalogViewForPath()
+    if (view !== 'summary' && view !== 'admin') return
+    const key = `${view}:${products.map((p) => p.id).join('|')}`
+    if (imagePrefetchKeyRef.current === key) return
+    imagePrefetchKeyRef.current = key
+    void prefetchProductImages(products).catch(() => {
+      imagePrefetchKeyRef.current = ''
+    })
+  }, [products, loading])
+
+  useEffect(() => {
     const maybeLoad = () => {
       if (shouldLoadCatalog()) {
         void ensureLoaded()
@@ -237,22 +251,32 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   const upsertProduct = useCallback(async (product: ShopProduct) => {
     await ensureLoaded()
     const exists = Boolean(product.id) && products.some((p) => p.id === product.id)
+    const submittedImages = getProductImages(product)
     const saved = exists
       ? await productsApi.update(product.id, product)
       : await productsApi.create(
           (({ id: _id, ...rest }) => rest)(product) as Parameters<typeof productsApi.create>[0],
         )
+    const merged: ShopProduct = {
+      ...saved,
+      image: submittedImages[0] || saved.image,
+      images: submittedImages.length ? submittedImages : saved.images,
+      hasStoredImage: submittedImages.length > 0 || saved.hasStoredImage,
+    }
+    if (submittedImages.length) {
+      primeProductImages(saved.id, { image: submittedImages[0], images: submittedImages })
+    }
     setProducts((prev) => {
-      const i = prev.findIndex((p) => p.id === saved.id)
+      const i = prev.findIndex((p) => p.id === merged.id)
       if (i >= 0) {
         const next = [...prev]
-        next[i] = saved
+        next[i] = merged
         return next
       }
-      return [saved, ...prev]
+      return [merged, ...prev]
     })
     hasLoadedRef.current = true
-    return saved
+    return merged
   }, [ensureLoaded, products])
 
   const removeProduct = useCallback(async (id: string) => {

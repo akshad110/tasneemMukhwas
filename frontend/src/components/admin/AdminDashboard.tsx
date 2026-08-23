@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
+import {
+  getCachedProductImages,
+  prefetchProductImages,
+  resolveProductThumb,
+  subscribeProductImages,
+} from '../../lib/productImageCache'
 import { dashboardApi, type DashboardData, type DashboardPeriod } from '../../lib/services'
+import type { ShopProduct } from '../../lib/shopCatalog'
 
 const MONTH_NAMES = [
   'January',
@@ -418,6 +425,28 @@ function DashboardPeriodPicker({
   )
 }
 
+function DashboardProductThumb({ product }: { product: ShopProduct }) {
+  const [src, setSrc] = useState(() => resolveProductThumb(product))
+
+  useEffect(() => {
+    setSrc(resolveProductThumb(product))
+    return subscribeProductImages((id) => {
+      if (id !== product.id) return
+      const next = getCachedProductImages(product.id)[0]
+      if (next) setSrc(next)
+    })
+  }, [product])
+
+  return (
+    <img
+      src={src}
+      alt=""
+      className="h-10 w-10 shrink-0 rounded-lg object-contain"
+      style={{ backgroundColor: '#f3f7f4' }}
+    />
+  )
+}
+
 function ProductSalesPanel({ products }: { products: DashboardData['topProducts'] }) {
   const [sortOrder, setSortOrder] = useState<'top' | 'least'>('top')
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -525,12 +554,7 @@ function ProductSalesPanel({ products }: { products: DashboardData['topProducts'
           <ul className="m-0 list-none space-y-3 p-0 pr-0.5">
             {sorted.map((p) => (
               <li key={p.id} className="flex items-center gap-3">
-                <img
-                  src={p.image}
-                  alt=""
-                  className="h-10 w-10 shrink-0 rounded-lg object-contain"
-                  style={{ backgroundColor: '#f3f7f4' }}
-                />
+                <DashboardProductThumb product={p} />
                 <div className="min-w-0 flex-1">
                   <p className="m-0 truncate text-[0.85rem] font-semibold" style={{ color: INK }}>
                     {p.name}
@@ -618,6 +642,11 @@ export default function AdminDashboard() {
       cancelled = true
     }
   }, [period])
+
+  useEffect(() => {
+    if (!data?.topProducts?.length) return
+    void prefetchProductImages(data.topProducts)
+  }, [data?.topProducts])
 
   if (error && !data) {
     return (

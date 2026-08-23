@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
 import { useWishlist } from '../../context/WishlistContext'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
-import { productsApi } from '../../lib/services'
+import { loadProductImages } from '../../lib/productImageCache'
 import {
   getComparePrice,
   getProductImages,
@@ -39,9 +39,12 @@ type ProductDetailModalProps = {
 }
 
 export default function ProductDetailModal({ product, promoLabel, onClose }: ProductDetailModalProps) {
-  const [detail, setDetail] = useState<ShopProduct | null>(product)
-  const activeProduct = detail ?? product
-  const images = useMemo(() => (activeProduct ? getProductImages(activeProduct) : []), [activeProduct])
+  const [galleryImages, setGalleryImages] = useState<string[]>([])
+  const activeProduct = product
+  const images = useMemo(() => {
+    if (galleryImages.length) return galleryImages
+    return activeProduct ? getProductImages(activeProduct) : []
+  }, [activeProduct, galleryImages])
   const variants = useMemo(
     () => (activeProduct ? normalizeProductVariants(activeProduct.variants) : []),
     [activeProduct],
@@ -52,32 +55,39 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
   const { isWishlisted, toggle } = useWishlist()
   const [wishBusy, setWishBusy] = useState(false)
   const [variantId, setVariantId] = useState('100g')
+  const [imagesLoading, setImagesLoading] = useState(false)
 
   useEffect(() => {
-    if (!product) {
-      setDetail(null)
+    if (!product?.id) {
+      setGalleryImages([])
+      setImagesLoading(false)
       return
     }
-    setDetail(product)
+
+    const initial = getProductImages(product)
+    setGalleryImages(initial)
+    setImageIndex(0)
+    setVariantId(normalizeProductVariants(product.variants)[0]?.id ?? '100g')
+    setImagesLoading(!initial.length && Boolean(product.hasStoredImage || product.image))
+
     let cancelled = false
-    void productsApi
-      .get(product.id)
-      .then((full) => {
-        if (!cancelled) setDetail(full)
+    void loadProductImages(product.id)
+      .then((data) => {
+        if (cancelled) return
+        const next = (data.images?.length ? data.images : data.image ? [data.image] : []).filter(Boolean)
+        if (next.length) setGalleryImages(next)
       })
       .catch(() => {
-        /* keep summary product */
+        /* keep summary / empty state */
       })
+      .finally(() => {
+        if (!cancelled) setImagesLoading(false)
+      })
+
     return () => {
       cancelled = true
     }
-  }, [product])
-
-  useEffect(() => {
-    if (!activeProduct) return
-    setImageIndex(0)
-    setVariantId(variants[0]?.id ?? '100g')
-  }, [activeProduct, variants])
+  }, [product?.id])
 
   useEffect(() => {
     if (!product) {
@@ -105,9 +115,7 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
   const total = sellPrice * displayQty
   const outOfStock = Boolean(activeProduct?.outOfStock)
   const liked = activeProduct ? isWishlisted(activeProduct.id) : false
-  const activeImage =
-    activeProduct &&
-    (images[Math.min(imageIndex, Math.max(0, images.length - 1))] ?? activeProduct.image)
+  const activeImage = images[Math.min(imageIndex, Math.max(0, images.length - 1))] ?? ''
   const panelFill = activeProduct ? getProductPanelFill(activeProduct) : CREAM
 
   const requireAuth = () => {
@@ -150,7 +158,7 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
 
   return (
     <AnimatePresence>
-      {product && activeProduct && activeImage && (
+      {product && activeProduct && (
         <motion.div
           className="fixed inset-0 z-[80] flex items-end justify-center p-0 sm:items-center sm:p-4"
           initial={{ opacity: 0 }}
@@ -197,6 +205,7 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
                 style={{ backgroundColor: panelFill }}
               >
                 <div className="relative aspect-square overflow-hidden rounded-2xl">
+                  {activeImage ? (
                   <motion.img
                     key={activeImage}
                     src={activeImage}
@@ -206,6 +215,14 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
                     animate={{ opacity: outOfStock ? 0.5 : 1, scale: 1 }}
                     transition={{ duration: 0.28 }}
                   />
+                  ) : (
+                    <div
+                      className={`h-full w-full rounded-2xl ${imagesLoading ? 'animate-pulse' : ''}`}
+                      style={{ backgroundColor: 'rgba(10,46,34,0.06)' }}
+                      aria-hidden={!imagesLoading}
+                      aria-label={imagesLoading ? 'Loading product image' : undefined}
+                    />
+                  )}
                   {promoLabel && !outOfStock && (
                     <span
                       className="absolute top-3 left-3 rounded-full px-3 py-1 text-[0.65rem] font-bold tracking-wide uppercase"
