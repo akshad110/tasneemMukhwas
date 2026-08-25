@@ -1,5 +1,5 @@
 import { useLenis } from 'lenis/react'
-import { useEffect, useState, type MouseEvent } from 'react'
+import { useEffect, useState, type MouseEvent, type ReactNode } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
 import { useCatalog } from '../../context/CatalogContext'
@@ -28,26 +28,26 @@ import {
   type SectionId,
 } from '../../lib/sectionNav'
 import BrandLogo from '../shared/BrandLogo'
-import BrandNameLockup from '../shared/BrandNameLockup'
 
-const NAV_LINKS = [
+const LEFT_NAV_LINKS = [
   { label: 'Home', id: 'home' as const },
-  { label: 'About us', id: 'about' as const },
-  { label: 'Shop', id: 'products' as const },
-  { label: 'Wholesale', id: 'wholesale' as const },
-  { label: 'Contact us', id: 'contact' as const },
-]
+  { label: 'About Us', id: 'about' as const },
+  { label: 'Dealership', id: 'wholesale' as const },
+] as const
 
-const PEACH = '#f2f4f5'
+const RIGHT_NAV_LINKS = [
+  { label: 'Shop', id: 'products' as const },
+  { label: 'Contact Us', id: 'contact' as const },
+] as const
+
+const NAV_LINKS = [...LEFT_NAV_LINKS, ...RIGHT_NAV_LINKS]
+
+type NavLinkItem = (typeof NAV_LINKS)[number]
+
 const INK = '#0a2e22'
 const GOLD = '#b8860b'
-const NAV_LINK_DARK = 'rgba(242,244,245,0.68)'
-const NAV_LINK_LIGHT = 'rgba(10,46,34,0.62)'
-const NAV_LINK_HOVER_DARK = '#ffffff'
-const NAV_LINK_HOVER_DARK_BORDER = '#FFD966'
-const NAV_LINK_HOVER_LIGHT = '#b8860b'
+const NAV_LINK = 'rgba(10,46,34,0.62)'
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
-/** Hysteresis avoids flicker when navbar height change shifts scroll position near the threshold */
 const SCROLL_COMPACT_AT = 96
 const SCROLL_EXPAND_AT = 8
 
@@ -55,7 +55,6 @@ function shouldShowMobileBottomNav(pathname: string) {
   return !isAdminPath(pathname) && !isAuthPath(pathname) && !isCheckoutPath(pathname)
 }
 
-/** Bottom tab highlight follows route only — home stays active for the full home scroll experience. */
 function resolveMobileBottomNavActive(pathname: string): SectionId | null {
   if (isKnowMorePath(pathname)) return 'about'
   if (isShopPath(pathname)) return 'products'
@@ -112,7 +111,6 @@ function useActiveSection() {
 
     if (pathname === '/' || isHomeScrollPath(pathname)) {
       const section = getActiveSectionId()
-      // Home scroll sections — About us nav highlights only on /know-more, not #about
       if (section === 'contact' || section === 'about') return 'home'
       return section
     }
@@ -162,12 +160,10 @@ function NavCountBadge({
   count,
   label,
   variant = 'cart',
-  ringColor,
 }: {
   count: number
   label: string
   variant?: 'cart' | 'wishlist'
-  ringColor: string
 }) {
   if (count <= 0) return null
 
@@ -179,7 +175,7 @@ function NavCountBadge({
       style={{
         backgroundColor: variant === 'wishlist' ? '#b91c1c' : INK,
         color: '#ffffff',
-        boxShadow: `0 0 0 2px ${ringColor}`,
+        boxShadow: '0 0 0 2px #ffffff',
       }}
       aria-label={`${label}: ${display}`}
     >
@@ -189,39 +185,38 @@ function NavCountBadge({
 }
 
 function NavLinks({
+  links,
   activeId,
   stacked,
   onNavigate,
   onPrefetchShop,
-  onDark = false,
 }: {
+  links: readonly NavLinkItem[]
   activeId: SectionId | null
   stacked?: boolean
   onNavigate?: (id: SectionId) => void
   onPrefetchShop?: () => void
-  onDark?: boolean
 }) {
   return (
     <ul
       className={
         stacked
           ? 'flex flex-col items-center gap-1'
-          : 'flex flex-wrap items-center justify-center gap-x-6 gap-y-1.5 lg:gap-x-9'
+          : 'flex flex-wrap items-center gap-x-5 gap-y-1 xl:gap-x-8'
       }
     >
-      {NAV_LINKS.map((link) => {
+      {links.map((link) => {
         const isActive = activeId === link.id
         const href =
           link.id === 'about'
             ? APP_ROUTES.knowMore
             : link.id === 'products'
               ? APP_ROUTES.shop
-              : pathForSection(link.id)
-
-        const baseColor = onDark ? NAV_LINK_DARK : NAV_LINK_LIGHT
-        const activeColor = onDark ? NAV_LINK_HOVER_DARK : INK
-        const hoverColor = onDark ? NAV_LINK_HOVER_DARK : NAV_LINK_HOVER_LIGHT
-        const hoverBorder = onDark ? NAV_LINK_HOVER_DARK_BORDER : NAV_LINK_HOVER_LIGHT
+              : link.id === 'wholesale'
+                ? APP_ROUTES.dealership
+                : link.id === 'contact'
+                  ? APP_ROUTES.contact
+                  : pathForSection(link.id)
 
         return (
           <li key={link.label}>
@@ -240,14 +235,14 @@ function NavLinks({
               onTouchStart={() => {
                 if (link.id === 'products') onPrefetchShop?.()
               }}
-              className="nav-link group cursor-pointer border-b-2 pb-0.5 text-[0.82rem] font-medium tracking-wide no-underline transition-[color,border-color,font-weight] duration-200"
+              className="nav-link group cursor-pointer border-b-2 pb-0.5 text-[0.72rem] font-semibold tracking-[0.08em] uppercase no-underline transition-[color,border-color,font-weight] duration-200 xl:text-[0.78rem]"
               style={{
-                color: isActive ? activeColor : baseColor,
+                color: isActive ? INK : NAV_LINK,
                 borderColor: isActive ? GOLD : 'transparent',
                 fontFamily: 'Inter, sans-serif',
-                fontWeight: isActive ? 600 : 500,
-                ['--nav-link-hover-color' as string]: hoverColor,
-                ['--nav-link-hover-border' as string]: hoverBorder,
+                fontWeight: isActive ? 700 : 600,
+                ['--nav-link-hover-color' as string]: GOLD,
+                ['--nav-link-hover-border' as string]: GOLD,
               }}
               aria-current={isActive ? 'page' : undefined}
             >
@@ -262,11 +257,9 @@ function NavLinks({
 
 function ProfileAvatarMenu({
   stacked = false,
-  onDark = false,
   onAction,
 }: {
   stacked?: boolean
-  onDark?: boolean
   onAction?: () => void
 }) {
   const { user, logout } = useAuth()
@@ -300,11 +293,7 @@ function ProfileAvatarMenu({
           type="button"
           onClick={goProfile}
           className="flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-full text-[0.9rem] font-semibold"
-          style={{
-            backgroundColor: onDark ? GOLD : INK,
-            color: onDark ? INK : PEACH,
-            fontFamily: 'Inter, sans-serif',
-          }}
+          style={{ backgroundColor: INK, color: '#f2f4f5', fontFamily: 'Inter, sans-serif' }}
         >
           <span
             className="flex h-7 w-7 items-center justify-center rounded-full text-[0.8rem] font-bold"
@@ -319,9 +308,9 @@ function ProfileAvatarMenu({
           onClick={goOrders}
           className="flex h-11 w-full cursor-pointer items-center justify-center rounded-full border text-[0.9rem] font-semibold"
           style={{
-            borderColor: onDark ? 'rgba(242,244,245,0.35)' : 'rgba(10,46,34,0.2)',
+            borderColor: 'rgba(10,46,34,0.2)',
             backgroundColor: 'transparent',
-            color: onDark ? PEACH : INK,
+            color: INK,
             fontFamily: 'Inter, sans-serif',
           }}
         >
@@ -332,9 +321,9 @@ function ProfileAvatarMenu({
           onClick={goSettings}
           className="flex h-11 w-full cursor-pointer items-center justify-center rounded-full border text-[0.9rem] font-semibold"
           style={{
-            borderColor: onDark ? 'rgba(242,244,245,0.35)' : 'rgba(10,46,34,0.2)',
+            borderColor: 'rgba(10,46,34,0.2)',
             backgroundColor: 'transparent',
-            color: onDark ? PEACH : INK,
+            color: INK,
             fontFamily: 'Inter, sans-serif',
           }}
         >
@@ -369,9 +358,8 @@ function ProfileAvatarMenu({
         {initial}
       </button>
       <div
-        className="invisible absolute right-0 top-[calc(100%+6px)] z-50 min-w-[168px] translate-y-1 rounded-xl border py-1.5 opacity-0 shadow-lg transition duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100"
+        className="invisible absolute right-0 top-[calc(100%+6px)] z-50 min-w-[168px] translate-y-1 rounded-xl border bg-white py-1.5 opacity-0 shadow-lg transition duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100"
         style={{
-          backgroundColor: PEACH,
           borderColor: 'rgba(10,46,34,0.12)',
           boxShadow: '0 16px 36px -18px rgba(10,46,34,0.45)',
         }}
@@ -395,11 +383,32 @@ function ProfileAvatarMenu({
   )
 }
 
+function NavIconButton({
+  label,
+  onClick,
+  children,
+  className = '',
+}: {
+  label: string
+  onClick: () => void
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md text-[#0a2e22] transition-colors hover:bg-[#0a2e22]/8 ${className}`}
+      aria-label={label}
+    >
+      {children}
+    </button>
+  )
+}
+
 /**
- * Desktop:
- *  - Top: logo left · brand + links centered · cart/fav/login far right
- *  - Scrolled: logo + name left · links center · actions stay right (smooth morph)
- * Mobile: compact bar + menu
+ * Desktop: links left · centered logo (hangs below bar, slides in on scroll) · actions right
+ * Mobile: logo + actions + menu drawer
  */
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -416,6 +425,8 @@ export default function Navbar() {
   const { user, loading: authLoading } = useAuth()
   const { prefetch: prefetchCatalog } = useCatalog()
   const { count: wishlistCount } = useWishlist()
+  const { itemCount } = useCart()
+  const cartBadgeCount = user ? itemCount : 0
 
   const openAuth = () => {
     setMenuOpen(false)
@@ -440,20 +451,15 @@ export default function Navbar() {
     navigateApp(APP_ROUTES.wishlist)
   }
 
-  const { itemCount } = useCart()
-  const cartBadgeCount = user ? itemCount : 0
-
   const goTo = (id: SectionId) => {
     setMenuOpen(false)
 
-    // About us → dedicated know-more page (not home #about scroll)
     if (id === 'about') {
       setActiveId('about')
       navigateApp(APP_ROUTES.knowMore)
       return
     }
 
-    // Shop → /shop page
     if (id === 'products') {
       prefetchCatalog()
       setActiveId('products')
@@ -461,14 +467,12 @@ export default function Navbar() {
       return
     }
 
-    // Wholesale → dedicated page
     if (id === 'wholesale') {
       setActiveId('wholesale')
-      navigateApp(APP_ROUTES.wholesale)
+      navigateApp(APP_ROUTES.dealership)
       return
     }
 
-    // Contact → dedicated page
     if (id === 'contact') {
       setActiveId('contact')
       navigateApp(APP_ROUTES.contact)
@@ -477,7 +481,6 @@ export default function Navbar() {
 
     setActiveId('home')
 
-    // From shop / auth pages — return home, then scroll to section
     if (isAppPagePath(window.location.pathname)) {
       if (id !== 'home') {
         sessionStorage.setItem('tm-pending-section', id)
@@ -532,297 +535,152 @@ export default function Navbar() {
     }
   }, [pathname])
 
-  const isHome = isHomeScrollPath(pathname)
-  const isDarkNav = isHome && !scrolled
-  const heroOverlay = isHome && !scrolled
-  const navInk = isDarkNav ? 'rgba(242,244,245,0.82)' : INK
-  const navHover = isDarkNav ? 'hover:bg-white/10' : 'hover:bg-[#0a2e22]/8'
-  const badgeRing = isDarkNav ? 'rgba(10,46,34,0.85)' : PEACH
   const showMobileBottomNav = shouldShowMobileBottomNav(pathname)
   const mobileTabActiveId = resolveMobileBottomNavActive(pathname)
 
+  const rightActions = (mobile = false) => (
+    <>
+      {!authLoading && user ? <NavbarNotifications ink={INK} /> : null}
+
+      <NavIconButton label="Cart" onClick={openCart}>
+        <CartIcon className={mobile ? 'h-5 w-5' : 'h-[1.15rem] w-[1.15rem]'} />
+        <NavCountBadge count={cartBadgeCount} label="Cart items" />
+      </NavIconButton>
+
+      <NavIconButton label="Wishlist" onClick={openWishlist}>
+        <HeartIcon
+          className={mobile ? 'h-5 w-5' : 'h-[1.15rem] w-[1.15rem]'}
+          filled={wishlistCount > 0}
+        />
+        <NavCountBadge count={wishlistCount} label="Wishlist items" variant="wishlist" />
+      </NavIconButton>
+
+      {!authLoading && user ? (
+        <ProfileAvatarMenu onAction={() => setMenuOpen(false)} />
+      ) : (
+        <button
+          type="button"
+          onClick={openAuth}
+          className="inline-flex h-9 cursor-pointer items-center rounded-full px-3.5 text-[0.72rem] font-semibold tracking-wide transition-transform duration-300 hover:scale-[1.02] xl:px-4 xl:text-[0.78rem]"
+          style={{ backgroundColor: INK, color: '#f2f4f5', fontFamily: 'Inter, sans-serif' }}
+        >
+          Login / Signup
+        </button>
+      )}
+    </>
+  )
+
   return (
     <>
-    <header
-      className="sticky top-0 z-50 w-full border-0"
-      style={{
-        paddingTop: 'env(safe-area-inset-top, 0px)',
-        background: heroOverlay
-          ? 'linear-gradient(180deg, rgba(6,14,11,0.42) 0%, rgba(6,14,11,0.12) 55%, transparent 100%)'
-          : PEACH,
-        boxShadow: scrolled && !heroOverlay ? '0 6px 20px rgba(10,46,34,0.06)' : 'none',
-        transition: `background 450ms ${EASE}, box-shadow 450ms ${EASE}`,
-      }}
-    >
-      {/* —— Desktop (single morphing bar) —— */}
-      <nav
-        className="relative hidden w-full items-center px-3 sm:px-4 md:flex"
+      <header
+        className="sticky top-0 z-50 w-full overflow-visible border-b border-[rgba(10,46,34,0.08)] bg-white"
         style={{
-          paddingTop: scrolled ? 6 : 14,
-          paddingBottom: scrolled ? 6 : 22,
-          minHeight: scrolled ? 52 : 118,
-          transition: `padding 450ms ${EASE}, min-height 450ms ${EASE}`,
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+          boxShadow: scrolled ? '0 4px 18px rgba(10,46,34,0.07)' : 'none',
+          transition: `box-shadow 450ms ${EASE}`,
         }}
-        aria-label="Primary"
       >
-        {/* Left — logo (+ stacked name when scrolled) */}
-        <a
-          href="/"
-          onClick={goHome}
-          className="relative z-10 flex shrink-0 cursor-pointer items-center gap-2.5 no-underline"
-          aria-label="Tasneem Mukhwas home"
-        >
-          <span
-            className="inline-flex shrink-0 items-center justify-center"
-            style={{
-              width: scrolled ? 52 : 42,
-              height: scrolled ? 62 : 50,
-              transition: `width 450ms ${EASE}, height 450ms ${EASE}`,
-            }}
-          >
-            <BrandLogo className="h-full w-full object-contain object-center" />
-          </span>
-          <span
-            className="overflow-hidden"
-            style={{
-              maxWidth: scrolled ? 140 : 0,
-              opacity: scrolled ? 1 : 0,
-              transform: scrolled ? 'translateX(0)' : 'translateX(-8px)',
-              transition: `max-width 450ms ${EASE}, opacity 350ms ${EASE}, transform 450ms ${EASE}`,
-            }}
-          >
-            <BrandNameLockup layout="stacked" stackedPreset="nav" className="!items-start" />
-          </span>
-        </a>
-
-        {/* Center — stacked brand (top only) + links */}
-        <div
-          className="pointer-events-none absolute top-1/2 left-1/2 z-0 flex w-max -translate-x-1/2 -translate-y-1/2 flex-col items-center"
+        {/* Desktop */}
+        <nav
+          className="relative mx-auto hidden w-full max-w-[1440px] items-stretch overflow-visible px-4 lg:grid lg:grid-cols-[1fr_auto_1fr] xl:px-10"
           style={{
-            gap: scrolled ? 0 : 22,
-            transition: `gap 450ms ${EASE}`,
+            minHeight: scrolled ? 72 : 84,
+            transition: `min-height 450ms ${EASE}`,
           }}
+          aria-label="Primary"
         >
+          <div className="flex items-center justify-end self-center gap-x-5 pr-6 xl:gap-x-8 xl:pr-12">
+            <NavLinks
+              links={LEFT_NAV_LINKS}
+              activeId={activeId}
+              onNavigate={goTo}
+              onPrefetchShop={prefetchCatalog}
+            />
+          </div>
+
+          <div className="relative min-h-full w-[156px] shrink-0 self-stretch xl:w-[176px]">
+            <a
+              href="/"
+              onClick={goHome}
+              className="absolute left-1/2 z-30 flex cursor-pointer items-center justify-center no-underline"
+              aria-label="Tasneem Mukhwas home"
+              style={{
+                top: scrolled ? '50%' : '100%',
+                width: scrolled ? 76 : 156,
+                height: scrolled ? 88 : 176,
+                transform: scrolled ? 'translate(-50%, -50%)' : 'translate(-50%, -48%)',
+                transition: `top 450ms ${EASE}, width 450ms ${EASE}, height 450ms ${EASE}, transform 450ms ${EASE}`,
+              }}
+            >
+              <BrandLogo className="h-full w-full object-contain object-center drop-shadow-[0_10px_22px_rgba(10,46,34,0.16)]" />
+            </a>
+          </div>
+
+          <div className="flex items-center justify-start self-center gap-x-5 pl-6 xl:gap-x-8 xl:pl-12">
+            <NavLinks
+              links={RIGHT_NAV_LINKS}
+              activeId={activeId}
+              onNavigate={goTo}
+              onPrefetchShop={prefetchCatalog}
+            />
+            <div className="ml-auto flex items-center gap-1 sm:gap-1.5">{rightActions()}</div>
+          </div>
+        </nav>
+
+        {/* Mobile */}
+        <nav className="flex w-full items-center gap-2 px-3 py-2 sm:px-4 lg:hidden" aria-label="Primary mobile">
           <a
             href="/"
             onClick={goHome}
-            className="pointer-events-auto cursor-pointer no-underline"
-            aria-label="Tasneem Mukhwas"
-            aria-hidden={scrolled}
-            tabIndex={scrolled ? -1 : 0}
-            style={{
-              lineHeight: 1,
-              maxHeight: scrolled ? 0 : 84,
-              opacity: scrolled ? 0 : 1,
-              overflow: 'hidden',
-              transform: scrolled ? 'translateY(-6px)' : 'translateY(0)',
-              transition: `max-height 450ms ${EASE}, opacity 350ms ${EASE}, transform 450ms ${EASE}`,
-            }}
+            className="relative z-10 flex shrink-0 cursor-pointer items-center no-underline"
+            aria-label="Tasneem Mukhwas home"
           >
-            <BrandNameLockup layout="stacked" stackedPreset="hero" tone={isDarkNav ? 'bright' : 'default'} />
+            <BrandLogo className="h-12 w-11 object-contain object-center" />
           </a>
-          <div className="pointer-events-auto" style={{ paddingBottom: scrolled ? 0 : 4, paddingTop: scrolled ? 0 : 2 }}>
-            <NavLinks activeId={activeId} onNavigate={goTo} onPrefetchShop={prefetchCatalog} onDark={isDarkNav} />
+
+          <div className="ml-auto flex items-center gap-0.5">
+            {rightActions(true)}
+            <button
+              type="button"
+              className="flex h-9 w-9 items-center justify-center rounded-md text-[#0a2e22]"
+              aria-expanded={menuOpen}
+              aria-controls="mobile-nav"
+              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+              onClick={() => setMenuOpen((v) => !v)}
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+                {menuOpen ? (
+                  <path d="M6 6l12 12M18 6 6 18" strokeLinecap="round" />
+                ) : (
+                  <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
+                )}
+              </svg>
+            </button>
           </div>
-        </div>
+        </nav>
 
-        {/* Right — cart / favorite / login (edge-aligned) */}
-        <div className="relative z-10 ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
-          {user ? (
-            <>
-              <button
-                type="button"
-                onClick={openCart}
-                className={`relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md transition-colors ${navHover}`}
-                style={{ color: navInk }}
-                aria-label="Cart"
-              >
-                <CartIcon className="h-[1.2rem] w-[1.2rem]" />
-                <NavCountBadge count={cartBadgeCount} label="Cart items" ringColor={badgeRing} />
-              </button>
-
-              <div className="group relative">
-                <button
-                  type="button"
-                  onClick={openWishlist}
-                  className={`relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md transition-colors ${navHover}`}
-                  style={{ color: wishlistCount > 0 ? '#f4a4a4' : navInk }}
-                  aria-label="Wishlist"
-                >
-                  <HeartIcon className="h-[1.2rem] w-[1.2rem]" filled={wishlistCount > 0} />
-                  <NavCountBadge
-                    count={wishlistCount}
-                    label="Wishlist items"
-                    variant="wishlist"
-                    ringColor={badgeRing}
-                  />
-                </button>
-                <span
-                  className="pointer-events-none invisible absolute left-1/2 top-[calc(100%+8px)] z-50 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-lg border px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-wide opacity-0 shadow-md transition duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100"
-                  style={{
-                    backgroundColor: PEACH,
-                    borderColor: 'rgba(10,46,34,0.12)',
-                    color: INK,
-                    fontFamily: 'Inter, sans-serif',
-                  }}
-                  role="tooltip"
-                >
-                  Wishlist
-                </span>
-              </div>
-            </>
-          ) : null}
-
-          {!authLoading && user ? (
-            <>
-              <NavbarNotifications ink={navInk} />
-              <ProfileAvatarMenu onDark={isDarkNav} />
-            </>
-          ) : (
-            <button
-              type="button"
-              onClick={openAuth}
-              className="inline-flex h-9 cursor-pointer items-center rounded-full px-4 text-[0.8rem] font-semibold tracking-wide transition-transform duration-300 hover:scale-[1.02]"
-              style={{
-                backgroundColor: isDarkNav ? GOLD : INK,
-                color: isDarkNav ? INK : PEACH,
-                fontFamily: 'Inter, sans-serif',
-              }}
-            >
-              Login / Signup
-            </button>
-          )}
-        </div>
-      </nav>
-
-      {/* —— Mobile —— */}
-      <nav
-        className="flex w-full items-center gap-2 px-3 py-2 sm:px-4 md:hidden"
-        aria-label="Primary mobile"
-      >
-        <a
-          href="/"
-          onClick={goHome}
-          className="flex shrink-0 cursor-pointer items-center gap-2 no-underline"
-          aria-label="Tasneem Mukhwas home"
-        >
-          <BrandLogo className="h-11 w-9 object-contain object-center" />
-          <BrandNameLockup
-            layout="stacked"
-            stackedPreset="nav"
-            className="!items-start"
-            tone={isDarkNav ? 'bright' : 'default'}
-          />
-        </a>
-
-        <div className="ml-auto flex items-center gap-0.5">
-          {user ? (
-            <>
-              <button
-                type="button"
-                onClick={openCart}
-                className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md"
-                style={{ color: navInk }}
-                aria-label="Cart"
-              >
-                <CartIcon className="h-5 w-5" />
-                <NavCountBadge count={cartBadgeCount} label="Cart items" ringColor={badgeRing} />
-              </button>
-              <div className="group relative">
-                <button
-                  type="button"
-                  onClick={openWishlist}
-                  className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md"
-                  style={{ color: wishlistCount > 0 ? '#f4a4a4' : navInk }}
-                  aria-label="Wishlist"
-                >
-                  <HeartIcon className="h-5 w-5" filled={wishlistCount > 0} />
-                  <NavCountBadge
-                    count={wishlistCount}
-                    label="Wishlist items"
-                    variant="wishlist"
-                    ringColor={badgeRing}
-                  />
-                </button>
-                <span
-                  className="pointer-events-none invisible absolute left-1/2 top-[calc(100%+8px)] z-50 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-lg border px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-wide opacity-0 shadow-md transition duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100"
-                  style={{
-                    backgroundColor: PEACH,
-                    borderColor: 'rgba(10,46,34,0.12)',
-                    color: INK,
-                    fontFamily: 'Inter, sans-serif',
-                  }}
-                  role="tooltip"
-                >
-                  Wishlist
-                </span>
-              </div>
-            </>
-          ) : null}
-          {!authLoading && user ? <NavbarNotifications ink={navInk} /> : null}
-          <button
-            type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-md"
-            style={{ color: navInk }}
-            aria-expanded={menuOpen}
-            aria-controls="mobile-nav"
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-            onClick={() => setMenuOpen((v) => !v)}
+        {menuOpen && (
+          <div
+            id="mobile-nav"
+            className="border-t border-[rgba(10,46,34,0.08)] bg-white px-3 pb-4 pt-3 sm:px-4 lg:hidden"
           >
-            <svg
-              viewBox="0 0 24 24"
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              aria-hidden
-            >
-              {menuOpen ? (
-                <path d="M6 6l12 12M18 6 6 18" strokeLinecap="round" />
-              ) : (
-                <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
-              )}
-            </svg>
-          </button>
-        </div>
-      </nav>
+            <NavLinks
+              links={NAV_LINKS}
+              activeId={activeId}
+              stacked
+              onNavigate={goTo}
+              onPrefetchShop={prefetchCatalog}
+            />
+            {!authLoading && user ? (
+              <div className="mt-4 border-t border-[rgba(10,46,34,0.08)] pt-4">
+                <ProfileAvatarMenu stacked onAction={() => setMenuOpen(false)} />
+              </div>
+            ) : null}
+          </div>
+        )}
+      </header>
 
-      {menuOpen && (
-        <div
-          id="mobile-nav"
-          className="border-t border-[#0a2e22]/06 px-3 pb-4 pt-3 sm:px-4 md:hidden"
-          style={{
-            backgroundColor: 'rgba(242,244,245,0.92)',
-            backdropFilter: 'blur(12px)',
-          }}
-        >
-          <p
-            className="m-0 mb-3 text-center text-[0.62rem] font-semibold tracking-[0.18em] uppercase"
-            style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}
-          >
-            Account
-          </p>
-          {!authLoading && user ? (
-            <ProfileAvatarMenu stacked onDark={false} onAction={() => setMenuOpen(false)} />
-          ) : (
-            <button
-              type="button"
-              onClick={openAuth}
-              className="flex h-11 w-full cursor-pointer items-center justify-center rounded-full text-[0.9rem] font-semibold"
-              style={{
-                backgroundColor: INK,
-                color: PEACH,
-                fontFamily: 'Inter, sans-serif',
-              }}
-            >
-              Login / Signup
-            </button>
-          )}
-        </div>
-      )}
-    </header>
-
-    {showMobileBottomNav ? <MobileBottomNav activeId={mobileTabActiveId} onNavigate={goTo} /> : null}
+      {showMobileBottomNav ? <MobileBottomNav activeId={mobileTabActiveId} onNavigate={goTo} /> : null}
     </>
   )
 }

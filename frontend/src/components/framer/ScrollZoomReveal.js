@@ -352,7 +352,7 @@ function AnimatedScrollZoom(props) {
             flexShrink: 0,
             zIndex: 1,
             willChange: 'width, height, border-radius',
-            background: hasStory ? 'transparent' : '#ffffff',
+            background: hasStory ? 'transparent' : stickyBg,
           },
           children: [
             /* @__PURE__ */ _jsx(motion.img, {
@@ -371,7 +371,7 @@ function AnimatedScrollZoom(props) {
                 transform: 'translate(-50%, -50%)',
                 opacity: isPlaying ? 0 : 1,
                 transition: 'opacity 0.4s ease',
-                background: hasStory ? 'transparent' : '#ffffff',
+                background: hasStory ? 'transparent' : stickyBg,
               },
             }),
             hasStory

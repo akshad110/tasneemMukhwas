@@ -20,16 +20,27 @@ import {
   normalizeProductVariants,
   type ShopProduct,
 } from '../../lib/shopCatalog'
+import {
+  BRAND_CREAM,
+  BRAND_CREAM_DEEP,
+  BRAND_CREAM_LIGHT,
+  BRAND_GOLD,
+  BRAND_INK,
+  BRAND_MUTED,
+  BRAND_SANS,
+  BRAND_SERIF,
+} from '../../lib/brand'
 
-const INK = '#0a2e22'
-const CREAM = '#f2f4f5'
-const GOLD = '#b8860b'
-const CARD = '#ffffff'
-const MUTED = 'rgba(10,46,34,0.58)'
+const INK = BRAND_INK
+const CREAM = BRAND_CREAM_LIGHT
+const GOLD = BRAND_GOLD
+const CARD = BRAND_CREAM_LIGHT
+const IMAGE_BG = BRAND_CREAM
+const MUTED = BRAND_MUTED
 const BTN_GOLD_GRADIENT = `linear-gradient(180deg, #d4b56a 0%, ${GOLD} 55%, #9a6f08 100%)`
 const BTN_TEXT = '#ffffff'
-const OUTER_BORDER = '2px solid rgba(184,134,11,0.38)'
-const INNER_BORDER = '1px solid rgba(184,134,11,0.22)'
+const OUTER_BORDER = '2px solid rgba(184,134,11,0.42)'
+const INNER_BORDER = '1px solid rgba(184,134,11,0.26)'
 const REVEAL_EASE = [0.22, 1, 0.36, 1] as const
 
 function Stars({ rating }: { rating: number }) {
@@ -221,7 +232,7 @@ export default function ShopProductCard({
       style={{
         backgroundColor: CARD,
         border: OUTER_BORDER,
-        boxShadow: '0 20px 44px -28px rgba(10,46,34,0.22)',
+        boxShadow: '0 18px 40px -28px rgba(10,46,34,0.18)',
       }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -244,8 +255,8 @@ export default function ShopProductCard({
           ref={imageHostRef}
           className="relative h-[108px] shrink-0 overflow-hidden rounded-md border min-[480px]:h-[118px] min-[480px]:rounded-lg sm:h-[128px]"
           style={{
-            backgroundColor: panelFill,
-            borderColor: 'rgba(184,134,11,0.22)',
+            backgroundColor: panelFill || IMAGE_BG,
+            borderColor: 'rgba(184,134,11,0.2)',
           }}
           onMouseEnter={() => setImageHovered(true)}
           onMouseLeave={() => setImageHovered(false)}
@@ -313,14 +324,14 @@ export default function ShopProductCard({
         <div className="mt-1 flex flex-col min-[480px]:mt-1.5">
         <p
           className="mb-0 text-center text-[0.58rem] tracking-[0.05em] min-[480px]:text-[0.62rem]"
-          style={{ color: MUTED, fontFamily: '"Playfair Display", Georgia, serif' }}
+          style={{ color: MUTED, fontFamily: BRAND_SERIF }}
         >
           {product.brand || 'Tasneem Mukhwas'}
         </p>
 
         <h3
           className="mt-0.5 m-0 line-clamp-2 text-center text-[0.74rem] font-semibold leading-snug tracking-[0.01em] min-[480px]:min-h-[2em] min-[480px]:text-[0.82rem] sm:text-[0.88rem]"
-          style={{ color: INK, fontFamily: '"Playfair Display", Georgia, serif' }}
+          style={{ color: INK, fontFamily: BRAND_SERIF }}
         >
           {product.name}
         </h3>
@@ -330,7 +341,7 @@ export default function ShopProductCard({
             {cardTeaser ? (
               <p
                 className="m-0 line-clamp-3 text-[0.65rem] leading-relaxed min-[480px]:text-[0.72rem]"
-                style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
+                style={{ color: MUTED, fontFamily: BRAND_SANS }}
               >
                 {cardTeaser}
               </p>
@@ -341,7 +352,7 @@ export default function ShopProductCard({
                 data-card-action
                 onClick={openDetail}
                 className="mt-1 inline-block cursor-pointer border-0 bg-transparent p-0 text-[0.62rem] font-semibold underline decoration-solid underline-offset-[3px] transition hover:opacity-80 min-[480px]:text-[0.68rem]"
-                style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}
+                style={{ color: GOLD, fontFamily: BRAND_SANS }}
               >
                 See more
               </button>
@@ -359,8 +370,8 @@ export default function ShopProductCard({
             style={{
               color: INK,
               borderColor: 'rgba(184,134,11,0.55)',
-              backgroundColor: 'rgba(184,134,11,0.12)',
-              fontFamily: 'Inter, sans-serif',
+              backgroundColor: 'rgba(230,216,195,0.45)',
+              fontFamily: BRAND_SANS,
             }}
           >
             {product.category}
@@ -379,11 +390,11 @@ export default function ShopProductCard({
           onClick={stop}
         >
           <div className="flex shrink-0 flex-row items-baseline gap-1.5 min-[480px]:flex-col min-[480px]:items-start min-[480px]:leading-none">
-            <span className="text-[0.82rem] font-bold min-[480px]:text-[0.9rem]" style={{ color: INK, fontFamily: 'Inter, sans-serif' }}>
+            <span className="text-[0.82rem] font-bold min-[480px]:text-[0.9rem]" style={{ color: INK, fontFamily: BRAND_SANS }}>
               {formatRupee(sellPrice)}
             </span>
             {comparePrice != null && comparePrice > sellPrice && (
-              <span className="text-[0.58rem] line-through min-[480px]:mt-0.5 min-[480px]:text-[0.62rem]" style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}>
+              <span className="text-[0.58rem] line-through min-[480px]:mt-0.5 min-[480px]:text-[0.62rem]" style={{ color: MUTED, fontFamily: BRAND_SANS }}>
                 {formatRupee(comparePrice)}
               </span>
             )}
@@ -405,9 +416,9 @@ export default function ShopProductCard({
                     className="cursor-pointer rounded-full border px-1.5 py-0.5 text-[0.46rem] font-semibold tracking-wide uppercase transition min-[480px]:text-[0.5rem] touch-manipulation"
                     style={{
                       borderColor: selected ? GOLD : 'rgba(184,134,11,0.45)',
-                      backgroundColor: selected ? 'rgba(184,134,11,0.18)' : 'transparent',
+                      backgroundColor: selected ? BRAND_CREAM_DEEP : 'transparent',
                       color: selected ? INK : MUTED,
-                      fontFamily: 'Inter, sans-serif',
+                      fontFamily: BRAND_SANS,
                     }}
                     aria-pressed={selected}
                   >
@@ -430,7 +441,7 @@ export default function ShopProductCard({
               disabled
               onClick={stop}
               className="col-span-2 min-h-[40px] cursor-not-allowed rounded-full border-0 py-2 text-[0.52rem] font-semibold tracking-[0.06em] uppercase opacity-70 min-[480px]:min-h-0 min-[480px]:text-[0.58rem] touch-manipulation"
-              style={{ backgroundColor: 'rgba(10,46,34,0.1)', color: INK, fontFamily: 'Inter, sans-serif' }}
+              style={{ backgroundColor: 'rgba(10,46,34,0.08)', color: INK, fontFamily: BRAND_SANS }}
             >
               Out of stock
             </button>
@@ -456,7 +467,7 @@ export default function ShopProductCard({
                   </button>
                   <span
                     className="min-w-[1.1rem] text-center text-[0.72rem] font-bold tabular-nums"
-                    style={{ color: BTN_TEXT, fontFamily: 'Inter, sans-serif' }}
+                    style={{ color: BTN_TEXT, fontFamily: BRAND_SANS }}
                     aria-live="polite"
                   >
                     {cartQty}
@@ -479,7 +490,7 @@ export default function ShopProductCard({
                   style={{
                     background: BTN_GOLD_GRADIENT,
                     color: BTN_TEXT,
-                    fontFamily: 'Inter, sans-serif',
+                    fontFamily: BRAND_SANS,
                   }}
                 >
                   Add to Cart
@@ -490,10 +501,10 @@ export default function ShopProductCard({
                 onClick={payNow}
                 className="shop-card-btn shop-card-btn--pay min-h-[40px] cursor-pointer rounded-full border py-2 text-[0.52rem] font-semibold tracking-[0.06em] uppercase min-[480px]:min-h-0 min-[480px]:text-[0.58rem] sm:text-[0.6rem] touch-manipulation"
                 style={{
-                  borderColor: GOLD,
+                  borderColor: INK,
                   color: BTN_TEXT,
                   backgroundColor: INK,
-                  fontFamily: 'Inter, sans-serif',
+                  fontFamily: BRAND_SANS,
                 }}
               >
                 Pay Now

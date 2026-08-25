@@ -81,12 +81,8 @@ export function getActiveSectionId(): SectionId {
   if (window.scrollY < 80) return 'home'
 
   const marker = window.scrollY + Math.min(140, window.innerHeight * 0.22)
-  // Page order (not nav order): about → range → wholesale → contact
-  const order: Exclude<SectionId, 'home'>[] = [
-    'about',
-    'products',
-    'contact',
-  ]
+  // Page order (not nav order): products → about → partner block
+  const order: Exclude<SectionId, 'home'>[] = ['products', 'about']
 
   let current: SectionId = 'home'
   for (const id of order) {
@@ -95,12 +91,7 @@ export function getActiveSectionId(): SectionId {
     if (el.offsetTop <= marker) current = id
   }
 
-  // Past contact (footer) still counts as contact
-  const contact = document.getElementById('contact')
-  if (contact && window.scrollY + window.innerHeight * 0.45 >= contact.offsetTop) {
-    current = 'contact'
-  }
-
+  // Footer counts as end of page — no standalone contact section on home
   return current
 }
 

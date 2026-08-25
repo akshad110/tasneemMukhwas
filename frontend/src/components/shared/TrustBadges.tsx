@@ -1,6 +1,8 @@
-const INK = '#0a2e22'
-const CREAM = '#f2f4f5'
-const GOLD = '#b8860b'
+import { BRAND_CREAM, BRAND_GOLD, BRAND_INK, BRAND_SANS } from '../../lib/brand'
+
+const INK = BRAND_INK
+const CREAM = BRAND_CREAM
+const GOLD = BRAND_GOLD
 
 const BADGES = [
   {
@@ -54,7 +56,7 @@ export default function TrustBadges() {
           <li
             key={badge.label}
             className="flex items-center gap-2 text-[0.72rem] font-semibold tracking-wide sm:text-[0.8rem]"
-            style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
+            style={{ color: INK, fontFamily: BRAND_SANS }}
           >
             <span style={{ color: GOLD }}>{badge.icon}</span>
             <span>{badge.label}</span>

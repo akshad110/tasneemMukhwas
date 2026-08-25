@@ -3,11 +3,19 @@ import { motion } from 'framer-motion'
 import { useAuth } from '../../context/AuthContext'
 import { buildReviewWhatsAppUrl } from '../../lib/contact'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
-import { BRAND_SERIF } from '../../lib/brand'
+import {
+  BRAND_CREAM_DEEP,
+  BRAND_CREAM_LIGHT,
+  BRAND_GOLD,
+  BRAND_INK,
+  BRAND_MUTED,
+  BRAND_SANS,
+  BRAND_SERIF,
+} from '../../lib/brand'
 
-const INK = '#0a2e22'
-const GOLD = '#b8860b'
-const MUTED = 'rgba(10,46,34,0.62)'
+const INK = BRAND_INK
+const GOLD = BRAND_GOLD
+const MUTED = BRAND_MUTED
 const EASE = [0.22, 1, 0.36, 1] as const
 
 const RATING_LABELS = ['', 'Could be better', 'Okay', 'Good', 'Great', 'Loved it!']
@@ -52,7 +60,7 @@ function StarPicker({
       </div>
       <span
         className="min-h-[1rem] text-[0.62rem] font-medium tracking-wide"
-        style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
+        style={{ color: MUTED, fontFamily: BRAND_SANS }}
         aria-live="polite"
       >
         {active > 0 ? RATING_LABELS[active] : 'Tap to rate'}
@@ -98,7 +106,8 @@ export default function HomeReviewStrip() {
 
   return (
     <motion.section
-      className="home-review-strip relative w-full overflow-hidden bg-white px-3 py-8 sm:px-6 sm:py-10 md:px-8"
+      className="home-review-strip relative w-full overflow-hidden px-3 py-8 sm:px-6 sm:py-10 md:px-8"
+      style={{ backgroundColor: BRAND_CREAM_DEEP }}
       aria-label="Leave a quick review"
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -110,7 +119,7 @@ export default function HomeReviewStrip() {
           <div>
             <p
               className="m-0 text-[0.62rem] font-semibold tracking-[0.22em] uppercase"
-              style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}
+              style={{ color: GOLD, fontFamily: BRAND_SANS }}
             >
               30-second review
             </p>
@@ -126,7 +135,7 @@ export default function HomeReviewStrip() {
               type="button"
               onClick={() => navigateApp(APP_ROUTES.myOrders)}
               className="mt-1 w-fit cursor-pointer border-0 bg-transparent p-0 text-[0.72rem] font-medium underline-offset-2 hover:underline sm:mt-0"
-              style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
+              style={{ color: MUTED, fontFamily: BRAND_SANS }}
             >
               Review a past order →
             </button>
@@ -137,8 +146,9 @@ export default function HomeReviewStrip() {
           onSubmit={onSubmit}
           className="home-review-form rounded-2xl border p-4 sm:p-5"
           style={{
-            borderColor: 'rgba(10,46,34,0.12)',
-            backgroundColor: 'rgba(248,249,250,0.92)',
+            borderColor: 'rgba(184,134,11,0.28)',
+            backgroundColor: BRAND_CREAM_LIGHT,
+            boxShadow: '0 18px 40px -28px rgba(10,46,34,0.14)',
           }}
           noValidate
         >

@@ -2,63 +2,94 @@ import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { motion, animate, useInView } from 'framer-motion'
 import Navbar from '../components/nav/Navbar'
-import BrandLogo from '../components/shared/BrandLogo'
+import BackToHomeButton from '../components/shared/BackToHomeButton'
 import SiteFooter from '../components/shared/SiteFooter'
 import { CONTACT_ADDRESS, CONTACT_EMAIL, CONTACT_PHONE_DISPLAY } from '../lib/contact'
 import {
   BRAND_CREAM,
+  BRAND_CREAM_DEEP,
+  BRAND_CREAM_LIGHT,
+  BRAND_GOLD,
   BRAND_INK,
   BRAND_LOGO_SRC,
+  BRAND_MUTED,
+  BRAND_SANS,
   BRAND_SERIF,
-  BRAND_TEXTURE,
 } from '../lib/brand'
 import { APP_ROUTES, navigateApp } from '../lib/appRoutes'
 import { scrollAppToTop } from '../lib/scrollControl'
 
 const INK = BRAND_INK
 const CREAM = BRAND_CREAM
-const MUTED = 'rgba(10,46,34,0.62)'
-const MUTED_LIGHT = 'rgba(242,244,245,0.68)'
-const EYEBROW_LIGHT = 'rgba(242,244,245,0.55)'
-const EYEBROW_DARK = 'rgba(10,46,34,0.48)'
-const ACCENT_ON_DARK = 'rgba(242,244,245,0.72)'
-const ACCENT_ON_LIGHT = 'rgba(10,46,34,0.55)'
+const CREAM_LIGHT = BRAND_CREAM_LIGHT
+const CREAM_DEEP = BRAND_CREAM_DEEP
+const MUTED = BRAND_MUTED
+const GOLD = BRAND_GOLD
 const EASE = [0.22, 1, 0.36, 1] as const
 
-const INGREDIENTS_BG = encodeURI('/Mukhwas_ingredients_arranged_on_…_202608182142.jpeg')
+const HERO_IMG = '/Mukhwas_pouches_on_wooden_table_202608251659.jpeg'
+const INGREDIENTS_IMG = encodeURI('/Mukhwas_ingredients_arranged_on_…_202608182142.jpeg')
 const FOUNDER_PORTRAIT = encodeURI('/ChatGPT Image Aug 21, 2026 at 02_51_39 PM.png')
-const DISPLAY = 'Anton, Impact, sans-serif'
-const SANS = 'Inter, system-ui, sans-serif'
 
-const STATS = [
-  { kind: 'count' as const, to: 12, suffix: '+', label: 'Years crafting mukhwas' },
-  { kind: 'count' as const, to: 3, suffix: '', label: 'National certifications' },
-  { kind: 'text' as const, value: 'WHO', label: 'GMP aligned facility' },
-  { kind: 'count' as const, to: 100, suffix: '%', label: 'Sealed retail packs' },
-] as const
-
-const PILLARS = [
+const OUR_SERVICES = [
   {
-    eyebrow: 'When this started',
-    title: 'A family craft, rooted in Banaskantha',
-    body: 'What began as a regional mukhwas practice grew into a structured manufacturing house — Tasneem Mukhwas — serving homes, hotels, and wholesale partners across Gujarat and export markets. Over twelve years, recipes were refined, lines modernized, and quality systems strengthened without losing the taste people grew up with.',
-    accent: '2016',
-    accentLabel: 'MSME registered',
+    tag: 'Retail',
+    title: 'Retail-ready packs',
+    body: 'Shelf-stable mukhwas pouches for kirana counters, modern trade, and quick-commerce listings across India.',
+    icon: '◆',
   },
   {
-    eyebrow: 'How we work',
-    title: 'From sourcing to sealed packs',
-    body: 'Seeds and spices are sourced from trusted farms, cleaned and sorted in stages, blended to time-honored formulas, then packed in FSSAI-aligned facilities. Certified hygiene discipline means retailers and families can rely on consistency in every pinch.',
-    accent: 'FSSAI',
-    accentLabel: 'Aligned packing',
+    tag: 'Wholesale',
+    title: 'Bulk & distribution',
+    body: 'Flexible MOQs, carton dispatch, and dependable fulfilment for distributors, hotels, and catering partners.',
+    icon: '◇',
+  },
+  {
+    tag: 'Branding',
+    title: 'Private label support',
+    body: 'Guidance on pouch weights, outer cartons, sticker branding, and exhibition-ready presentation.',
+    icon: '✦',
   },
 ] as const
 
-const PROCESS = [
-  { step: '01', title: 'Source', detail: 'Farm-picked seeds & spices from trusted growers across Gujarat.' },
-  { step: '02', title: 'Clean & sort', detail: 'Multi-stage cleaning, grading, and quality checks at Chhapi.' },
-  { step: '03', title: 'Blend', detail: 'Time-honoured recipes balanced for aroma, crunch, and freshness.' },
-  { step: '04', title: 'Seal & ship', detail: 'Hygienic packing and dispatch for retail, HORECA, and export.' },
+const SERVICE_GRID = [
+  {
+    label: 'Classic Mukhwas',
+    title: 'Everyday mouth fresheners',
+    image: '/Mukhwas_pouches_on_wooden_table_202608251630.jpeg',
+    href: APP_ROUTES.shop,
+  },
+  {
+    label: 'Paan Specials',
+    title: 'Master Paan & paan shots',
+    image: '/Red_pouch_and_mukhwas_bowl_202608251659.jpeg',
+    href: APP_ROUTES.shop,
+  },
+  {
+    label: 'Export & IEC',
+    title: 'International dispatch',
+    image: '/Tasneem_pouch_on_glass_surface_202608251649.jpeg',
+    href: APP_ROUTES.wholesale,
+  },
+  {
+    label: 'HORECA supply',
+    title: 'Hotels & hospitality',
+    image: '/Mango_snack_on_counter_2K_202608251649.jpeg',
+    href: APP_ROUTES.wholesale,
+  },
+] as const
+
+const WHY_STATS = [
+  { kind: 'count' as const, to: 12, suffix: '+', label: 'Years of craft' },
+  { kind: 'text' as const, value: '100%', label: 'Natural ingredients' },
+  { kind: 'count' as const, to: 40, suffix: '+', label: 'Product SKUs' },
+  { kind: 'count' as const, to: 500, suffix: '+', label: 'Trade partners' },
+] as const
+
+const WHY_POINTS = [
+  'WHO-GMP aligned manufacturing from our Chhapi, Banaskantha facility.',
+  'Farm-to-pack traceability with multi-stage cleaning and sealed retail packs.',
+  'Trusted by retailers, hospitality partners, and export buyers since 2016.',
 ] as const
 
 const CERTIFICATIONS = [
@@ -66,19 +97,19 @@ const CERTIFICATIONS = [
     src: encodeURI('/FINAL-FRUT GRUH(WHO GMP)_page-0001.jpg'),
     eyebrow: 'WHO-GMP',
     title: 'Certificate of Compliance',
-    body: 'Tasneem Mukhwas is certified for Good Manufacturing Practice as laid down by the World Health Organization — covering manufacturing, processing, roasting, flavouring, packing, and supply of mukhwas, mouth fresheners, and related products from our Chhapi facility.',
+    body: 'Certified for Good Manufacturing Practice — covering manufacturing, roasting, flavouring, packing, and supply of mukhwas from our Chhapi facility.',
   },
   {
     src: encodeURI('/FURAT IEC CERTIFICATE_page-0001.jpg'),
     eyebrow: 'DGFT · India',
     title: 'Importer-Exporter Code',
-    body: 'Issued by the Directorate General of Foreign Trade to Tasneem Mukhwas (IEC AAEFF9922C). Signatory Patel Abidali Yarbhai — enabling lawful export and import of our food craft from Banaskantha, Gujarat.',
+    body: 'IEC AAEFF9922C issued by DGFT — enabling lawful export and import from Banaskantha, Gujarat.',
   },
   {
     src: encodeURI('/FURAT MSME CERTI_page-0001.jpg'),
     eyebrow: 'MSME · Udyam',
     title: 'Udyam Registration',
-    body: 'Registered as a Micro manufacturing enterprise (UDYAM-GJ-04-0047609) under the Ministry of MSME. In business since 2016 — formal recognition of Tasneem Mukhwas as a government-registered food manufacturer.',
+    body: 'Registered micro manufacturing enterprise (UDYAM-GJ-04-0047609) — in business since 2016.',
   },
 ] as const
 
@@ -86,56 +117,30 @@ const LICENCES = [
   {
     src: encodeURI('/WhatsApp Image 2026-08-15 at 12.02.16 PM.jpeg'),
     title: 'Trade Fair 2026',
-    caption: 'Maktabah Jafariyah Trade Fair 2026 — Stall No. 45 & 46, Chappi.',
+    caption: 'Maktabah Jafariyah Trade Fair — Stall 45 & 46, Chappi.',
   },
   {
     src: encodeURI('/WhatsApp Image 2026-08-15 at 12.02.17 PM (1).jpeg'),
     title: 'Award of Excellence 2025',
-    caption: 'Khadhya Khurak 2025 — International Exhibition on Food Processing, Gandhinagar.',
+    caption: 'Khadhya Khurak 2025 — Gandhinagar food expo.',
   },
   {
     src: encodeURI('/WhatsApp Image 2026-08-15 at 12.02.17 PM.jpeg'),
     title: 'AHOA Centenary Honour',
-    caption: 'Ahmedabad Hotel Owner\'s Association — shaping Ahmedabad\'s food heritage.',
+    caption: "Ahmedabad Hotel Owner's Association recognition.",
   },
   {
     src: encodeURI('/WhatsApp Image 2026-08-15 at 12.02.18 PM.jpeg'),
     title: 'Trade Fair 2016',
-    caption: 'Early exhibition milestone — Tasneem Mukhwas, Pirojpura at Trade Fair 2016.',
+    caption: 'Early exhibition milestone — Tasneem Mukhwas, Pirojpura.',
   },
 ] as const
-
-const EXHIBITION = [
-  {
-    src: '/license-khadhya-khurak-2025.png',
-    title: 'Gandhinagar Food Expo',
-    blurb: 'Showcasing hygienic mukhwas and seed blends to national buyers and hospitality partners.',
-  },
-  {
-    src: '/license-trade-fair-2026.png',
-    title: 'Sidhpur Trade Fair',
-    blurb: 'Connecting retailers and distributors across North Gujarat with sealed, retail-ready packs.',
-  },
-  {
-    src: '/license-ahoa-centenary.png',
-    title: 'Hospitality Circle',
-    blurb: 'Trusted by hotel and catering partners for everyday freshness and consistent quality.',
-  },
-] as const
-
-function HeadingAccent({ children, light = false }: { children: ReactNode; light?: boolean }) {
-  return (
-    <span style={{ color: light ? ACCENT_ON_DARK : ACCENT_ON_LIGHT, fontWeight: 400 }}>
-      {children}
-    </span>
-  )
-}
 
 function Reveal({
   children,
   className = '',
   delay = 0,
-  y = 28,
+  y = 22,
 }: {
   children: ReactNode
   className?: string
@@ -147,7 +152,7 @@ function Reveal({
       className={className}
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.08 }}
+      viewport={{ once: true, amount: 0.1 }}
       transition={{ duration: 0.55, delay, ease: EASE }}
     >
       {children}
@@ -155,41 +160,60 @@ function Reveal({
   )
 }
 
-function TextReveal({
-  children,
-  className = '',
-  delay = 0,
-  as: Tag = 'span',
+function SectionHeader({
+  title,
+  description,
+  light = false,
 }: {
-  children: ReactNode
-  className?: string
-  delay?: number
-  as?: 'span' | 'p' | 'h1' | 'h2' | 'h3'
+  title: string
+  description: string
+  light?: boolean
 }) {
-  const MotionTag = motion[Tag] as typeof motion.span
   return (
-    <span className={`block overflow-hidden ${className}`}>
-      <MotionTag
-        className="block"
-        initial={{ y: '108%', opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.75, delay, ease: EASE }}
+    <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end lg:gap-12">
+      <h2
+        className="m-0 text-[clamp(2rem,5vw,3.4rem)] leading-[1.05] tracking-[-0.02em]"
+        style={{ color: light ? CREAM_LIGHT : INK, fontFamily: BRAND_SERIF }}
       >
-        {children}
-      </MotionTag>
-    </span>
+        {title}
+      </h2>
+      <p
+        className="m-0 max-w-md text-[0.95rem] leading-[1.75] lg:justify-self-end"
+        style={{ color: light ? 'rgba(255,254,242,0.78)' : MUTED, fontFamily: BRAND_SANS }}
+      >
+        {description}
+      </p>
+    </div>
   )
 }
 
-function CountUpStat({
-  to,
-  suffix = '',
-  delay = 0,
+function PrimaryButton({
+  children,
+  onClick,
+  dark = true,
 }: {
-  to: number
-  suffix?: string
-  delay?: number
+  children: ReactNode
+  onClick: () => void
+  dark?: boolean
 }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="cursor-pointer border-0 px-7 py-3.5 text-[0.78rem] font-semibold tracking-[0.14em] uppercase transition hover:brightness-110"
+      style={{
+        backgroundColor: dark ? INK : CREAM_LIGHT,
+        color: dark ? CREAM_LIGHT : INK,
+        fontFamily: BRAND_SANS,
+        borderRadius: 0,
+      }}
+    >
+      {children}
+    </button>
+  )
+}
+
+function CountUpStat({ to, suffix = '', delay = 0 }: { to: number; suffix?: string; delay?: number }) {
   const ref = useRef<HTMLSpanElement>(null)
   const inView = useInView(ref, { once: true, amount: 0.45 })
   const [value, setValue] = useState(0)
@@ -197,7 +221,7 @@ function CountUpStat({
   useEffect(() => {
     if (!inView) return
     const controls = animate(0, to, {
-      duration: 1.65,
+      duration: 1.6,
       delay,
       ease: EASE,
       onUpdate: (v) => setValue(Math.round(v)),
@@ -213,421 +237,6 @@ function CountUpStat({
   )
 }
 
-function StatCard({
-  stat,
-  index,
-}: {
-  stat: (typeof STATS)[number]
-  index: number
-}) {
-  return (
-    <motion.div
-      className="rounded-2xl border border-white/10 px-4 py-4 backdrop-blur-md sm:px-5 sm:py-5"
-      style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}
-      initial={{ opacity: 0, y: 22, scale: 0.96 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.55, delay: 0.55 + index * 0.1, ease: EASE }}
-    >
-      <p
-        className="m-0 text-[1.65rem] leading-none sm:text-[1.85rem]"
-        style={{ color: '#ffffff', fontFamily: DISPLAY }}
-      >
-        {stat.kind === 'count' ? (
-          <CountUpStat to={stat.to} suffix={stat.suffix} delay={0.55 + index * 0.1} />
-        ) : (
-          stat.value
-        )}
-      </p>
-      <motion.p
-        className="mt-2 m-0 text-[0.68rem] leading-snug tracking-wide"
-        style={{ color: 'rgba(242,244,245,0.62)', fontFamily: SANS }}
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.72 + index * 0.1, ease: EASE }}
-      >
-        {stat.label}
-      </motion.p>
-    </motion.div>
-  )
-}
-
-function Eyebrow({ children, light = false }: { children: string; light?: boolean }) {
-  const tone = light ? EYEBROW_LIGHT : EYEBROW_DARK
-  return (
-    <p
-      className="m-0 flex items-center gap-2.5 text-[0.68rem] font-semibold tracking-[0.22em] uppercase"
-      style={{ color: tone, fontFamily: SANS }}
-    >
-      <span
-        className="inline-block h-1.5 w-1.5 rotate-45"
-        style={{ backgroundColor: tone }}
-        aria-hidden
-      />
-      {children}
-    </p>
-  )
-}
-
-/** Brand ink plate — textured green surface used on dark sections */
-function InkTextureBackground({ soft = false }: { soft?: boolean }) {
-  return (
-    <div className="pointer-events-none absolute inset-0 z-0" aria-hidden>
-      <img
-        src={BRAND_TEXTURE}
-        alt=""
-        className="absolute inset-0 h-full w-full object-cover brightness-[0.88] saturate-[0.92]"
-      />
-      <div
-        className="absolute inset-0"
-        style={{
-          background: soft
-            ? 'linear-gradient(180deg, rgba(10,46,34,0.48) 0%, rgba(10,46,34,0.32) 45%, rgba(10,46,34,0.52) 100%)'
-            : 'linear-gradient(180deg, rgba(10,46,34,0.62) 0%, rgba(10,46,34,0.42) 28%, rgba(10,46,34,0.58) 62%, rgba(6,28,20,0.9) 100%)',
-        }}
-      />
-    </div>
-  )
-}
-
-function KnowMoreHero() {
-  return (
-    <section
-      className="relative flex min-h-[92vh] flex-col overflow-hidden"
-      style={{ backgroundColor: INK }}
-    >
-      <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <img
-          src={INGREDIENTS_BG}
-          alt=""
-          className="absolute inset-0 h-[115%] w-full object-cover"
-        />
-        <img
-          src={BRAND_TEXTURE}
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover brightness-[0.88] saturate-[0.92] opacity-95"
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              'linear-gradient(180deg, rgba(10,46,34,0.52) 0%, rgba(10,46,34,0.35) 38%, rgba(6,28,20,0.82) 72%, rgba(6,28,20,0.94) 100%)',
-          }}
-        />
-      </div>
-
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.14]"
-        style={{
-          backgroundImage:
-            'radial-gradient(circle at 20% 30%, rgba(242,244,245,0.08) 0%, transparent 42%), radial-gradient(circle at 80% 60%, rgba(242,244,245,0.06) 0%, transparent 38%)',
-        }}
-      />
-
-      <div
-        className="relative z-10 mx-auto flex w-full max-w-[1320px] flex-1 flex-col px-5 pb-14 sm:px-8 sm:pb-16 lg:px-10"
-        style={{ paddingTop: 'calc(4.15rem + env(safe-area-inset-top, 0px))' }}
-      >
-        <motion.button
-          type="button"
-          onClick={() => navigateApp(APP_ROUTES.home)}
-          className="group inline-flex shrink-0 cursor-pointer items-center gap-3 border-0 bg-transparent px-0 py-0"
-          initial={{ opacity: 0, x: -14 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.45, delay: 0.08, ease: EASE }}
-          whileHover={{ x: -4 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <span
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 bg-white/8 backdrop-blur-sm transition group-hover:border-white/40"
-            style={{ color: CREAM }}
-            aria-hidden
-          >
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M15 6 9 12l6 6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </span>
-          <span className="flex flex-col items-start gap-0.5 text-left">
-            <span className="text-[0.62rem] font-semibold tracking-[0.16em] uppercase" style={{ color: EYEBROW_LIGHT }}>
-              Return
-            </span>
-            <span className="text-[0.88rem] font-semibold" style={{ color: CREAM, fontFamily: SANS }}>
-              Back to home
-            </span>
-          </span>
-        </motion.button>
-
-        <div className="mt-auto flex flex-col gap-8 pt-10 lg:flex-row lg:items-end lg:justify-between lg:pt-12">
-          <div className="max-w-3xl">
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.18, ease: EASE }}
-              className="mb-6 flex items-center gap-4"
-            >
-              <BrandLogo className="h-14 w-11 object-contain sm:h-16 sm:w-12" alt="" />
-              <TextReveal delay={0.22}>
-                <span
-                  className="text-[0.72rem] font-semibold tracking-[0.24em] uppercase"
-                  style={{ color: 'rgba(242,244,245,0.55)', fontFamily: SANS }}
-                >
-                  Chhapi · Banaskantha · Gujarat
-                </span>
-              </TextReveal>
-            </motion.div>
-
-            <h1
-              className="m-0 text-[clamp(3rem,9vw,5.5rem)] leading-[0.92] tracking-tight uppercase"
-              style={{ color: CREAM, fontFamily: DISPLAY }}
-            >
-              <TextReveal delay={0.28}>About</TextReveal>
-              <TextReveal delay={0.38}>Our Story</TextReveal>
-            </h1>
-
-            <TextReveal delay={0.48} as="p" className="mt-6 max-w-xl text-[1.05rem] leading-[1.75] sm:text-[1.15rem]">
-              <span style={{ color: MUTED_LIGHT, fontFamily: BRAND_SERIF }}>
-                Tasneem Mukhwas is a Chhapi-born mouth-freshener brand — blending Gujarati tradition
-                with certified manufacturing so every pack carries freshness, aroma, and trust from farm
-                to counter.
-              </span>
-            </TextReveal>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:max-w-[340px]">
-            {STATS.map((stat, i) => (
-              <StatCard key={stat.label} stat={stat} index={i} />
-            ))}
-          </div>
-        </div>
-
-        <motion.div
-          className="mt-10 flex flex-col items-center gap-2 sm:mt-12"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.1, duration: 0.8 }}
-          aria-hidden
-        >
-          <span className="text-[0.62rem] tracking-[0.2em] uppercase" style={{ color: 'rgba(242,244,245,0.4)' }}>
-            Scroll
-          </span>
-          <motion.span
-            className="block h-8 w-[1px]"
-            style={{ backgroundColor: 'rgba(242,244,245,0.35)' }}
-            animate={{ scaleY: [0.4, 1, 0.4], opacity: [0.4, 1, 0.4] }}
-            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-          />
-        </motion.div>
-      </div>
-    </section>
-  )
-}
-
-function PillarCard({ pillar, index }: { pillar: (typeof PILLARS)[number]; index: number }) {
-  return (
-    <Reveal delay={index * 0.1}>
-      <article
-        className="group relative h-full overflow-hidden rounded-3xl border p-7 sm:p-9"
-        style={{
-          borderColor: 'rgba(10,46,34,0.1)',
-          backgroundColor: '#ffffff',
-          boxShadow: '0 28px 60px -36px rgba(10,46,34,0.35)',
-        }}
-      >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-          style={{ background: 'radial-gradient(circle, rgba(10,46,34,0.06) 0%, transparent 70%)' }}
-        />
-        <div className="flex items-start justify-between gap-4">
-          <Eyebrow>{pillar.eyebrow}</Eyebrow>
-          <div
-            className="shrink-0 rounded-xl border px-3 py-2 text-center"
-            style={{ borderColor: 'rgba(10,46,34,0.12)', backgroundColor: 'rgba(10,46,34,0.04)' }}
-          >
-            <p className="m-0 text-[1rem] font-bold leading-none" style={{ color: INK, fontFamily: DISPLAY }}>
-              {pillar.accent}
-            </p>
-            <p className="mt-1 m-0 text-[0.58rem] tracking-wide uppercase" style={{ color: MUTED, fontFamily: SANS }}>
-              {pillar.accentLabel}
-            </p>
-          </div>
-        </div>
-        <h2
-          className="mt-5 m-0 text-[1.55rem] leading-tight sm:text-[1.75rem]"
-          style={{ color: INK, fontFamily: BRAND_SERIF }}
-        >
-          {pillar.title}
-        </h2>
-        <p
-          className="mt-4 m-0 text-[0.95rem] leading-[1.8]"
-          style={{ color: MUTED, fontFamily: BRAND_SERIF }}
-        >
-          {pillar.body}
-        </p>
-      </article>
-    </Reveal>
-  )
-}
-
-function ProcessStrip() {
-  return (
-    <section
-      className="relative overflow-hidden py-14 sm:py-16"
-      style={{ backgroundColor: INK }}
-    >
-      <InkTextureBackground soft />
-      <div className="relative z-10 mx-auto w-full max-w-[1320px] px-5 sm:px-8 lg:px-10">
-        <Reveal className="text-center">
-          <Eyebrow light>Our process</Eyebrow>
-          <h2
-            className="mt-4 m-0 text-[clamp(1.8rem,4vw,2.6rem)] uppercase leading-tight"
-            style={{ color: CREAM, fontFamily: DISPLAY }}
-          >
-            Farm to <HeadingAccent light>Fresh Pack</HeadingAccent>
-          </h2>
-        </Reveal>
-
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {PROCESS.map((step, i) => (
-            <Reveal key={step.step} delay={i * 0.08}>
-              <div
-                className="relative h-full rounded-2xl border border-white/10 p-6 backdrop-blur-sm transition hover:border-white/25"
-                style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}
-              >
-                <span
-                  className="text-[2.4rem] leading-none opacity-20"
-                  style={{ color: CREAM, fontFamily: DISPLAY }}
-                  aria-hidden
-                >
-                  {step.step}
-                </span>
-                <h3
-                  className="mt-2 m-0 text-[1.05rem] font-semibold tracking-wide uppercase"
-                  style={{ color: CREAM, fontFamily: SANS }}
-                >
-                  {step.title}
-                </h3>
-                <p
-                  className="mt-3 m-0 text-[0.88rem] leading-relaxed"
-                  style={{ color: MUTED_LIGHT, fontFamily: BRAND_SERIF }}
-                >
-                  {step.detail}
-                </p>
-                {i < PROCESS.length - 1 && (
-                  <span
-                    className="pointer-events-none absolute -right-2 top-1/2 hidden h-[1px] w-4 lg:block"
-                    style={{ backgroundColor: 'rgba(242,244,245,0.25)' }}
-                    aria-hidden
-                  />
-                )}
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function CertCard({ cert, index }: { cert: (typeof CERTIFICATIONS)[number]; index: number }) {
-  const [hovered, setHovered] = useState(false)
-
-  return (
-    <Reveal delay={index * 0.12}>
-      <motion.article
-        className="group flex h-full flex-col overflow-hidden rounded-3xl border"
-        style={{
-          borderColor: 'rgba(10,46,34,0.1)',
-          backgroundColor: '#fff',
-          boxShadow: '0 24px 50px -32px rgba(10,46,34,0.3)',
-        }}
-        onHoverStart={() => setHovered(true)}
-        onHoverEnd={() => setHovered(false)}
-        whileHover={{ y: -6 }}
-        transition={{ duration: 0.35, ease: EASE }}
-      >
-        <div
-          className="relative flex items-center justify-center overflow-hidden px-6 py-8 sm:py-10"
-          style={{
-            background:
-              'linear-gradient(165deg, rgba(232,240,234,0.9) 0%, rgba(248,249,250,1) 45%, rgba(243,235,224,0.85) 100%)',
-          }}
-        >
-          <motion.img
-            src={cert.src}
-            alt={cert.title}
-            className="relative z-[1] max-h-[220px] w-auto max-w-full object-contain drop-shadow-lg sm:max-h-[260px]"
-            loading="lazy"
-            animate={{ scale: hovered ? 1.06 : 1, y: hovered ? -8 : 0 }}
-            transition={{ duration: 0.4, ease: EASE }}
-          />
-          <div
-            aria-hidden
-            className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-            style={{
-              background:
-                'radial-gradient(ellipse 60% 50% at 50% 60%, rgba(10,46,34,0.06) 0%, transparent 70%)',
-            }}
-          />
-        </div>
-        <div className="flex flex-1 flex-col p-6 sm:p-7">
-          <Eyebrow>{cert.eyebrow}</Eyebrow>
-          <h3
-            className="mt-3 m-0 text-[1.25rem] leading-snug sm:text-[1.35rem]"
-            style={{ color: INK, fontFamily: BRAND_SERIF }}
-          >
-            {cert.title}
-          </h3>
-          <p
-            className="mt-3 m-0 flex-1 text-[0.9rem] leading-[1.75]"
-            style={{ color: MUTED, fontFamily: BRAND_SERIF }}
-          >
-            {cert.body}
-          </p>
-        </div>
-      </motion.article>
-    </Reveal>
-  )
-}
-
-function LicenceCard({ item }: { item: (typeof LICENCES)[number] }) {
-  return (
-    <figure className="know-licence-card shrink-0 snap-center transition-transform duration-300 ease-out hover:-translate-y-2">
-      <div
-        className="overflow-hidden rounded-2xl border p-2"
-        style={{
-          borderColor: 'rgba(242,244,245,0.18)',
-          backgroundColor: 'rgba(255,255,255,0.04)',
-          boxShadow: '0 20px 40px -24px rgba(0,0,0,0.5)',
-        }}
-      >
-        <div className="overflow-hidden rounded-xl" style={{ backgroundColor: CREAM }}>
-          <img
-            src={item.src}
-            alt={item.title}
-            className="block aspect-[3/4] w-[220px] object-cover object-top sm:w-[240px]"
-            loading="lazy"
-          />
-        </div>
-      </div>
-      <figcaption className="mt-4 max-w-[240px]">
-        <h3
-          className="m-0 text-[1rem] leading-snug"
-          style={{ color: CREAM, fontFamily: BRAND_SERIF }}
-        >
-          {item.title}
-        </h3>
-        <p
-          className="mt-2 m-0 text-[0.82rem] leading-relaxed"
-          style={{ color: MUTED_LIGHT, fontFamily: BRAND_SERIF }}
-        >
-          {item.caption}
-        </p>
-      </figcaption>
-    </figure>
-  )
-}
-
 export default function KnowMorePage() {
   useEffect(() => {
     scrollAppToTop(true)
@@ -636,391 +245,437 @@ export default function KnowMorePage() {
   }, [])
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: CREAM, fontFamily: SANS }}>
+    <div className="min-h-screen" style={{ backgroundColor: CREAM, fontFamily: BRAND_SANS, color: INK }}>
       <Navbar />
 
-      <motion.main
-        className="min-h-screen"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.55, ease: EASE }}
-      >
-      <KnowMoreHero />
-
-      <div>
-      {/* Pillars */}
-      <section className="relative py-16 sm:py-20">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-60"
+      <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, ease: EASE }}>
+        {/* Hero intro */}
+        <section
           style={{
-            background:
-              'radial-gradient(ellipse 70% 50% at 50% 0%, rgba(232,240,234,0.9) 0%, transparent 60%)',
+            backgroundColor: CREAM_DEEP,
+            paddingTop: 'calc(4.75rem + env(safe-area-inset-top, 0px))',
           }}
-        />
-        <div className="relative mx-auto w-full max-w-[1320px] px-5 sm:px-8 lg:px-10">
-          <Reveal className="mb-10 max-w-2xl">
-            <Eyebrow>Our roots</Eyebrow>
-            <h2
-              className="mt-4 m-0 text-[clamp(2rem,5vw,3rem)] leading-tight uppercase"
-              style={{ color: INK, fontFamily: DISPLAY }}
-            >
-              Crafted with <HeadingAccent>Purpose</HeadingAccent>
-            </h2>
-          </Reveal>
-          <div className="grid gap-6 md:grid-cols-2 md:gap-8">
-            {PILLARS.map((p, i) => (
-              <PillarCard key={p.title} pillar={p} index={i} />
-            ))}
-          </div>
-        </div>
-      </section>
+        >
+          <div className="mx-auto max-w-[1320px] px-5 py-12 sm:px-8 lg:px-10 lg:py-16">
+            <BackToHomeButton className="mb-8" />
 
-      <ProcessStrip />
-
-      {/* Certifications */}
-      <section className="py-16 sm:py-20">
-        <div className="mx-auto w-full max-w-[1320px] px-5 sm:px-8 lg:px-10">
-          <Reveal className="mx-auto max-w-2xl text-center">
-            <Eyebrow>Certifications</Eyebrow>
-            <h2
-              className="mt-4 m-0 text-[clamp(2rem,5vw,3rem)] uppercase leading-tight"
-              style={{ color: INK, fontFamily: DISPLAY }}
-            >
-              Official <HeadingAccent>Credentials</HeadingAccent>
-            </h2>
-            <p
-              className="mt-4 m-0 text-[1rem] leading-[1.75]"
-              style={{ color: MUTED, fontFamily: BRAND_SERIF }}
-            >
-              WHO-GMP, Importer-Exporter Code, and MSME registration that stand behind every Tasneem
-              Mukhwas pack.
-            </p>
-          </Reveal>
-
-          <div className="mt-12 grid gap-7 md:grid-cols-3">
-            {CERTIFICATIONS.map((cert, i) => (
-              <CertCard key={cert.title} cert={cert} index={i} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Recognition — horizontal gallery on dark band */}
-      <section
-        className="relative isolate overflow-hidden py-16 sm:py-20"
-        style={{ backgroundColor: INK }}
-      >
-        <InkTextureBackground />
-        <div className="relative z-10 mx-auto w-full max-w-[1320px] px-5 sm:px-8 lg:px-10">
-          <Reveal>
-            <Eyebrow light>Recognition</Eyebrow>
-            <h2
-              className="mt-4 m-0 text-[clamp(2rem,5vw,3rem)] uppercase leading-tight"
-              style={{ color: CREAM, fontFamily: DISPLAY }}
-            >
-              Licences & <HeadingAccent light>Excellence</HeadingAccent>
-            </h2>
-            <p
-              className="mt-4 m-0 max-w-2xl text-[1rem] leading-[1.75]"
-              style={{ color: MUTED_LIGHT, fontFamily: BRAND_SERIF }}
-            >
-              Exhibition certificates and industry honours from our journey as a trusted food brand.
-            </p>
-
-            <div className="know-licence-scroll mt-12 flex gap-8 overflow-x-auto pb-4 snap-x snap-mandatory">
-              {LICENCES.map((item) => (
-                <LicenceCard key={item.title} item={item} />
-              ))}
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* Company */}
-      <section className="py-16 sm:py-20">
-        <div className="mx-auto w-full max-w-[1320px] px-5 sm:px-8 lg:px-10">
-          <div
-            className="overflow-hidden rounded-[2rem] border"
-            style={{
-              borderColor: 'rgba(10,46,34,0.12)',
-              backgroundColor: '#fff',
-              boxShadow: '0 32px 70px -40px rgba(10,46,34,0.35)',
-            }}
-          >
-            <div className="grid min-w-0 lg:grid-cols-[1fr_1.1fr]">
-              <div className="relative min-h-[280px] lg:min-h-[420px]">
-                <img
-                  src={INGREDIENTS_BG}
-                  alt="Mukhwas ingredients"
-                  className="absolute inset-0 h-full w-full object-cover"
-                  loading="lazy"
-                />
-                <img
-                  src={BRAND_TEXTURE}
-                  alt=""
-                  aria-hidden
-                  className="absolute inset-0 h-full w-full object-cover brightness-[0.88] saturate-[0.92]"
-                />
+            <div className="grid items-start gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
+              <Reveal>
+                <h1
+                  className="m-0 text-[clamp(2rem,5vw,3.25rem)] leading-[1.08] tracking-[-0.02em]"
+                  style={{ fontFamily: BRAND_SERIF, color: INK }}
+                >
+                  Welcome to Tasneem Mukhwas
+                </h1>
                 <div
-                  aria-hidden
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      'linear-gradient(135deg, rgba(10,46,34,0.78) 0%, rgba(10,46,34,0.48) 55%, rgba(10,46,34,0.28) 100%)',
-                  }}
-                />
-                <div className="relative z-10 flex h-full flex-col justify-end p-8 sm:p-10">
-                  <img
-                    src={BRAND_LOGO_SRC}
-                    alt="Tasneem Mukhwas"
-                    className="h-16 w-auto object-contain sm:h-20"
-                  />
-                  <p
-                    className="mt-4 m-0 text-[0.72rem] font-semibold tracking-[0.2em] uppercase"
-                    style={{ color: EYEBROW_LIGHT }}
-                  >
-                    Chhapi facility
+                  className="mt-6 max-w-xl space-y-5 text-[0.98rem] leading-[1.85] sm:text-[1rem]"
+                  style={{ color: MUTED, fontFamily: BRAND_SANS }}
+                >
+                  <p className="m-0">
+                    At <strong style={{ color: INK, fontWeight: 600 }}>Tasneem Mukhwas</strong>, we believe
+                    that a meal is best completed with the perfect touch of flavour. We are a dedicated
+                    manufacturer of quality <strong style={{ color: INK, fontWeight: 600 }}>mukhwas</strong>,
+                    offering a wide range of traditional and delicious mouth-freshening products crafted with
+                    carefully selected ingredients.
+                  </p>
+                  <p className="m-0">
+                    Our focus is on{' '}
+                    <strong style={{ color: INK, fontWeight: 600 }}>
+                      quality, hygiene, authentic taste, and consistent production
+                    </strong>
+                    . From traditional favourites to innovative flavour combinations, every Tasneem Mukhwas
+                    product is prepared with care to deliver a refreshing and enjoyable experience after
+                    every meal.
+                  </p>
+                  <p className="m-0">
+                    With our own production capabilities and commitment to quality, we aim to bring the
+                    authentic taste of Indian mukhwas to customers across India and global markets.
+                  </p>
+                  <p className="m-0 font-semibold" style={{ color: INK, fontFamily: BRAND_SERIF }}>
+                    Tasneem Mukhwas — Tradition in Every Bite, Quality in Every Pack.
                   </p>
                 </div>
-              </div>
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <PrimaryButton onClick={() => navigateApp(APP_ROUTES.shop)}>Explore products</PrimaryButton>
+                  <PrimaryButton dark={false} onClick={() => navigateApp(APP_ROUTES.wholesale)}>
+                    Partner with us
+                  </PrimaryButton>
+                </div>
+              </Reveal>
 
-              <div className="min-w-0 p-8 sm:p-10 lg:p-12">
-                <Reveal>
-                  <Eyebrow>Our company</Eyebrow>
-                  <h2
-                    className="mt-4 m-0 text-[clamp(1.8rem,4vw,2.5rem)] uppercase leading-tight"
-                    style={{ color: INK, fontFamily: DISPLAY }}
+              <Reveal delay={0.1}>
+                <div className="overflow-hidden" style={{ backgroundColor: CREAM_LIGHT }}>
+                  <img src={HERO_IMG} alt="Tasneem Mukhwas pouches" className="block aspect-[5/4] w-full object-cover" />
+                </div>
+              </Reveal>
+            </div>
+          </div>
+        </section>
+
+        {/* Leadership — directly below intro */}
+        <section style={{ backgroundColor: CREAM }}>
+          <div className="mx-auto grid max-w-[1320px] items-center gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[minmax(240px,300px)_1fr] lg:px-10 lg:py-20">
+            <Reveal>
+              <img
+                src={FOUNDER_PORTRAIT}
+                alt="A Y Patel"
+                className="block aspect-[4/5] w-full max-w-[300px] object-cover object-top"
+                style={{ backgroundColor: CREAM_LIGHT }}
+                loading="lazy"
+              />
+            </Reveal>
+            <Reveal delay={0.08}>
+              <p className="m-0 text-[0.62rem] font-bold tracking-[0.2em] uppercase" style={{ color: 'rgba(10,46,34,0.45)' }}>
+                Leadership
+              </p>
+              <h2
+                className="mt-3 m-0 text-[clamp(1.85rem,3.8vw,2.65rem)] leading-tight"
+                style={{ fontFamily: BRAND_SERIF, color: INK }}
+              >
+                A Y Patel
+              </h2>
+              <p className="mt-2 m-0 text-[0.72rem] font-semibold tracking-[0.14em] uppercase" style={{ color: 'rgba(10,46,34,0.45)' }}>
+                Abidali Yarbhai Patel · Founder
+              </p>
+              <p className="mt-5 m-0 max-w-2xl text-[0.95rem] leading-[1.85]" style={{ color: MUTED, fontFamily: BRAND_SANS }}>
+                Abidali Yarbhai Patel founded Tasneem Mukhwas to bring hygienic, traditional mouth fresheners
+                to modern shelves — balancing family recipes with certified manufacturing and wholesale reach.
+              </p>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* Our Services — 3 column cards */}
+        <section style={{ backgroundColor: CREAM_LIGHT }}>
+          <div className="mx-auto max-w-[1320px] px-5 py-14 sm:px-8 lg:px-10 lg:py-20">
+            <Reveal className="mb-12">
+              <SectionHeader
+                title="Our services"
+                description="End-to-end mukhwas supply — from sealed retail packs to bulk dispatch, private-label guidance, and export-ready fulfilment from Chhapi."
+              />
+            </Reveal>
+
+            <div className="grid gap-6 md:grid-cols-3">
+              {OUR_SERVICES.map((item, i) => (
+                <Reveal key={item.title} delay={i * 0.08}>
+                  <article
+                    className="h-full p-7 sm:p-8"
+                    style={{ backgroundColor: CREAM }}
                   >
-                    Tasneem Mukhwas
-                  </h2>
-                  <p
-                    className="mt-5 m-0 text-[0.98rem] leading-[1.8]"
-                    style={{ color: MUTED, fontFamily: BRAND_SERIF }}
-                  >
-                    Tasneem Mukhwas is the manufacturing house behind our signature lines such as
-                    Master Paan and Patel Mukhwas. From our Chhapi facility we handle sourcing,
-                    blending, hygienic packing, and bulk dispatch for retail and HORECA partners.
-                  </p>
+                    <span className="text-[1.1rem]" style={{ color: GOLD }} aria-hidden>
+                      {item.icon}
+                    </span>
+                    <p
+                      className="mt-4 m-0 text-[0.62rem] font-bold tracking-[0.2em] uppercase"
+                      style={{ color: 'rgba(10,46,34,0.45)' }}
+                    >
+                      {item.tag}
+                    </p>
+                    <h3
+                      className="mt-2 m-0 text-[1.35rem] leading-snug"
+                      style={{ fontFamily: BRAND_SERIF, color: INK }}
+                    >
+                      {item.title}
+                    </h3>
+                    <p className="mt-3 m-0 text-[0.9rem] leading-[1.75]" style={{ color: MUTED }}>
+                      {item.body}
+                    </p>
+                  </article>
                 </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
 
-                <div className="mt-8 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Service grid 2×2 with images */}
+        <section style={{ backgroundColor: CREAM }}>
+          <div className="mx-auto max-w-[1320px] px-5 pb-14 sm:px-8 lg:px-10 lg:pb-20">
+            <div className="grid gap-5 sm:grid-cols-2">
+              {SERVICE_GRID.map((item, i) => (
+                <Reveal key={item.title} delay={i * 0.06}>
+                  <button
+                    type="button"
+                    onClick={() => navigateApp(item.href)}
+                    className="group w-full cursor-pointer overflow-hidden border-0 p-0 text-left"
+                    style={{ backgroundColor: CREAM_LIGHT }}
+                  >
+                    <div className="overflow-hidden">
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="block aspect-[16/10] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="p-6 sm:p-7">
+                      <p
+                        className="m-0 text-[0.62rem] font-bold tracking-[0.2em] uppercase"
+                        style={{ color: 'rgba(10,46,34,0.45)' }}
+                      >
+                        {item.label}
+                      </p>
+                      <h3
+                        className="mt-2 m-0 text-[1.25rem] leading-snug"
+                        style={{ fontFamily: BRAND_SERIF, color: INK }}
+                      >
+                        {item.title}
+                      </h3>
+                      <span
+                        className="mt-4 inline-block text-[0.72rem] font-semibold tracking-[0.12em] uppercase underline-offset-4 group-hover:underline"
+                        style={{ color: INK }}
+                      >
+                        Learn more →
+                      </span>
+                    </div>
+                  </button>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Why Choose Us — stats over image */}
+        <section className="relative overflow-hidden" style={{ backgroundColor: CREAM_DEEP }}>
+          <div className="relative min-h-[420px] sm:min-h-[480px]">
+            <img
+              src={INGREDIENTS_IMG}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+              aria-hidden
+            />
+            <div
+              className="absolute inset-0"
+              style={{ background: 'linear-gradient(180deg, rgba(230,216,195,0.55) 0%, rgba(10,46,34,0.72) 100%)' }}
+              aria-hidden
+            />
+
+            <div className="relative z-10 mx-auto max-w-[1320px] px-5 py-14 sm:px-8 lg:px-10 lg:py-20">
+              <Reveal>
+                <SectionHeader
+                  light
+                  title="Why choose us"
+                  description="A family craft scaled with certified hygiene, consistent recipes, and partners who rely on us for everyday freshness."
+                />
+              </Reveal>
+
+              <div className="mt-14 grid grid-cols-2 gap-8 border-t border-white/20 pt-10 md:grid-cols-4">
+                {WHY_STATS.map((stat, i) => (
+                  <Reveal key={stat.label} delay={i * 0.07}>
+                    <p
+                      className="m-0 text-[clamp(2rem,5vw,3rem)] leading-none"
+                      style={{ color: CREAM_LIGHT, fontFamily: BRAND_SERIF }}
+                    >
+                      {stat.kind === 'count' ? (
+                        <CountUpStat to={stat.to} suffix={stat.suffix} delay={0.15 + i * 0.08} />
+                      ) : (
+                        stat.value
+                      )}
+                    </p>
+                    <p
+                      className="mt-2 m-0 text-[0.72rem] leading-snug tracking-wide"
+                      style={{ color: 'rgba(255,254,242,0.72)' }}
+                    >
+                      {stat.label}
+                    </p>
+                  </Reveal>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Why choose us — split feature */}
+        <section style={{ backgroundColor: CREAM_LIGHT }}>
+          <div className="mx-auto grid max-w-[1320px] lg:grid-cols-2">
+            <Reveal>
+              <img
+                src="/Mukhwas_pouches_on_wooden_table_202608251630.jpeg"
+                alt="Mukhwas production"
+                className="block h-full min-h-[320px] w-full object-cover"
+                loading="lazy"
+              />
+            </Reveal>
+            <Reveal delay={0.08}>
+              <div className="flex flex-col justify-center p-8 sm:p-10 lg:p-14" style={{ backgroundColor: CREAM_DEEP }}>
+              <h3
+                className="m-0 text-[clamp(1.75rem,3.5vw,2.5rem)] leading-tight"
+                style={{ fontFamily: BRAND_SERIF, color: INK }}
+              >
+                Quality you can taste in every pinch
+              </h3>
+              <ul className="mt-6 m-0 flex list-none flex-col gap-4 p-0">
+                {WHY_POINTS.map((point) => (
+                  <li
+                    key={point}
+                    className="flex gap-3 text-[0.92rem] leading-[1.75]"
+                    style={{ color: MUTED }}
+                  >
+                    <span className="mt-2 inline-block h-1.5 w-1.5 shrink-0 rotate-45" style={{ backgroundColor: GOLD }} aria-hidden />
+                    {point}
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-8">
+                <PrimaryButton onClick={() => navigateApp(APP_ROUTES.wholesale)}>Become a partner</PrimaryButton>
+              </div>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* Certifications */}
+        <section style={{ backgroundColor: CREAM }}>
+          <div className="mx-auto max-w-[1320px] px-5 py-14 sm:px-8 lg:px-10 lg:py-20">
+            <Reveal className="mb-12">
+              <SectionHeader
+                title="Official credentials"
+                description="WHO-GMP, Importer-Exporter Code, and MSME registration standing behind every Tasneem Mukhwas pack."
+              />
+            </Reveal>
+
+            <div className="grid gap-6 lg:grid-cols-3">
+              {CERTIFICATIONS.map((cert, i) => (
+                <Reveal key={cert.title} delay={i * 0.08} className="h-full">
+                  <article className="flex h-full flex-col" style={{ backgroundColor: CREAM_LIGHT }}>
+                    <div
+                      className="flex h-[280px] shrink-0 items-center justify-center px-5 py-8"
+                      style={{ backgroundColor: CREAM_DEEP }}
+                    >
+                      <img
+                        src={cert.src}
+                        alt={cert.title}
+                        className="max-h-[220px] w-auto max-w-full object-contain"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="flex flex-1 flex-col p-6">
+                      <p className="m-0 text-[0.62rem] font-bold tracking-[0.18em] uppercase" style={{ color: 'rgba(10,46,34,0.45)' }}>
+                        {cert.eyebrow}
+                      </p>
+                      <h3 className="mt-2 m-0 text-[1.15rem]" style={{ fontFamily: BRAND_SERIF, color: INK }}>
+                        {cert.title}
+                      </h3>
+                      <p className="mt-3 m-0 flex-1 text-[0.88rem] leading-[1.75]" style={{ color: MUTED }}>
+                        {cert.body}
+                      </p>
+                    </div>
+                  </article>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Licences scroll */}
+        <section style={{ backgroundColor: CREAM_DEEP }}>
+          <div className="mx-auto max-w-[1320px] px-5 py-14 sm:px-8 lg:px-10 lg:py-20">
+            <Reveal className="mb-10">
+              <SectionHeader
+                title="Licences & excellence"
+                description="Exhibition certificates and industry honours from trade fairs and hospitality circles across Gujarat."
+              />
+            </Reveal>
+
+            <div className="know-licence-scroll flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4">
+              {LICENCES.map((item) => (
+                <figure key={item.title} className="shrink-0 snap-center">
+                  <div className="overflow-hidden p-2" style={{ backgroundColor: CREAM_LIGHT }}>
+                    <img
+                      src={item.src}
+                      alt={item.title}
+                      className="block aspect-[3/4] w-[210px] object-cover object-top sm:w-[230px]"
+                      loading="lazy"
+                    />
+                  </div>
+                  <figcaption className="mt-3 max-w-[230px]">
+                    <h3 className="m-0 text-[1rem]" style={{ fontFamily: BRAND_SERIF, color: INK }}>
+                      {item.title}
+                    </h3>
+                    <p className="mt-2 m-0 text-[0.82rem] leading-relaxed" style={{ color: MUTED }}>
+                      {item.caption}
+                    </p>
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Company + contact */}
+        <section style={{ backgroundColor: CREAM_LIGHT }}>
+          <div className="mx-auto max-w-[1320px] px-5 py-14 sm:px-8 lg:px-10 lg:py-20">
+            <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+              <Reveal>
+                <img src={BRAND_LOGO_SRC} alt="Tasneem Mukhwas" className="h-16 w-auto object-contain sm:h-20" />
+                <h3
+                  className="mt-6 m-0 text-[clamp(1.75rem,3vw,2.25rem)] leading-tight"
+                  style={{ fontFamily: BRAND_SERIF, color: INK }}
+                >
+                  Tasneem Mukhwas
+                </h3>
+                <p className="mt-4 m-0 max-w-lg text-[0.95rem] leading-[1.8]" style={{ color: MUTED }}>
+                  The manufacturing house behind Master Paan, Patel Mukhwas, and our signature retail lines.
+                  Sourcing, blending, hygienic packing, and bulk dispatch from Chhapi.
+                </p>
+              </Reveal>
+
+              <Reveal delay={0.08}>
+                <div className="grid gap-4 sm:grid-cols-2">
                   {[
                     { label: 'Address', value: CONTACT_ADDRESS },
                     { label: 'Phone', value: CONTACT_PHONE_DISPLAY },
                     { label: 'Email', value: CONTACT_EMAIL },
-                  ].map((row, i) => (
-                    <Reveal key={row.label} delay={i * 0.08} className="min-w-0">
-                      <div
-                        className="h-full min-w-0 overflow-hidden rounded-xl border p-4"
-                        style={{
-                          borderColor: 'rgba(10,46,34,0.1)',
-                          backgroundColor: 'rgba(248,249,250,0.85)',
-                        }}
-                      >
-                        <p
-                          className="m-0 text-[0.62rem] font-semibold tracking-[0.14em] uppercase"
-                          style={{ color: EYEBROW_DARK }}
-                        >
-                          {row.label}
-                        </p>
-                        <p
-                          className="mt-2 m-0 break-words text-[0.85rem] leading-relaxed [overflow-wrap:anywhere]"
-                          style={{ color: MUTED, fontFamily: BRAND_SERIF }}
-                        >
-                          {row.value}
-                        </p>
-                      </div>
-                    </Reveal>
+                  ].map((row) => (
+                    <div
+                      key={row.label}
+                      className="p-5 sm:col-span-2 sm:last:col-span-1"
+                      style={{ backgroundColor: CREAM }}
+                    >
+                      <p className="m-0 text-[0.62rem] font-bold tracking-[0.16em] uppercase" style={{ color: 'rgba(10,46,34,0.45)' }}>
+                        {row.label}
+                      </p>
+                      <p className="mt-2 m-0 break-words text-[0.85rem] leading-relaxed [overflow-wrap:anywhere]" style={{ color: MUTED, fontFamily: BRAND_SERIF }}>
+                        {row.value}
+                      </p>
+                    </div>
                   ))}
                 </div>
-              </div>
+              </Reveal>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Exhibition */}
-      <section
-        className="relative py-16 sm:py-20"
-        style={{ backgroundColor: 'rgba(232,240,234,0.45)' }}
-      >
-        <div className="mx-auto w-full max-w-[1320px] px-5 sm:px-8 lg:px-10">
-          <Reveal className="max-w-2xl">
-            <Eyebrow>Our exhibition</Eyebrow>
+        {/* CTA banner */}
+        <section style={{ backgroundColor: CREAM_DEEP }}>
+          <div className="mx-auto flex max-w-[1320px] flex-col items-start justify-between gap-6 px-5 py-12 sm:px-8 sm:flex-row sm:items-center lg:px-10 lg:py-14">
             <h2
-              className="mt-4 m-0 text-[clamp(2rem,5vw,3rem)] uppercase leading-tight"
-              style={{ color: INK, fontFamily: DISPLAY }}
+              className="m-0 max-w-xl text-[clamp(1.75rem,4vw,2.75rem)] leading-tight"
+              style={{ fontFamily: BRAND_SERIF, color: INK }}
             >
-              Moments on the <HeadingAccent>Floor</HeadingAccent>
+              Ready to taste the tradition?
             </h2>
-            <p
-              className="mt-4 m-0 text-[1rem] leading-[1.75]"
-              style={{ color: MUTED, fontFamily: BRAND_SERIF }}
-            >
-              Trade-fair and hospitality showcases connecting our craft with buyers nationwide.
-            </p>
-          </Reveal>
-
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {EXHIBITION.map((item, i) => (
-              <Reveal key={item.title} delay={i * 0.1}>
-                <article
-                  className="group overflow-hidden rounded-2xl border transition hover:-translate-y-1"
-                  style={{
-                    borderColor: 'rgba(10,46,34,0.1)',
-                    backgroundColor: '#fff',
-                    boxShadow: '0 20px 44px -30px rgba(10,46,34,0.28)',
-                  }}
-                >
-                  <div className="overflow-hidden" style={{ backgroundColor: CREAM }}>
-                    <img
-                      src={item.src}
-                      alt={item.title}
-                      className="block aspect-[4/3] w-full object-contain p-6 transition duration-500 group-hover:scale-105"
-                      loading="lazy"
-                    />
-                  </div>
-                  <div className="p-6">
-                    <h3
-                      className="m-0 text-[1.15rem] leading-snug"
-                      style={{ color: INK, fontFamily: BRAND_SERIF }}
-                    >
-                      {item.title}
-                    </h3>
-                    <p
-                      className="mt-3 m-0 text-[0.9rem] leading-[1.75]"
-                      style={{ color: MUTED, fontFamily: BRAND_SERIF }}
-                    >
-                      {item.blurb}
-                    </p>
-                  </div>
-                </article>
-              </Reveal>
-            ))}
+            <PrimaryButton onClick={() => navigateApp(APP_ROUTES.shop)}>Shop mukhwas</PrimaryButton>
           </div>
-        </div>
-      </section>
-
-      {/* Founder */}
-      <section className="relative overflow-hidden py-16 sm:py-20" style={{ backgroundColor: INK }}>
-        <InkTextureBackground />
-        <div className="relative z-10 mx-auto w-full max-w-[1320px] px-5 sm:px-8 lg:px-10">
-          <div className="grid items-center gap-12 lg:grid-cols-[340px_1fr] lg:gap-16">
-            <Reveal y={20}>
-              <div className="relative mx-auto max-w-[300px] lg:mx-0">
-                <div
-                  aria-hidden
-                  className="absolute -inset-3 rounded-3xl opacity-40"
-                  style={{
-                    background:
-                      'linear-gradient(135deg, rgba(242,244,245,0.12) 0%, rgba(242,244,245,0.04) 50%, rgba(242,244,245,0.1) 100%)',
-                  }}
-                />
-                <div
-                  className="relative overflow-hidden rounded-2xl border p-1.5"
-                  style={{ borderColor: 'rgba(242,244,245,0.28)', backgroundColor: 'rgba(255,255,255,0.06)' }}
-                >
-                  <img
-                    src={FOUNDER_PORTRAIT}
-                    alt="A Y Patel — founder portrait"
-                    className="block aspect-[4/5] w-full rounded-xl object-cover object-top"
-                    loading="lazy"
-                  />
-                </div>
-              </div>
-            </Reveal>
-
-            <Reveal delay={0.12}>
-              <Eyebrow light>Leadership</Eyebrow>
-              <h2
-                className="mt-4 m-0 text-[clamp(2rem,5vw,3rem)] uppercase leading-tight"
-                style={{ color: CREAM, fontFamily: DISPLAY }}
-              >
-                Meet the <HeadingAccent light>Founder</HeadingAccent>
-              </h2>
-              <p
-                className="mt-2 m-0 text-[0.72rem] font-semibold tracking-[0.18em] uppercase"
-                style={{ color: EYEBROW_LIGHT }}
-              >
-                Abidali Yarbhai Patel
-              </p>
-              <h3
-                className="mt-3 m-0 text-[2rem] leading-tight sm:text-[2.4rem]"
-                style={{ color: CREAM, fontFamily: BRAND_SERIF }}
-              >
-                A Y Patel
-              </h3>
-              <p
-                className="mt-5 m-0 max-w-2xl text-[1rem] leading-[1.85]"
-                style={{ color: MUTED_LIGHT, fontFamily: BRAND_SERIF }}
-              >
-                Abidali Yarbhai Patel founded the Tasneem Mukhwas vision to bring hygienic,
-                traditional mukhwas to modern shelves. Under his guidance the Chhapi unit grew into a
-                multi-brand house — balancing family recipes with certified manufacturing, wholesale
-                reach, and a lasting commitment to purity in every pack.
-              </p>
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-16 sm:py-20">
-        <Reveal className="mx-auto max-w-[1320px] px-5 text-center sm:px-8 lg:px-10">
-          <h2
-            className="m-0 text-[clamp(2rem,5vw,3.2rem)] uppercase leading-tight"
-            style={{ color: INK, fontFamily: DISPLAY }}
-          >
-            Taste the <HeadingAccent>Tradition</HeadingAccent>
-          </h2>
-          <p
-            className="mx-auto mt-4 max-w-lg text-[1rem] leading-relaxed"
-            style={{ color: MUTED, fontFamily: BRAND_SERIF }}
-          >
-            Explore our full range of mukhwas, paan blends, and seed mixes — sealed fresh from
-            Chhapi.
-          </p>
-          <motion.button
-            type="button"
-            onClick={() => navigateApp(APP_ROUTES.shop)}
-            className="mt-8 cursor-pointer rounded-full border-0 px-10 py-4 text-[0.82rem] font-bold tracking-[0.12em] uppercase transition hover:brightness-110"
-            style={{
-              backgroundColor: INK,
-              color: CREAM,
-              fontFamily: SANS,
-              boxShadow: '0 16px 40px -14px rgba(10,46,34,0.45)',
-            }}
-            whileHover={{ scale: 1.04, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            Explore our products
-          </motion.button>
-        </Reveal>
-      </section>
-
-      </div>
+        </section>
+      </motion.main>
 
       <SiteFooter />
 
       <style>{`
         .know-licence-scroll {
           scrollbar-width: thin;
-          scrollbar-color: rgba(242,244,245,0.35) rgba(255,255,255,0.06);
+          scrollbar-color: rgba(10,46,34,0.25) rgba(255,254,242,0.6);
         }
-        .know-licence-scroll::-webkit-scrollbar {
-          height: 6px;
-        }
+        .know-licence-scroll::-webkit-scrollbar { height: 6px; }
         .know-licence-scroll::-webkit-scrollbar-track {
-          background: rgba(255,255,255,0.06);
+          background: rgba(255,254,242,0.6);
           border-radius: 999px;
         }
         .know-licence-scroll::-webkit-scrollbar-thumb {
-          background: rgba(242,244,245,0.35);
+          background: rgba(10,46,34,0.25);
           border-radius: 999px;
         }
       `}</style>
-      </motion.main>
     </div>
   )
 }

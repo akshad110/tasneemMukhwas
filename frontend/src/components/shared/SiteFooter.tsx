@@ -1,46 +1,53 @@
 import { motion } from 'framer-motion'
-import { useLenis } from 'lenis/react'
 import type { MouseEvent, ReactNode } from 'react'
 import {
-  CONTACT_ADDRESS,
   CONTACT_EMAIL,
   CONTACT_PHONE_DISPLAY,
   CONTACT_PHONE_TEL,
-  WHATSAPP_URL,
 } from '../../lib/contact'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
-import { scrollToSection, type SectionId } from '../../lib/sectionNav'
 import BrandLogo from './BrandLogo'
+import {
+  BRAND_CREAM,
+  BRAND_CREAM_DEEP,
+  BRAND_CREAM_LIGHT,
+  BRAND_GOLD,
+  BRAND_INK,
+  BRAND_MUTED,
+  BRAND_SANS,
+} from '../../lib/brand'
 
-const INK = '#0a2e22'
-const CREAM = '#f2f4f5'
-const GOLD = '#b8860b'
-const TEXTURE = '/image.png_2K_202608092240.jpeg'
-const MUTED = 'rgba(242,244,245,0.62)'
+const INK = BRAND_INK
+const CREAM = BRAND_CREAM
+const CREAM_LIGHT = BRAND_CREAM_LIGHT
+const CREAM_DEEP = BRAND_CREAM_DEEP
+const GOLD = BRAND_GOLD
+const MUTED = BRAND_MUTED
+const LINE = 'rgba(10,46,34,0.12)'
 
 const ease = [0.22, 1, 0.36, 1] as const
 
-type FooterLink =
-  | { label: string; href: string; section?: undefined }
-  | { label: string; href: string; section: SectionId }
+type FooterLink = {
+  label: string
+  href: string
+  external?: boolean
+}
 
-const NAV_LINKS: FooterLink[] = [
-  { label: 'Home Gateway', href: '/', section: 'home' },
+const COMPANY_LINKS: FooterLink[] = [
   { label: 'About Us', href: APP_ROUTES.knowMore },
-  { label: 'Our Shop', href: APP_ROUTES.shop },
-  { label: 'Wholesale', href: '/wholesale', section: 'wholesale' },
-  { label: 'Contact', href: '/contact', section: 'contact' },
+  { label: 'Terms & Conditions', href: '#terms' },
+  { label: 'Privacy', href: '#privacy' },
+  { label: 'Shipping Policy', href: '#shipping' },
 ]
 
-const SHOP_LINKS: FooterLink[] = [
-  { label: 'Popular Mukhwas', href: '/products', section: 'products' },
-  { label: 'Bulk Orders', href: '/wholesale', section: 'wholesale' },
-  { label: 'Gift Packs', href: '/products', section: 'products' },
-  { label: 'WhatsApp Order', href: WHATSAPP_URL },
+const CONNECT_LINKS: FooterLink[] = [
+  { label: 'Become Distributor', href: APP_ROUTES.wholesale },
+  { label: 'Exhibition', href: '#exhibition' },
+  { label: 'Print Label', href: '#print-label' },
+  { label: 'Our Brochure', href: '#brochure' },
 ]
 
 const TICKER_TEXT = 'Powered by Haidarali , Phone: 8780929056'
-/** Per-segment repeats — enough to fill wide viewports without speeding up the crawl */
 const TICKER_ITEMS = Array.from({ length: 8 }, () => TICKER_TEXT)
 const TICKER_DURATION_S = 120
 
@@ -53,13 +60,13 @@ function TickerSegment({ ariaHidden = false }: { ariaHidden?: boolean }) {
       {TICKER_ITEMS.map((item, i) => (
         <span key={`${item}-${i}`} className="flex items-center gap-10">
           <span
-            className="text-[1rem] tracking-[0.04em] opacity-50 sm:text-[1.15rem]"
-            style={{ color: CREAM, fontFamily: 'Anton, Impact, sans-serif' }}
+            className="text-[1rem] tracking-[0.04em] opacity-70 sm:text-[1.15rem]"
+            style={{ color: INK, fontFamily: 'Anton, Impact, sans-serif' }}
           >
             {item}
           </span>
           <span
-            className="inline-block h-1.5 w-1.5 rotate-45 opacity-35"
+            className="inline-block h-1.5 w-1.5 rotate-45 opacity-50"
             style={{ backgroundColor: GOLD }}
           />
         </span>
@@ -79,20 +86,11 @@ const SOCIALS = [
     ),
   },
   {
-    label: 'WhatsApp',
-    href: WHATSAPP_URL,
+    label: 'Facebook',
+    href: 'https://facebook.com',
     icon: (
       <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden>
-        <path d="M20 3.9A10 10 0 0 0 3.3 17.6L2 22l4.5-1.2A10 10 0 1 0 20 3.9zm-8 16.1a8.1 8.1 0 0 1-4.1-1.1l-.3-.2-2.4.6.6-2.3-.2-.3a8.1 8.1 0 1 1 6.4 3.3zm4.5-5.9c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1-.6.8-.8 1-.3.2-.5.1a6.6 6.6 0 0 1-2-1.2 7.4 7.4 0 0 1-1.4-1.7c-.1-.3 0-.4.1-.5l.4-.4.2-.4c.1-.1 0-.3 0-.4s-.5-1.3-.7-1.7-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.3a2 2 0 0 0-.6 1.5 3.5 3.5 0 0 0 .7 1.8c.1.2 1.3 2.1 3.3 2.9a11 11 0 0 0 1.3.5 3.1 3.1 0 0 0 1.4.1 2.6 2.6 0 0 0 1.7-1.2c.2-.4.2-.7.1-.8z" />
-      </svg>
-    ),
-  },
-  {
-    label: 'YouTube',
-    href: 'https://youtube.com',
-    icon: (
-      <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden>
-        <path d="M23 7.5a3 3 0 0 0-2.1-2.1C19 5 12 5 12 5s-7 0-8.9.4A3 3 0 0 0 1 7.5 31.5 31.5 0 0 0 1 12a31.5 31.5 0 0 0 .1 4.5 3 3 0 0 0 2.1 2.1C5 19 12 19 12 19s7 0 8.9-.4a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 23 12a31.5 31.5 0 0 0 0-4.5zM10 15.5v-7l6 3.5-6 3.5z" />
+        <path d="M13 3h4a1 1 0 0 1 1 1v3h-3.5a1 1 0 0 0-1 1v2.5H18v3h-3.5V21h-4v-6.5H7v-3h3.5V8a4.5 4.5 0 0 1 4.5-4.5z" />
       </svg>
     ),
   },
@@ -128,7 +126,7 @@ function WireMesh() {
             key={i}
             d={d}
             fill="none"
-            stroke={i % 3 === 0 ? 'rgba(184,134,11,0.13)' : 'rgba(242,244,245,0.11)'}
+            stroke={i % 3 === 0 ? 'rgba(184,134,11,0.14)' : 'rgba(10,46,34,0.07)'}
             strokeWidth={0.16}
             vectorEffect="non-scaling-stroke"
           />
@@ -138,24 +136,21 @@ function WireMesh() {
         className="absolute inset-0"
         style={{
           background:
-            'radial-gradient(ellipse 70% 55% at 30% 35%, rgba(184,134,11,0.07) 0%, transparent 55%), linear-gradient(180deg, rgba(10,46,34,0.2) 0%, transparent 42%, rgba(6,28,20,0.58) 100%)',
+            'radial-gradient(ellipse 70% 55% at 30% 35%, rgba(184,134,11,0.06) 0%, transparent 55%), linear-gradient(180deg, rgba(255,254,242,0.35) 0%, transparent 42%, rgba(230,216,195,0.45) 100%)',
         }}
       />
     </div>
   )
 }
 
-function SectionTitle({ children, className = '' }: { children: string; className?: string }) {
+function SectionTitle({ children }: { children: string }) {
   return (
-    <div className={className}>
-      <h3
-        className="m-0 text-[0.72rem] font-bold tracking-[0.14em] uppercase"
-        style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
-      >
-        {children}
-      </h3>
-      <span className="mt-2.5 block h-[2px] w-9 rounded-full" style={{ backgroundColor: GOLD }} />
-    </div>
+    <h3
+      className="m-0 text-[0.72rem] font-bold tracking-[0.14em] uppercase"
+      style={{ color: INK, fontFamily: BRAND_SANS }}
+    >
+      {children}
+    </h3>
   )
 }
 
@@ -164,18 +159,20 @@ function FooterLinkList({
   onNav,
 }: {
   links: FooterLink[]
-  onNav: (e: MouseEvent<HTMLAnchorElement>, href: string, section?: SectionId) => void
+  onNav: (e: MouseEvent<HTMLAnchorElement>, href: string) => void
 }) {
   return (
-    <ul className="m-0 flex list-none flex-col gap-3.5 p-0">
+    <ul className="m-0 mt-4 flex list-none flex-col gap-3 p-0">
       {links.map((link) => (
         <li key={link.label}>
           <a
             href={link.href}
-            onClick={(e) => onNav(e, link.href, link.section)}
-            className="cursor-pointer text-[0.88rem] no-underline transition-opacity hover:opacity-100"
-            style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
-            {...(link.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+            onClick={(e) => onNav(e, link.href)}
+            className="cursor-pointer text-[0.88rem] no-underline transition-colors hover:text-[#0a2e22]"
+            style={{ color: MUTED, fontFamily: BRAND_SANS }}
+            {...(link.external || link.href.startsWith('http')
+              ? { target: '_blank', rel: 'noopener noreferrer' }
+              : {})}
           >
             {link.label}
           </a>
@@ -185,370 +182,143 @@ function FooterLinkList({
   )
 }
 
-function ContactRow({
+function ContactLine({
   icon,
-  title,
   children,
   href,
 }: {
   icon: ReactNode
-  title: string
   children: ReactNode
   href?: string
 }) {
-  const body = (
-    <>
-      <span
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10"
-        style={{ backgroundColor: 'rgba(255,255,255,0.06)', color: GOLD }}
-      >
-        {icon}
-      </span>
-      <span className="min-w-0">
-        <span
-          className="block text-[0.72rem] font-bold tracking-wide uppercase"
-          style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
-        >
-          {title}
-        </span>
-        <span
-          className="mt-1 block text-[0.82rem] leading-snug"
-          style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
-        >
-          {children}
-        </span>
-      </span>
-    </>
+  const className =
+    'mt-3 flex items-center gap-2.5 text-[0.84rem] no-underline transition-colors hover:text-[#0a2e22]'
+  const style = { color: MUTED, fontFamily: BRAND_SANS }
+
+  const iconWrap = (
+    <span
+      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border"
+      style={{ color: GOLD, backgroundColor: CREAM_LIGHT, borderColor: LINE }}
+    >
+      {icon}
+    </span>
   )
 
   if (href) {
     return (
-      <a
-        href={href}
-        className="flex gap-3 no-underline transition-opacity hover:opacity-90"
-        {...(href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-      >
-        {body}
+      <a href={href} className={className} style={style}>
+        {iconWrap}
+        {children}
       </a>
     )
   }
 
-  return <div className="flex gap-3">{body}</div>
+  return (
+    <div className={className} style={style}>
+      {iconWrap}
+      {children}
+    </div>
+  )
 }
 
 export default function SiteFooter() {
-  const lenis = useLenis()
-
-  const onFooterNav = (
-    e: MouseEvent<HTMLAnchorElement>,
-    href: string,
-    section?: SectionId,
-  ) => {
-    if (href.startsWith('http')) return
+  const onFooterNav = (e: MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith('http') || href.startsWith('#')) return
     e.preventDefault()
-    if (href === APP_ROUTES.knowMore || href === APP_ROUTES.shop || href === APP_ROUTES.wholesale || href === APP_ROUTES.contact) {
-      navigateApp(href)
-      return
-    }
-    if (section) scrollToSection(section, lenis)
+    navigateApp(href)
   }
 
   return (
     <footer
-      className="relative w-full overflow-hidden"
-      style={{ backgroundColor: INK }}
+      className="relative w-full overflow-hidden border-t"
+      style={{ backgroundColor: CREAM, borderColor: LINE }}
       aria-label="Site footer"
     >
-      <div className="pointer-events-none absolute inset-0 z-0">
-        <img
-          src={TEXTURE}
-          alt=""
-          aria-hidden
-          className="absolute inset-0 h-full w-full object-cover brightness-[0.88] saturate-[0.92]"
-        />
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background:
-              'linear-gradient(180deg, rgba(10,46,34,0.62) 0%, rgba(10,46,34,0.42) 28%, rgba(10,46,34,0.58) 62%, rgba(6,28,20,0.9) 100%)',
-          }}
-        />
-      </div>
-
       <WireMesh />
 
-      <motion.div
-        className="relative z-10 w-full border-b border-white/10 backdrop-blur-md"
-        style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}
-        initial={{ opacity: 0, y: 12 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: false, amount: 0.5 }}
-        transition={{ duration: 0.5, ease }}
-      >
-        <div className="flex w-full flex-wrap items-center justify-between gap-3 px-5 py-3.5 sm:px-8 lg:px-10">
-          <div className="flex items-center gap-2.5">
-            <span
-              className="inline-block h-1.5 w-1.5 rounded-full shadow-[0_0_10px_rgba(184,134,11,0.7)]"
-              style={{ backgroundColor: GOLD }}
-            />
-            <span
-              className="text-[0.62rem] font-semibold tracking-[0.18em] uppercase"
-              style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
-            >
-              Fresh Batch Online
-            </span>
-          </div>
-          <span
-            className="text-[0.62rem] tracking-[0.16em] uppercase opacity-55"
-            style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
-          >
-            India · FSSAI Aligned · Dispatch Ready
-          </span>
-        </div>
-      </motion.div>
-
       <div className="relative z-10 mx-auto w-full max-w-[1320px] px-5 py-12 sm:px-8 sm:py-14 lg:px-10 lg:py-16">
-        {/* Mobile / tablet — stacked columns */}
         <motion.div
-          className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:hidden"
+          className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between lg:gap-12 xl:gap-16"
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: false, amount: 0.2 }}
           transition={{ duration: 0.55, ease }}
         >
-          <div className="sm:col-span-2">
-            <div className="mb-4 flex items-center gap-3">
-              <BrandLogo className="h-12 w-10 object-contain" alt="Tasneem Mukhwas" />
+          <div className="flex shrink-0 items-start justify-center lg:justify-start">
+            <BrandLogo
+              className="h-[clamp(7rem,16vw,10.5rem)] w-auto max-w-[min(100%,14rem)] object-contain"
+              alt="Tasneem Mukhwas"
+            />
+          </div>
+
+          <div className="grid flex-1 grid-cols-1 gap-8 sm:grid-cols-3 sm:gap-6 lg:max-w-3xl lg:gap-10 xl:max-w-none">
+            <div>
+              <SectionTitle>Company</SectionTitle>
+              <FooterLinkList links={COMPANY_LINKS} onNav={onFooterNav} />
             </div>
-            <h2
-              className="m-0 text-[clamp(2.8rem,8vw,4.5rem)] leading-[0.9] tracking-tight uppercase"
-              style={{
-                fontFamily: 'Anton, Impact, sans-serif',
-                backgroundImage:
-                  'linear-gradient(96deg, #f2f4f5 0%, #d4b56a 28%, #f6f7f8 48%, #b8860b 72%, #f2f4f5 100%)',
-                WebkitBackgroundClip: 'text',
-                backgroundClip: 'text',
-                color: 'transparent',
-              }}
-            >
-              Tasneem
-            </h2>
-            <p
-              className="mt-4 m-0 max-w-sm text-[0.88rem] leading-relaxed"
-              style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
-            >
-              Signature mukhwas blends crafted for freshness, tradition, and everyday delight — from
-              farm-picked seeds to hygienic packing at our Chhapi facility.
-            </p>
-            <div className="mt-6 flex items-center gap-2.5">
-              {SOCIALS.map((s) => (
-                <a
-                  key={s.label}
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={s.label}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 no-underline transition hover:border-[rgba(184,134,11,0.45)]"
-                  style={{
-                    color: CREAM,
-                    backgroundColor: 'rgba(255,255,255,0.06)',
-                  }}
-                >
-                  {s.icon}
-                </a>
-              ))}
+
+            <div>
+              <SectionTitle>Connect</SectionTitle>
+              <FooterLinkList links={CONNECT_LINKS} onNav={onFooterNav} />
             </div>
-          </div>
 
-          <div>
-            <SectionTitle className="mb-5">Navigation</SectionTitle>
-            <FooterLinkList links={NAV_LINKS} onNav={onFooterNav} />
-          </div>
-
-          <div>
-            <SectionTitle className="mb-5">Our Range</SectionTitle>
-            <FooterLinkList links={SHOP_LINKS} onNav={onFooterNav} />
-          </div>
-
-          <div className="sm:col-span-2">
-            <SectionTitle className="mb-5">Reach Us</SectionTitle>
-            <div className="grid gap-5 sm:grid-cols-2">
-              <ContactRow
-                title="Communications"
+            <div>
+              <SectionTitle>Socials</SectionTitle>
+              <div className="mt-4 flex items-center gap-2.5">
+                {SOCIALS.map((social) => (
+                  <a
+                    key={social.label}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={social.label}
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border no-underline transition hover:border-[rgba(184,134,11,0.55)]"
+                    style={{
+                      color: INK,
+                      backgroundColor: CREAM_LIGHT,
+                      borderColor: LINE,
+                    }}
+                  >
+                    {social.icon}
+                  </a>
+                ))}
+              </div>
+              <ContactLine
+                href={`tel:${CONTACT_PHONE_TEL}`}
+                icon={
+                  <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+                    <path d="M6.5 4h3l1.5 4-2 1.5a11 11 0 0 0 5 5L17.5 12 21 13.5V17a2 2 0 0 1-2 2A16 16 0 0 1 3 6.5 2 2 0 0 1 5 4.5z" strokeLinecap="round" />
+                  </svg>
+                }
+              >
+                {CONTACT_PHONE_DISPLAY}
+              </ContactLine>
+              <ContactLine
                 href={`mailto:${CONTACT_EMAIL}`}
                 icon={
-                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+                  <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
                     <path d="M4 6h16v12H4z" />
                     <path d="m4 7 8 6 8-6" strokeLinecap="round" />
                   </svg>
                 }
               >
                 {CONTACT_EMAIL}
-              </ContactRow>
-              <ContactRow
-                title="WhatsApp Gateway"
-                href={WHATSAPP_URL}
-                icon={
-                  <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden>
-                    <path d="M20 3.9A10 10 0 0 0 3.3 17.6L2 22l4.5-1.2A10 10 0 1 0 20 3.9z" />
-                  </svg>
-                }
-              >
-                {CONTACT_PHONE_DISPLAY}
-              </ContactRow>
-              <ContactRow
-                title="Voice Line"
-                href={`tel:${CONTACT_PHONE_TEL}`}
-                icon={
-                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
-                    <path d="M6.5 4h3l1.5 4-2 1.5a11 11 0 0 0 5 5L17.5 12 21 13.5V17a2 2 0 0 1-2 2A16 16 0 0 1 3 6.5 2 2 0 0 1 5 4.5z" strokeLinecap="round" />
-                  </svg>
-                }
-              >
-                {CONTACT_PHONE_DISPLAY}
-              </ContactRow>
-              <ContactRow
-                title="Production Hub"
-                icon={
-                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
-                    <path d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11z" />
-                    <circle cx="12" cy="10" r="2.2" />
-                  </svg>
-                }
-              >
-                {CONTACT_ADDRESS}
-              </ContactRow>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Desktop — 4×2 grid: headers on one row, content aligned below */}
-        <motion.div
-          className="hidden lg:grid lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.82fr)_minmax(0,0.82fr)_minmax(0,1.15fr)] lg:gap-x-10 xl:gap-x-14 lg:gap-y-7 lg:items-start"
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: false, amount: 0.2 }}
-          transition={{ duration: 0.55, ease }}
-        >
-          <div className="flex min-w-0 items-start gap-3 self-start">
-            <BrandLogo className="mt-1.5 h-11 w-9 shrink-0 object-contain" alt="Tasneem Mukhwas" />
-            <h2
-              className="m-0 min-w-0 text-[clamp(2.4rem,3.2vw,3.6rem)] leading-[0.92] tracking-tight uppercase"
-              style={{
-                fontFamily: 'Anton, Impact, sans-serif',
-                backgroundImage:
-                  'linear-gradient(96deg, #f2f4f5 0%, #d4b56a 28%, #f6f7f8 48%, #b8860b 72%, #f2f4f5 100%)',
-                WebkitBackgroundClip: 'text',
-                backgroundClip: 'text',
-                color: 'transparent',
-              }}
-            >
-              Tasneem
-            </h2>
-          </div>
-
-          <SectionTitle className="self-start pt-1">Navigation</SectionTitle>
-          <SectionTitle className="self-start pt-1">Our Range</SectionTitle>
-          <SectionTitle className="self-start pt-1">Reach Us</SectionTitle>
-
-          <div className="min-w-0">
-            <p
-              className="m-0 text-[0.88rem] leading-relaxed"
-              style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
-            >
-              Signature mukhwas blends crafted for freshness, tradition, and everyday delight — from
-              farm-picked seeds to hygienic packing at our Chhapi facility.
-            </p>
-            <div className="mt-6 flex items-center gap-2.5">
-              {SOCIALS.map((s) => (
-                <a
-                  key={s.label}
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={s.label}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 no-underline transition hover:border-[rgba(184,134,11,0.45)]"
-                  style={{
-                    color: CREAM,
-                    backgroundColor: 'rgba(255,255,255,0.06)',
-                  }}
-                >
-                  {s.icon}
-                </a>
-              ))}
-            </div>
-          </div>
-
-          <div className="min-w-0">
-            <FooterLinkList links={NAV_LINKS} onNav={onFooterNav} />
-          </div>
-
-          <div className="min-w-0">
-            <FooterLinkList links={SHOP_LINKS} onNav={onFooterNav} />
-          </div>
-
-          <div className="min-w-0">
-            <div className="flex flex-col gap-5">
-              <ContactRow
-                title="Communications"
-                href={`mailto:${CONTACT_EMAIL}`}
-                icon={
-                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
-                    <path d="M4 6h16v12H4z" />
-                    <path d="m4 7 8 6 8-6" strokeLinecap="round" />
-                  </svg>
-                }
-              >
-                {CONTACT_EMAIL}
-              </ContactRow>
-              <ContactRow
-                title="WhatsApp Gateway"
-                href={WHATSAPP_URL}
-                icon={
-                  <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden>
-                    <path d="M20 3.9A10 10 0 0 0 3.3 17.6L2 22l4.5-1.2A10 10 0 1 0 20 3.9z" />
-                  </svg>
-                }
-              >
-                {CONTACT_PHONE_DISPLAY}
-              </ContactRow>
-              <ContactRow
-                title="Voice Line"
-                href={`tel:${CONTACT_PHONE_TEL}`}
-                icon={
-                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
-                    <path d="M6.5 4h3l1.5 4-2 1.5a11 11 0 0 0 5 5L17.5 12 21 13.5V17a2 2 0 0 1-2 2A16 16 0 0 1 3 6.5 2 2 0 0 1 5 4.5z" strokeLinecap="round" />
-                  </svg>
-                }
-              >
-                {CONTACT_PHONE_DISPLAY}
-              </ContactRow>
-              <ContactRow
-                title="Production Hub"
-                icon={
-                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
-                    <path d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11z" />
-                    <circle cx="12" cy="10" r="2.2" />
-                  </svg>
-                }
-              >
-                {CONTACT_ADDRESS}
-              </ContactRow>
+              </ContactLine>
             </div>
           </div>
         </motion.div>
 
         <motion.div
-          className="mt-12 border-t border-white/10 pt-6"
+          className="mt-12 border-t pt-6"
+          style={{ borderColor: LINE }}
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: false, amount: 0.4 }}
           transition={{ duration: 0.45, ease }}
         >
           <p
-            className="m-0 text-[0.72rem] tracking-wide opacity-50"
-            style={{ color: CREAM, fontFamily: 'Inter, sans-serif' }}
+            className="m-0 text-[0.72rem] tracking-wide"
+            style={{ color: MUTED, fontFamily: BRAND_SANS }}
           >
             © {new Date().getFullYear()} Tasneem Mukhwas. All rights reserved.
           </p>
@@ -556,8 +326,8 @@ export default function SiteFooter() {
       </div>
 
       <div
-        className="relative z-10 overflow-x-clip overflow-y-hidden border-t border-white/10"
-        style={{ backgroundColor: 'rgba(4,20,14,0.72)' }}
+        className="relative z-10 overflow-x-clip overflow-y-hidden border-t"
+        style={{ backgroundColor: CREAM_DEEP, borderColor: LINE }}
       >
         <div className="footer-ticker flex w-max">
           <TickerSegment />
@@ -578,7 +348,7 @@ export default function SiteFooter() {
           to { transform: translate3d(-50%, 0, 0); }
         }
         .footer-wire-svg {
-          opacity: 0.85;
+          opacity: 0.75;
           animation: footer-wire-drift 18s ease-in-out infinite alternate;
         }
         .footer-wire-svg path {

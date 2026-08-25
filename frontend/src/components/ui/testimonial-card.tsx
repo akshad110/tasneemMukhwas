@@ -16,6 +16,12 @@ export interface TestimonialCardProps {
   className?: string
 }
 
+const CARD = '#FFFEF2'
+const INK = '#0a2e22'
+const MUTED = 'rgba(10,46,34,0.62)'
+const OUTER_BORDER = '2px solid rgba(184,134,11,0.38)'
+const INNER_BORDER = '1px solid rgba(184,134,11,0.22)'
+
 function RatingStars({ rating }: { rating: number }) {
   const value = Math.max(0, Math.min(5, Math.round(rating)))
   return (
@@ -23,7 +29,8 @@ function RatingStars({ rating }: { rating: number }) {
       {Array.from({ length: 5 }, (_, i) => (
         <Star
           key={i}
-          className={cn('h-3.5 w-3.5', i < value ? 'fill-[#eab308] text-[#eab308]' : 'fill-none text-muted-foreground/35')}
+          className={cn('h-3.5 w-3.5', i < value ? 'fill-[#b8860b] text-[#b8860b]' : 'fill-none')}
+          style={i < value ? undefined : { color: 'rgba(10,46,34,0.18)' }}
           strokeWidth={1.75}
           aria-hidden
         />
@@ -40,31 +47,58 @@ export function TestimonialCard({ author, text, rating = 5, href, className }: T
     <Card
       {...(href ? { href, target: '_blank', rel: 'noopener noreferrer' } : {})}
       className={cn(
-        'flex flex-col rounded-2xl border border-border/60',
-        'bg-gradient-to-b from-card to-muted/30',
-        'p-4 text-start shadow-[0_18px_40px_-28px_rgba(10,46,34,0.35)] sm:p-6',
-        'hover:from-card hover:to-muted/45',
-        'max-w-[320px] sm:max-w-[320px]',
-        'transition-colors duration-300',
+        'flex max-w-[320px] flex-col rounded-[1.05rem] p-[4px] text-start transition-shadow duration-300 sm:max-w-[320px] sm:rounded-[1.25rem] sm:p-[5px]',
+        'hover:shadow-[0_22px_44px_-24px_rgba(10,46,34,0.28)]',
         className,
       )}
+      style={{
+        backgroundColor: CARD,
+        border: OUTER_BORDER,
+        boxShadow: '0 18px 40px -28px rgba(10,46,34,0.18)',
+      }}
     >
-      <div className="flex items-center gap-3">
-        <Avatar className="h-12 w-12 border border-border/50">
-          <AvatarImage src={author.avatar} alt={author.name} />
-          <AvatarFallback className="bg-primary text-primary-foreground text-sm font-semibold">
-            {initial}
-          </AvatarFallback>
-        </Avatar>
-        <div className="min-w-0 flex flex-col items-start">
-          <h3 className="text-md truncate font-semibold leading-none text-foreground">{author.name}</h3>
-          <p className="mt-1 truncate text-sm text-muted-foreground">{author.handle}</p>
+      <div
+        className="flex flex-1 flex-col rounded-[0.9rem] p-4 sm:rounded-[1rem] sm:p-5"
+        style={{
+          backgroundColor: CARD,
+          border: INNER_BORDER,
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <Avatar className="h-12 w-12 border" style={{ borderColor: 'rgba(184,134,11,0.28)' }}>
+            <AvatarImage src={author.avatar} alt={author.name} />
+            <AvatarFallback
+              className="text-sm font-semibold"
+              style={{ backgroundColor: INK, color: '#FFFEF2' }}
+            >
+              {initial}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex min-w-0 flex-col items-start">
+            <h3
+              className="text-md truncate font-semibold leading-none"
+              style={{ color: INK, fontFamily: '"Playfair Display", Georgia, serif' }}
+            >
+              {author.name}
+            </h3>
+            <p
+              className="mt-1 truncate text-sm"
+              style={{ color: MUTED, fontFamily: 'Montserrat, system-ui, sans-serif' }}
+            >
+              {author.handle}
+            </p>
+          </div>
         </div>
+
+        <RatingStars rating={rating} />
+
+        <p
+          className="sm:text-md mt-3 text-sm leading-relaxed"
+          style={{ color: MUTED, fontFamily: 'Montserrat, system-ui, sans-serif' }}
+        >
+          {text}
+        </p>
       </div>
-
-      <RatingStars rating={rating} />
-
-      <p className="sm:text-md mt-3 text-sm leading-relaxed text-muted-foreground">{text}</p>
     </Card>
   )
 }

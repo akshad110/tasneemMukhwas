@@ -15,6 +15,7 @@ export const APP_ROUTES = {
   knowMore: '/know-more',
   wishlist: '/wishlist',
   wholesale: '/wholesale',
+  dealership: '/dealership',
   contact: '/contact',
 } as const
 
@@ -125,7 +126,7 @@ export function isWishlistPath(pathname: string) {
 }
 
 export function isWholesalePath(pathname: string) {
-  return pathname === APP_ROUTES.wholesale
+  return pathname === APP_ROUTES.wholesale || pathname === APP_ROUTES.dealership
 }
 
 export function isContactPath(pathname: string) {

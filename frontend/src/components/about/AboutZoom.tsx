@@ -1,19 +1,20 @@
 import ScrollZoomReveal from '../framer/ScrollZoomReveal.js'
 import LayoutIsland from '../../utils/LayoutIsland'
 import AboutStoryInside from './AboutStoryInside'
+import { BRAND_CREAM, BRAND_CREAM_LIGHT, BRAND_INK } from '../../lib/brand'
 
-const WHITE = '#ffffff'
-const BLACK = '#000000'
 const ABOUT_STORY_BG = encodeURI('/Mukhwas_ingredients_arranged_on_…_202608182142.jpeg')
 
 /**
- * About Us — story content lives INSIDE the scroll-zoom white panel.
- * Page scroll (Lenis) scrubs the story — no nested overflow scroller.
+ * About Us — scroll-zoom hero opens into the full story panel (AboutStoryInside).
+ * Page scroll (Lenis) scrubs zoom + story — no nested overflow scroller.
  */
 export default function AboutZoom() {
   return (
     <section
-      className="relative w-full overflow-x-clip overflow-y-visible bg-white"
+      id="about"
+      className="relative w-full overflow-x-clip overflow-y-visible"
+      style={{ backgroundColor: BRAND_CREAM_LIGHT }}
       aria-label="About us"
     >
       <div className="relative z-10">
@@ -24,13 +25,13 @@ export default function AboutZoom() {
               src: ABOUT_STORY_BG,
               alt: 'Mukhwas ingredients arranged on a bright surface',
             }}
-            leftText=""
-            rightText=""
+            leftText="About"
+            rightText="Us"
             buttonText=""
             buttonLink="#about-story"
-            textColor={BLACK}
-            buttonTextColor={BLACK}
-            buttonBgColor={WHITE}
+            textColor={BRAND_INK}
+            buttonTextColor={BRAND_INK}
+            buttonBgColor={BRAND_CREAM}
             iconType="none"
             animationStiffness={260}
             animationDamping={28}
@@ -46,11 +47,11 @@ export default function AboutZoom() {
               letterSpacing: '0.02em',
             }}
             buttonFont={{
-              fontFamily: 'Inter, sans-serif',
+              fontFamily: 'Montserrat, sans-serif',
               fontWeight: 700,
               letterSpacing: '0.02em',
             }}
-            style={{ width: '100%', backgroundColor: 'transparent' }}
+            style={{ width: '100%', backgroundColor: BRAND_CREAM_LIGHT }}
           >
             <AboutStoryInside />
           </ScrollZoomReveal>

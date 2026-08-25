@@ -41,7 +41,7 @@ export function buildGramVariants(grams: number[], fill: string, image: string):
 }
 
 /** Uniform light panel behind product imagery on shop cards */
-export const PRODUCT_CARD_PANEL_BG = '#eef0ec'
+export const PRODUCT_CARD_PANEL_BG = '#F8F3E7'
 
 /** Map old "Default" variants to 100 gm for display and cart. */
 export function normalizeProductVariants(variants: ShopVariant[]): ShopVariant[] {

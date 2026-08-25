@@ -1,52 +1,94 @@
 import { useEffect, useState } from 'react'
-import { HERO_BACKGROUND } from '../../lib/products'
-import HeroHeading from './HeroHeading'
-import HeroHighlights from './HeroHighlights'
-import ProductPackets from './ProductPackets'
+import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
+
+const HERO_SLIDES = [
+  '/Mukhwas_pouches_on_wooden_table_202608251659.jpeg',
+  '/Mukhwas_pouches_on_wooden_table_202608251630.jpeg',
+  '/Red_pouch_and_mukhwas_bowl_202608251659.jpeg',
+] as const
+
+const SLIDE_MS = 6200
+const FADE_MS = 2200
+const EASE = 'cubic-bezier(0.45, 0.05, 0.25, 1)'
+
+function preloadHeroSlides() {
+  HERO_SLIDES.forEach((src) => {
+    const img = new Image()
+    img.decoding = 'async'
+    img.src = src
+  })
+}
 
 export default function Hero() {
-  const [active, setActive] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(0)
 
   useEffect(() => {
-    const id = window.requestAnimationFrame(() => setActive(true))
-    return () => window.cancelAnimationFrame(id)
+    preloadHeroSlides()
   }, [])
 
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % HERO_SLIDES.length)
+    }, SLIDE_MS)
+    return () => window.clearInterval(timer)
+  }, [])
+
+  const openShop = () => {
+    navigateApp(APP_ROUTES.shop)
+  }
+
   return (
-    <section className="relative -mt-[3.75rem] min-h-screen w-full overflow-hidden bg-[#0a2e22] pt-[3.75rem] md:-mt-[8rem] md:pt-[8rem]">
-      <img
-        src={HERO_BACKGROUND}
-        alt=""
-        aria-hidden
-        decoding="sync"
-        fetchPriority="high"
-        loading="eager"
-        className="absolute inset-0 h-full w-full object-cover brightness-[0.72] saturate-[0.88]"
-      />
+    <section
+      id="home"
+      className="relative m-0 h-[calc(100svh-3.25rem-env(safe-area-inset-top,0px))] w-full overflow-hidden p-0 lg:h-[calc(100svh-5.25rem-env(safe-area-inset-top,0px))]"
+      aria-label="Hero"
+    >
+      <div className="absolute inset-0 w-full bg-[#0a2e22]">
+        {HERO_SLIDES.map((src, index) => {
+          const isActive = index === activeIndex
+          return (
+            <img
+              key={src}
+              src={src}
+              alt=""
+              aria-hidden={!isActive}
+              decoding={index === 0 ? 'sync' : 'async'}
+              fetchPriority={index === 0 ? 'high' : 'auto'}
+              loading="eager"
+              className="absolute inset-0 h-full w-full object-cover object-center will-change-[opacity,transform]"
+              style={{
+                opacity: isActive ? 1 : 0,
+                zIndex: isActive ? 2 : 1,
+                transform: isActive ? 'scale(1)' : 'scale(1.04)',
+                transition: `opacity ${FADE_MS}ms ${EASE}, transform ${FADE_MS + 600}ms ${EASE}`,
+              }}
+            />
+          )
+        })}
+      </div>
 
       <div
         aria-hidden
-        className="absolute inset-0 z-[2]"
+        className="pointer-events-none absolute inset-0 z-[3]"
         style={{
           background:
-            'linear-gradient(rgba(6,12,10,0.18), rgba(6,12,10,0.18)), radial-gradient(ellipse 55% 50% at 50% 58%, rgba(8,16,12,0.08) 0%, rgba(6,12,10,0.32) 55%, rgba(4,10,8,0.48) 100%)',
+            'linear-gradient(90deg, rgba(6,14,11,0.28) 0%, rgba(6,14,11,0.08) 32%, transparent 58%), linear-gradient(180deg, transparent 70%, rgba(6,14,11,0.14) 100%)',
         }}
       />
 
-      <div className="relative z-10 flex min-h-[100svh] flex-col px-3 pb-5 pt-2 sm:px-4 sm:pb-6 sm:pt-3 md:px-8 md:pt-4 lg:px-10">
-        <div className="mx-auto w-full max-w-5xl pt-0 text-center md:pt-1">
-          <HeroHeading active={active} />
-        </div>
-
-        <div className="relative mx-auto flex w-full max-w-7xl flex-1 flex-col pb-3 pt-0 md:pb-8">
-          <div className="relative flex min-h-[min(48vh,440px)] flex-1 flex-col items-center justify-start sm:min-h-[min(52vh,520px)] lg:block lg:pt-2">
-            <div className="relative z-[1] mx-auto flex w-full max-w-5xl flex-1 items-start justify-center pt-1 sm:pt-2 lg:absolute lg:inset-0 lg:max-w-none lg:items-center lg:pt-0 lg:-translate-y-8">
-              <ProductPackets active={active} />
-            </div>
-            <HeroHighlights active={active} />
-          </div>
-        </div>
-      </div>
+      {/* Full hero click → shop; pill popup on hover over product area (right) */}
+      <button
+        type="button"
+        onClick={openShop}
+        className="absolute inset-0 z-10 cursor-pointer border-0 bg-transparent p-0"
+        aria-label="Browse mukhwas in shop"
+      >
+        <span className="hero-mukhwas-hotspot group">
+          <span className="hero-mukhwas-popup">Find your favorite</span>
+        </span>
+      </button>
     </section>
   )
 }
+
+export { HERO_SLIDES }

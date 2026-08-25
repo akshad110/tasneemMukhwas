@@ -1,63 +1,87 @@
-/** Shared wholesale / B2B copy — home section (removed) + /wholesale page. */
-export const WHOLESALE_STATS = [
-  { value: 'IEC', label: 'AAEFF9922C', hint: 'Importer-Exporter Code' },
-  { value: '25+', label: 'Countries', hint: 'Export & trade reach' },
-  { value: '500+', label: 'Distributors', hint: 'Wholesale partners' },
-  { value: '40+', label: 'SKUs', hint: 'Bulk-ready catalogue' },
-] as const
-
-export const WHOLESALE_CHANNELS = [
-  {
-    title: 'Retail & Kirana',
-    body: 'Sealed pouches and display packs sized for counters, gift corners, and everyday mouth-freshener demand.',
-  },
-  {
-    title: 'HORECA',
-    body: 'Consistent blends for hotels, restaurants, and catering — hygiene-led packing for high-volume service.',
-  },
-  {
-    title: 'Export',
-    body: 'IEC-backed dispatch from Chhapi with documentation support for overseas buyers and private label talks.',
-  },
-  {
-    title: 'Private Label',
-    body: 'OEM / white-label mukhwas and seed mixes under your brand — MOQ and artwork discussed on enquiry.',
-  },
-] as const
-
-export const WHOLESALE_STEPS = [
-  { n: '01', title: 'Share requirement', body: 'Volume, SKUs, packing, and destination.' },
-  { n: '02', title: 'Quote & samples', body: 'Pricing, lead time, and taste samples if needed.' },
-  { n: '03', title: 'Confirm & pack', body: 'PO locked — hygienic packing at Tasneem Mukhwas.' },
-  { n: '04', title: 'Dispatch', body: 'Domestic courier or export documentation.' },
-] as const
-
-export const WHOLESALE_TRADE = [
-  { label: 'Parent unit', value: 'Tasneem Mukhwas · Chhapi, Gujarat' },
-  { label: 'IEC', value: 'AAEFF9922C (DGFT)' },
-  { label: 'MSME', value: 'UDYAM-GJ-04-0047609 · Micro manufacturing' },
-  { label: 'WHO-GMP', value: 'Certified manufacturing & packing' },
-  { label: 'Typical MOQ', value: 'From 50 kg / mixed SKU cartons (demo)' },
-  { label: 'Lead time', value: '7–14 working days after confirmation' },
-] as const
-
-export const WHOLESALE_INTRO = {
-  eyebrow: 'B2B · Bulk · Export',
-  title: 'Looking for Bulk or Wholesale Orders?',
-  body: 'Partner with Tasneem Mukhwas for retail, HORECA, and export. Share volume and destination — we reply with pricing, packing options, and dispatch timelines from Chhapi.',
+/** Dealership / wholesale page content. */
+export const DEALERSHIP_HERO = {
+  eyebrow: 'B2B · Dealership · Bulk',
+  title: 'Partner with Tasneem Mukhwas for Unforgettable Experiences',
+  subtitle:
+    'Collaborate with us to source wholesale mukhwas and create memorable gifts that leave a lasting impression on your clients and guests.',
 } as const
 
-export const WHOLESALE_EXTRAS = [
+export const DEALERSHIP_INTRO =
+  'Tasneem Mukhwas collaborates with B2B partners, retailers, hotels, and event companies to offer bespoke mukhwas hampers and mouth-freshener packs that enhance your clients\' experiences. From welcome gifts to corporate gifting, our products are crafted to make every occasion feel premium — with party favours, goodie bags, and personalised packs for your brand.'
+
+export const WHY_CHOOSE = [
+  'Uniquely Indian and premium — stands out from every standard corporate gift',
+  'Custom branding on every jar or pouch — your company logo, your message',
+  'FSSAI certified — safe to give to every employee and client',
+  'Pan-India delivery to all major cities',
+  'Dedicated support for orders above ₹25,000',
+  'Minimum order: 50 units',
+] as const
+
+export const GROW_SECTION = {
+  eyebrow: 'Grow with the crunch',
+  title: 'Ready to scale your business?',
+  body: 'Partner with Tasneem Mukhwas and bring the most loved mukhwas blends to your region. We ensure every order reaches you on time, meticulously packed to preserve freshness and flavour. Join us in spreading tradition — one pack at a time.',
+} as const
+
+export const PARTNER_BENEFITS = [
+  'Superior product quality and hygiene',
+  'Reliable supply chain and logistics',
+  'Best-in-class margins for our partners',
+  'Widest variety of mukhwas options in the market',
+  'Our signature product range',
+] as const
+
+export const DEALERSHIP_STATS = [
+  { value: '500+', label: 'Trade partners', hint: 'Retailers & distributors across India' },
+  { value: '40+', label: 'Product SKUs', hint: 'Bulk-ready catalogue' },
+  { value: 'FSSAI', label: 'Certified packs', hint: 'Hygienic manufacturing' },
+] as const
+
+export const SOLUTION_CARDS = [
   {
-    title: 'Sample kits',
-    body: 'Request tasting samples before locking bulk SKUs — ideal for new retail listings and HORECA menus.',
+    tag: 'Retail',
+    title: 'Counters & modern trade',
+    body: 'Sealed pouches and display packs for kirana, supermarkets, and quick-commerce listings.',
+    image: '/Mukhwas_pouches_on_wooden_table_202608251630.jpeg',
   },
   {
-    title: 'Custom packing',
-    body: 'Pouch weights, outer cartons, and sticker branding discussed per order volume.',
+    tag: 'HORECA',
+    title: 'Hotels & hospitality',
+    body: 'Consistent blends for restaurants, catering, and hotel welcome trays — volume dispatch from Chhapi.',
+    image: '/Red_pouch_and_mukhwas_bowl_202608251659.jpeg',
   },
   {
-    title: 'Dispatch tracking',
-    body: 'Domestic courier or export documentation with shared dispatch updates once cartons leave Chhapi.',
+    tag: 'Corporate',
+    title: 'Gifting & private label',
+    body: 'Branded hampers, OEM pouches, and export-ready cartons with documentation support.',
+    image: '/Tasneem_pouch_on_glass_surface_202608251649.jpeg',
   },
 ] as const
+
+export const FEATURE_GRID = [
+  {
+    title: 'WHO-GMP facility',
+    body: 'Certified manufacturing, roasting, and packing from our Chhapi unit in Banaskantha.',
+  },
+  {
+    title: 'Export ready',
+    body: 'IEC AAEFF9922C — lawful import and export with DGFT documentation support.',
+  },
+  {
+    title: 'Flexible MOQs',
+    body: 'From 50 units for trial listings to mixed-SKU cartons for regional distributors.',
+  },
+  {
+    title: 'Partner desk',
+    body: 'Dedicated coordination for pricing, samples, artwork, and dispatch timelines.',
+  },
+] as const
+
+/** @deprecated use dealership exports — kept for any legacy imports */
+export const WHOLESALE_STATS = DEALERSHIP_STATS
+export const WHOLESALE_INTRO = {
+  eyebrow: DEALERSHIP_HERO.eyebrow,
+  title: DEALERSHIP_HERO.title,
+  body: DEALERSHIP_INTRO,
+}

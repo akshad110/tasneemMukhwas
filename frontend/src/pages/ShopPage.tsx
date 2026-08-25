@@ -1,21 +1,33 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode, lazy, Suspense } from 'react'
 import Navbar from '../components/nav/Navbar'
 import ProductDetailModal from '../components/shop/ProductDetailModal'
 import ShopProductCard from '../components/shop/ShopProductCard'
 import { ProductCardSkeletonGrid } from '../components/shop/ProductCardSkeleton'
 import SiteFooter from '../components/shared/SiteFooter'
 import FloatingActions from '../components/shared/FloatingActions'
+import SectionPlaceholder from '../components/shared/SectionPlaceholder'
 import { useCatalog } from '../context/CatalogContext'
 import { couponsApi } from '../lib/services'
 import { CATEGORIES, getSellPrice, type ShopProduct } from '../lib/shopCatalog'
 import { scrollAppToTop } from '../lib/scrollControl'
+import {
+  BRAND_CREAM,
+  BRAND_CREAM_LIGHT,
+  BRAND_GOLD,
+  BRAND_INK,
+  BRAND_MUTED,
+  BRAND_SANS,
+} from '../lib/brand'
 
-const INK = '#0a2e22'
-const GOLD = '#b8860b'
-const PAGE = '#f2f4f5'
-const MUTED = 'rgba(10,46,34,0.62)'
-const PANEL = 'rgba(248,249,250,0.92)'
-const BORDER = 'rgba(10,46,34,0.12)'
+const HomeTestimonials = lazy(() => import('../components/testimonials/HomeTestimonials'))
+const HomeReviewStrip = lazy(() => import('../components/reviews/HomeReviewStrip'))
+
+const INK = BRAND_INK
+const GOLD = BRAND_GOLD
+const PAGE = BRAND_CREAM
+const MUTED = BRAND_MUTED
+const PANEL = 'rgba(255,254,242,0.94)'
+const BORDER = 'rgba(184,134,11,0.18)'
 const TEXTURE = '/image.png_2K_202608092240.jpeg'
 const SHOP_BANNER = encodeURI('/Mukhwas_ingredients_arranged_on_…_202608182142.jpeg')
 
@@ -51,7 +63,7 @@ function ShopBanner() {
           <div>
             <p
               className="m-0 text-[0.68rem] font-semibold tracking-[0.22em] uppercase"
-              style={{ color: 'rgba(242,244,245,0.62)', fontFamily: 'Inter, sans-serif' }}
+              style={{ color: 'rgba(255,254,242,0.62)', fontFamily: BRAND_SANS }}
             >
               Tasneem Mukhwas
             </p>
@@ -78,7 +90,7 @@ function FilterBox({ title, children }: { title: string; children: ReactNode }) 
     >
       <p
         className="m-0 mb-3 text-[0.72rem] font-semibold tracking-[0.14em] uppercase"
-        style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}
+        style={{ color: GOLD, fontFamily: BRAND_SANS }}
       >
         {title}
       </p>
@@ -204,7 +216,7 @@ export default function ShopPage() {
             <li key={cat}>
               <label
                 className="flex cursor-pointer items-center gap-2.5 text-[0.82rem]"
-                style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
+                style={{ color: INK, fontFamily: BRAND_SANS }}
               >
                 <input
                   type="checkbox"
@@ -230,7 +242,7 @@ export default function ShopPage() {
           className="w-full cursor-pointer accent-[#b8860b]"
           aria-label="Maximum price"
         />
-        <p className="mt-2 m-0 text-[0.8rem]" style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}>
+        <p className="mt-2 m-0 text-[0.8rem]" style={{ color: MUTED, fontFamily: BRAND_SANS }}>
           ₹0 – ₹{maxPrice}
         </p>
       </FilterBox>
@@ -247,7 +259,7 @@ export default function ShopPage() {
                   className="flex w-full cursor-pointer items-center gap-2 border-0 bg-transparent px-0 text-left text-[0.8rem]"
                   style={{
                     color: INK,
-                    fontFamily: 'Inter, sans-serif',
+                    fontFamily: BRAND_SANS,
                     opacity: minRating === r ? 1 : 0.72,
                   }}
                 >
@@ -270,7 +282,7 @@ export default function ShopPage() {
             color: INK,
             borderColor: BORDER,
             backgroundColor: 'rgba(255,255,255,0.55)',
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: BRAND_SANS,
           }}
         >
           Clear filters
@@ -297,8 +309,8 @@ export default function ShopPage() {
           className="absolute inset-0"
           style={{
             background: `
-              linear-gradient(180deg, rgba(242,244,245,0.88) 0%, rgba(242,244,245,0.55) 48%, rgba(242,244,245,0.92) 100%),
-              radial-gradient(ellipse 70% 45% at 80% 0%, rgba(255,252,245,0.65) 0%, transparent 60%)
+              linear-gradient(180deg, rgba(248,243,231,0.88) 0%, rgba(248,243,231,0.55) 48%, rgba(248,243,231,0.92) 100%),
+              radial-gradient(ellipse 70% 45% at 80% 0%, rgba(255,254,242,0.65) 0%, transparent 60%)
             `,
           }}
         />
@@ -332,7 +344,7 @@ export default function ShopPage() {
                 >
                   <p
                     className="m-0 text-[0.78rem] font-semibold tracking-[0.12em] uppercase"
-                    style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
+                    style={{ color: INK, fontFamily: BRAND_SANS }}
                   >
                     Filters
                   </p>
@@ -355,7 +367,7 @@ export default function ShopPage() {
                 className="shop-toolbar sticky top-[calc(env(safe-area-inset-top,0px)+3.75rem)] z-40 border-b px-3 py-2.5 backdrop-blur-md sm:px-5 sm:py-3 md:top-[calc(env(safe-area-inset-top,0px)+4rem)]"
                 style={{
                   borderColor: BORDER,
-                  backgroundColor: 'rgba(248,249,250,0.92)',
+                  backgroundColor: 'rgba(255,254,242,0.94)',
                   boxShadow: '0 1px 0 rgba(10,46,34,0.06)',
                 }}
               >
@@ -369,7 +381,7 @@ export default function ShopPage() {
                         color: INK,
                         borderColor: BORDER,
                         backgroundColor: PANEL,
-                        fontFamily: 'Inter, sans-serif',
+                        fontFamily: BRAND_SANS,
                       }}
                     >
                       {filtersOpen ? 'Hide' : 'Filters'}
@@ -377,7 +389,7 @@ export default function ShopPage() {
 
                     <p
                       className="m-0 min-w-0 flex-1 truncate text-[0.72rem] sm:text-[0.82rem] lg:flex-none lg:whitespace-nowrap"
-                      style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
+                      style={{ color: MUTED, fontFamily: BRAND_SANS }}
                     >
                       Showing <span style={{ color: GOLD, fontWeight: 600 }}>{sorted.length}</span> of{' '}
                       {products.length}
@@ -425,9 +437,9 @@ export default function ShopPage() {
                       className="w-full min-w-0 rounded-xl border py-2.5 pr-3 pl-9 text-base outline-none transition placeholder:opacity-45 focus:border-[#b8860b]/70 sm:text-[0.86rem]"
                       style={{
                         color: INK,
-                        backgroundColor: 'rgba(255,255,255,0.88)',
+                        backgroundColor: BRAND_CREAM_LIGHT,
                         borderColor: BORDER,
-                        fontFamily: 'Inter, sans-serif',
+                        fontFamily: BRAND_SANS,
                       }}
                     />
                   </div>
@@ -452,7 +464,7 @@ export default function ShopPage() {
                     type="button"
                     onClick={() => void refresh()}
                     className="mt-5 cursor-pointer rounded-xl border-0 px-5 py-2.5 text-[0.85rem] font-semibold transition hover:brightness-110"
-                    style={{ backgroundColor: INK, color: '#f2f4f5', fontFamily: 'Inter, sans-serif' }}
+                    style={{ backgroundColor: INK, color: BRAND_CREAM_LIGHT, fontFamily: BRAND_SANS }}
                   >
                     Try again
                   </button>
@@ -462,7 +474,7 @@ export default function ShopPage() {
                   className="rounded-2xl border px-6 py-16 text-center"
                   style={{ borderColor: BORDER, backgroundColor: PANEL }}
                 >
-                  <p className="m-0 text-[1rem]" style={{ color: INK, fontFamily: 'Inter, sans-serif' }}>
+                  <p className="m-0 text-[1rem]" style={{ color: INK, fontFamily: BRAND_SANS }}>
                     No products match your search.
                   </p>
                   <button
@@ -491,6 +503,13 @@ export default function ShopPage() {
             </div>
           </div>
         </main>
+
+        <Suspense fallback={<SectionPlaceholder minHeight="40vh" />}>
+          <HomeTestimonials />
+        </Suspense>
+        <Suspense fallback={<SectionPlaceholder minHeight="28vh" />}>
+          <HomeReviewStrip />
+        </Suspense>
 
         <SiteFooter />
         <FloatingActions />

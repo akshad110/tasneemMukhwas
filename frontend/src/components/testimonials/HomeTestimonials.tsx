@@ -104,7 +104,7 @@ export default function HomeTestimonials() {
       title="Loved by families & retailers across India"
       description="Real reviews from verified buyers — star ratings and words straight from our customers."
       testimonials={testimonials}
-      className="border-t border-border/60"
+      className="border-t border-[rgba(184,134,11,0.18)]"
     />
   )
 }
