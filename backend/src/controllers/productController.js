@@ -13,7 +13,7 @@ export const productCreateSchema = z.object({
   showPanelBg: z.boolean().optional().default(true),
   lightText: z.boolean().optional().default(true),
   image: z.string().optional().default(''),
-  images: z.array(z.string()).max(3).optional().default([]),
+  images: z.array(z.string()).max(4).optional().default([]),
   price: z.number().min(0),
   showDiscountedPrice: z.boolean().optional().default(false),
   discountedPrice: z.number().min(0).optional(),
@@ -39,7 +39,7 @@ export const productCreateSchema = z.object({
 export const productUpdateSchema = productCreateSchema.partial()
 
 function normalizeImages(body) {
-  const images = (body.images || []).filter(Boolean).slice(0, 3)
+  const images = (body.images || []).filter(Boolean).slice(0, 4)
   const image = images[0] || body.image || ''
   return {
     images: images.length ? images : image ? [image] : [],
@@ -156,7 +156,7 @@ export const batchProductImages = asyncHandler(async (req, res) => {
   for (const product of products) {
     if (!product.isActive && !isAdmin) continue
     const id = product._id.toString()
-    const images = (product.images?.length ? product.images : product.image ? [product.image] : []).slice(0, 3)
+    const images = (product.images?.length ? product.images : product.image ? [product.image] : []).slice(0, 4)
     const primary = images[0] || product.image || ''
     data[id] = {
       image: primary,
@@ -173,7 +173,7 @@ export const getProductImages = asyncHandler(async (req, res) => {
   if (!product || (!product.isActive && req.user?.role !== 'admin')) {
     throw new ApiError(404, 'Product not found')
   }
-  const images = (product.images?.length ? product.images : product.image ? [product.image] : []).slice(0, 3)
+  const images = (product.images?.length ? product.images : product.image ? [product.image] : []).slice(0, 4)
   const primary = images[0] || product.image || ''
   res.set('Cache-Control', 'public, max-age=300')
   return sendSuccess(res, {

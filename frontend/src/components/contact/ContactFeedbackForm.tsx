@@ -1,12 +1,20 @@
 import { type FormEvent, useState } from 'react'
 import { motion } from 'framer-motion'
-import { BRAND_TEXTURE } from '../../lib/brand'
+import {
+  BRAND_CREAM,
+  BRAND_CREAM_LIGHT,
+  BRAND_INK,
+  BRAND_MUTED,
+  BRAND_SANS,
+  BRAND_SERIF,
+} from '../../lib/brand'
 import { buildFeedbackWhatsAppUrl } from '../../lib/contact'
 
-const INK = '#0a2e22'
-const CREAM = '#f2f4f5'
-const GOLD = '#b8860b'
-const MUTED = 'rgba(10,46,34,0.62)'
+const INK = BRAND_INK
+const CREAM = BRAND_CREAM
+const CREAM_LIGHT = BRAND_CREAM_LIGHT
+const MUTED = BRAND_MUTED
+const BORDER = '#E6D8C3'
 const EASE = [0.22, 1, 0.36, 1] as const
 
 function WhatsAppIcon({ className = '' }: { className?: string }) {
@@ -48,55 +56,36 @@ export default function ContactFeedbackForm({ className = '', compact = false }:
 
   return (
     <motion.section
-      className={`relative w-full min-w-0 max-w-full overflow-hidden rounded-2xl border sm:rounded-3xl ${className}`}
+      className={`relative w-full min-w-0 max-w-full overflow-hidden border-2 ${className}`}
       style={{
-        borderColor: 'rgba(10,46,34,0.1)',
-        boxShadow: '0 28px 64px -36px rgba(10,46,34,0.35)',
+        borderColor: BORDER,
+        backgroundColor: CREAM_LIGHT,
       }}
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.15 }}
-      transition={{ duration: 0.55, ease: EASE }}
+      transition={{ duration: 0.5, ease: EASE }}
       aria-label="Share feedback"
     >
-      <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <img
-          src={BRAND_TEXTURE}
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover opacity-[0.14]"
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `
-              linear-gradient(135deg, rgba(10,46,34,0.96) 0%, rgba(10,46,34,0.88) 42%, rgba(10,46,34,0.94) 100%),
-              radial-gradient(ellipse 50% 80% at 100% 0%, rgba(184,134,11,0.16) 0%, transparent 55%)
-            `,
-          }}
-        />
-      </div>
-
       <div
-        className={`relative grid min-w-0 gap-6 ${compact ? 'p-4 sm:p-8' : 'p-4 sm:p-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-12 lg:p-12'}`}
+        className={`grid min-w-0 gap-8 ${compact ? 'p-5 sm:p-8' : 'p-5 sm:p-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-12 lg:p-12'}`}
       >
         <div className={compact ? 'max-w-xl' : undefined}>
           <p
-            className="m-0 text-[0.68rem] font-semibold tracking-[0.2em] uppercase"
-            style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}
+            className="m-0 text-[0.62rem] font-semibold tracking-[0.18em] uppercase"
+            style={{ color: MUTED, fontFamily: BRAND_SANS }}
           >
             Your voice matters
           </p>
           <h2
-            className={`m-0 mt-3 font-normal uppercase leading-[0.95] ${compact ? 'text-[clamp(1.75rem,5vw,2.35rem)]' : 'text-[clamp(2rem,5vw,2.85rem)]'}`}
-            style={{ color: CREAM, fontFamily: 'Anton, Impact, sans-serif' }}
+            className={`m-0 mt-3 leading-[1.08] tracking-[-0.02em] ${compact ? 'text-[clamp(1.65rem,4vw,2.2rem)]' : 'text-[clamp(1.85rem,4vw,2.65rem)]'}`}
+            style={{ color: INK, fontFamily: BRAND_SERIF }}
           >
-            Share your
-            <br />
-            feedback
+            Share your feedback
           </h2>
           <p
-            className="m-0 mt-4 max-w-md text-[0.92rem] leading-relaxed"
-            style={{ color: 'rgba(242,244,245,0.72)', fontFamily: 'Inter, sans-serif' }}
+            className="m-0 mt-4 max-w-md text-[0.94rem] leading-[1.75]"
+            style={{ color: MUTED, fontFamily: BRAND_SANS }}
           >
             Loved our mukhwas? Have a suggestion? Tell us — we read every message and reply on WhatsApp.
           </p>
@@ -107,12 +96,12 @@ export default function ContactFeedbackForm({ className = '', compact = false }:
                 (item) => (
                   <li
                     key={item}
-                    className="flex items-center gap-3 text-[0.84rem]"
-                    style={{ color: 'rgba(242,244,245,0.78)', fontFamily: 'Inter, sans-serif' }}
+                    className="flex items-center gap-3 text-[0.88rem]"
+                    style={{ color: MUTED, fontFamily: BRAND_SANS }}
                   >
                     <span
-                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[0.65rem] font-bold"
-                      style={{ backgroundColor: 'rgba(184,134,11,0.22)', color: GOLD }}
+                      className="flex h-6 w-6 shrink-0 items-center justify-center border text-[0.62rem] font-bold"
+                      style={{ borderColor: BORDER, backgroundColor: CREAM, color: INK }}
                       aria-hidden
                     >
                       ✓
@@ -127,18 +116,17 @@ export default function ContactFeedbackForm({ className = '', compact = false }:
 
         <form
           onSubmit={onSubmit}
-          className="min-w-0 rounded-2xl border p-4 sm:p-6"
+          className="min-w-0 border-2 p-5 sm:p-6"
           style={{
-            borderColor: 'rgba(242,244,245,0.12)',
-            backgroundColor: 'rgba(248,249,250,0.97)',
-            backdropFilter: 'blur(8px)',
+            borderColor: BORDER,
+            backgroundColor: CREAM,
           }}
           noValidate
         >
           <label className="block">
             <span
-              className="mb-2 block text-[0.68rem] font-semibold tracking-[0.12em] uppercase"
-              style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}
+              className="mb-2 block text-[0.62rem] font-semibold tracking-[0.14em] uppercase"
+              style={{ color: MUTED, fontFamily: BRAND_SANS }}
             >
               Your name
             </span>
@@ -149,20 +137,20 @@ export default function ContactFeedbackForm({ className = '', compact = false }:
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Priya Shah"
               autoComplete="name"
-              className="w-full rounded-xl border px-4 py-3 text-[0.92rem] outline-none transition focus:border-[rgba(184,134,11,0.65)] focus:ring-2 focus:ring-[rgba(184,134,11,0.18)]"
+              className="w-full border-2 px-4 py-3 text-[0.92rem] outline-none transition focus:border-[#0a2e22]"
               style={{
-                borderColor: 'rgba(10,46,34,0.12)',
-                backgroundColor: '#fff',
+                borderColor: BORDER,
+                backgroundColor: CREAM_LIGHT,
                 color: INK,
-                fontFamily: 'Inter, sans-serif',
+                fontFamily: BRAND_SANS,
               }}
             />
           </label>
 
           <label className="mt-5 block">
             <span
-              className="mb-2 block text-[0.68rem] font-semibold tracking-[0.12em] uppercase"
-              style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}
+              className="mb-2 block text-[0.62rem] font-semibold tracking-[0.14em] uppercase"
+              style={{ color: MUTED, fontFamily: BRAND_SANS }}
             >
               Your message
             </span>
@@ -172,45 +160,37 @@ export default function ContactFeedbackForm({ className = '', compact = false }:
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Share your experience, product feedback, or any question…"
               rows={compact ? 4 : 5}
-              className="w-full resize-y rounded-xl border px-4 py-3 text-[0.92rem] leading-relaxed outline-none transition focus:border-[rgba(184,134,11,0.65)] focus:ring-2 focus:ring-[rgba(184,134,11,0.18)]"
+              className="w-full resize-y border-2 px-4 py-3 text-[0.92rem] leading-relaxed outline-none transition focus:border-[#0a2e22]"
               style={{
-                borderColor: 'rgba(10,46,34,0.12)',
-                backgroundColor: '#fff',
+                borderColor: BORDER,
+                backgroundColor: CREAM_LIGHT,
                 color: INK,
-                fontFamily: 'Inter, sans-serif',
+                fontFamily: BRAND_SANS,
                 minHeight: compact ? '7.5rem' : '9rem',
               }}
             />
           </label>
 
           {error ? (
-            <p
-              className="mt-4 m-0 text-[0.82rem] font-medium"
-              style={{ color: '#b91c1c', fontFamily: 'Inter, sans-serif' }}
-              role="alert"
-            >
+            <p className="mt-4 m-0 text-[0.82rem] font-medium text-[#a32020]" role="alert" style={{ fontFamily: BRAND_SANS }}>
               {error}
             </p>
           ) : null}
 
           <button
             type="submit"
-            className="mt-6 flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-full border-0 py-3.5 text-[0.78rem] font-bold tracking-[0.08em] uppercase transition hover:brightness-110"
+            className="mt-6 flex w-full cursor-pointer items-center justify-center gap-2.5 border-0 px-6 py-3.5 text-[0.74rem] font-semibold tracking-[0.1em] uppercase transition hover:brightness-110"
             style={{
-              backgroundColor: GOLD,
-              color: INK,
-              fontFamily: 'Inter, sans-serif',
-              boxShadow: '0 14px 32px -18px rgba(184,134,11,0.85)',
+              backgroundColor: INK,
+              color: CREAM_LIGHT,
+              fontFamily: BRAND_SANS,
             }}
           >
             <WhatsAppIcon className="h-4 w-4" />
             Send on WhatsApp
           </button>
 
-          <p
-            className="mt-3 m-0 text-center text-[0.75rem] leading-relaxed"
-            style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
-          >
+          <p className="mt-3 m-0 text-center text-[0.76rem] leading-relaxed" style={{ color: MUTED, fontFamily: BRAND_SANS }}>
             Opens WhatsApp with your message pre-filled — just tap send.
           </p>
         </form>

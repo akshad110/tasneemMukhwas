@@ -8,7 +8,7 @@ export default function OurPartnersMarquee() {
         heading="Our Partners"
         subheading="Available through leading retail and quick-commerce platforms across India."
         logos={PARTNER_LOGOS}
-        className="px-0 py-12 md:py-14"
+        className="px-0 py-10 sm:py-12 md:py-14"
       />
     </div>
   )

@@ -22,7 +22,7 @@ const productSchema = new mongoose.Schema(
     showPanelBg: { type: Boolean, default: true },
     lightText: { type: Boolean, default: true },
     image: { type: String, default: '' },
-    images: { type: [String], default: [], validate: [(v) => v.length <= 3, 'Max 3 images'] },
+    images: { type: [String], default: [], validate: [(v) => v.length <= 4, 'Max 4 images'] },
     hasImage: { type: Boolean, default: false },
     price: { type: Number, required: true, min: 0 },
     showDiscountedPrice: { type: Boolean, default: false },
@@ -43,7 +43,7 @@ productSchema.index({ name: 'text', category: 'text', brand: 'text' })
 productSchema.index({ category: 1, outOfStock: 1, isActive: 1 })
 
 productSchema.methods.toPublicJSON = function toPublicJSON() {
-  const images = (this.images?.length ? this.images : this.image ? [this.image] : []).slice(0, 3)
+  const images = (this.images?.length ? this.images : this.image ? [this.image] : []).slice(0, 4)
   return {
     id: this._id.toString(),
     name: this.name,
@@ -90,7 +90,7 @@ function publicImageRef(src) {
 
 export function serializeProductList(doc) {
   const raw = doc?.toObject ? doc.toObject() : doc
-  const images = (raw.images?.length ? raw.images : raw.image ? [raw.image] : []).slice(0, 3)
+  const images = (raw.images?.length ? raw.images : raw.image ? [raw.image] : []).slice(0, 4)
   const primaryImage = publicImageRef(images[0] || raw.image || '')
   const variants =
     raw.variants?.length > 0

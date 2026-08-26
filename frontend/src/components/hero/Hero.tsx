@@ -1,11 +1,33 @@
-import { useEffect, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { useCallback, useEffect, useState } from 'react'
+import {
+  BRAND_CREAM,
+  BRAND_DISPLAY,
+  BRAND_GOLD,
+  BRAND_SANS,
+  BRAND_SERIF,
+} from '../../lib/brand'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 
-const HERO_SLIDES = [
-  '/Mukhwas_pouches_on_wooden_table_202608251659.jpeg',
-  '/Mukhwas_pouches_on_wooden_table_202608251630.jpeg',
-  '/Red_pouch_and_mukhwas_bowl_202608251659.jpeg',
+const HERO_SLIDE_ITEMS = [
+  {
+    image: '/Mukhwas_pouches_on_wooden_table_202608251659.jpeg',
+    title: 'A Touch of Bliss',
+    body: 'Premium mukhwas blends crafted for freshness, tradition, and everyday delight.',
+  },
+  {
+    image: '/Mukhwas_pouches_on_wooden_table_202608251630.jpeg',
+    title: 'Crafted with Care',
+    body: 'Time-honoured recipes, hygienically packed — from our Chhapi kitchen to your home.',
+  },
+  {
+    image: '/Red_pouch_and_mukhwas_bowl_202608251659.jpeg',
+    title: 'Find Your Favorite',
+    body: 'Explore Shahi, Paan, Mango Slice, and more — pick the blend that suits your mood.',
+  },
 ] as const
+
+const HERO_SLIDES = HERO_SLIDE_ITEMS.map((slide) => slide.image)
 
 const SLIDE_MS = 6200
 const FADE_MS = 2200
@@ -19,19 +41,51 @@ function preloadHeroSlides() {
   })
 }
 
-export default function Hero() {
-  const [activeIndex, setActiveIndex] = useState(0)
+function MobileHeroDots({
+  count,
+  activeIndex,
+  onSelect,
+}: {
+  count: number
+  activeIndex: number
+  onSelect: (index: number) => void
+}) {
+  return (
+    <div
+      className="flex items-center justify-center gap-2 border-t border-[#0a2e22]/8 px-4 py-3"
+      style={{ backgroundColor: BRAND_CREAM }}
+      role="tablist"
+      aria-label="Hero slides"
+    >
+      {Array.from({ length: count }, (_, index) => (
+        <button
+          key={index}
+          type="button"
+          role="tab"
+          aria-selected={index === activeIndex}
+          aria-label={`Slide ${index + 1}`}
+          onClick={() => onSelect(index)}
+          className="cursor-pointer border-0 p-0 transition-transform hover:scale-110"
+          style={{
+            width: index === activeIndex ? '1.35rem' : '0.55rem',
+            height: '0.55rem',
+            borderRadius: 999,
+            backgroundColor: index === activeIndex ? BRAND_GOLD : 'rgba(10,46,34,0.22)',
+          }}
+        />
+      ))}
+    </div>
+  )
+}
 
-  useEffect(() => {
-    preloadHeroSlides()
-  }, [])
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % HERO_SLIDES.length)
-    }, SLIDE_MS)
-    return () => window.clearInterval(timer)
-  }, [])
+function MobileHero({
+  activeIndex,
+  onSelect,
+}: {
+  activeIndex: number
+  onSelect: (index: number) => void
+}) {
+  const slide = HERO_SLIDE_ITEMS[activeIndex]
 
   const openShop = () => {
     navigateApp(APP_ROUTES.shop)
@@ -39,8 +93,89 @@ export default function Hero() {
 
   return (
     <section
-      id="home"
-      className="relative m-0 h-[calc(100svh-3.25rem-env(safe-area-inset-top,0px))] w-full overflow-hidden p-0 lg:h-[calc(100svh-5.25rem-env(safe-area-inset-top,0px))]"
+      className="relative w-full overflow-hidden md:hidden"
+      aria-label="Hero"
+    >
+      <div className="hero-mobile-shell">
+        <div className="hero-mobile-banner">
+          <div className="hero-mobile-banner__pattern" aria-hidden />
+
+          <div className="hero-mobile-banner__grid">
+            <div className="hero-mobile-banner__copy">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={slide.title}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <h1
+                    className="m-0 text-[clamp(1.35rem,6.2vw,1.85rem)] leading-[1.08] tracking-[-0.02em]"
+                    style={{ color: BRAND_CREAM, fontFamily: BRAND_SERIF }}
+                  >
+                    {slide.title}
+                  </h1>
+                  <p
+                    className="mt-2.5 m-0 text-[0.72rem] leading-relaxed sm:text-[0.78rem]"
+                    style={{
+                      color: 'rgba(248,243,231,0.82)',
+                      fontFamily: BRAND_SANS,
+                    }}
+                  >
+                    {slide.body}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={openShop}
+                    className="hero-mobile-banner__cta mt-3 cursor-pointer border-0 sm:mt-4"
+                    style={{ fontFamily: BRAND_SANS }}
+                  >
+                    Shop Now
+                  </button>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            <div className="hero-mobile-banner__visual" aria-hidden={false}>
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={slide.image}
+                  src={slide.image}
+                  alt=""
+                  initial={{ opacity: 0, x: 14, scale: 0.96 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: -10, scale: 0.98 }}
+                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                  decoding={activeIndex === 0 ? 'sync' : 'async'}
+                  fetchPriority={activeIndex === 0 ? 'high' : 'auto'}
+                  loading="eager"
+                  draggable={false}
+                  className="hero-mobile-banner__image"
+                />
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+
+        <MobileHeroDots
+          count={HERO_SLIDE_ITEMS.length}
+          activeIndex={activeIndex}
+          onSelect={onSelect}
+        />
+      </div>
+    </section>
+  )
+}
+
+function DesktopHero({ activeIndex }: { activeIndex: number }) {
+  const openShop = () => {
+    navigateApp(APP_ROUTES.shop)
+  }
+
+  return (
+    <section
+      className="relative m-0 hidden h-[calc(100svh-3.25rem-env(safe-area-inset-top,0px))] w-full overflow-hidden p-0 md:block md:h-[calc(100svh-4rem-env(safe-area-inset-top,0px))] lg:h-[calc(100svh-5.25rem-env(safe-area-inset-top,0px))]"
       aria-label="Hero"
     >
       <div className="absolute inset-0 w-full bg-[#0a2e22]">
@@ -76,7 +211,6 @@ export default function Hero() {
         }}
       />
 
-      {/* Full hero click → shop; pill popup on hover over product area (right) */}
       <button
         type="button"
         onClick={openShop}
@@ -84,10 +218,39 @@ export default function Hero() {
         aria-label="Browse mukhwas in shop"
       >
         <span className="hero-mukhwas-hotspot group">
-          <span className="hero-mukhwas-popup">Find your favorite</span>
+          <span
+            className="hero-mukhwas-popup"
+            style={{ fontFamily: BRAND_DISPLAY, letterSpacing: '0.08em' }}
+          >
+            Find your favorite
+          </span>
         </span>
       </button>
     </section>
+  )
+}
+
+export default function Hero() {
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  useEffect(() => {
+    preloadHeroSlides()
+  }, [])
+
+  const goNext = useCallback(() => {
+    setActiveIndex((prev) => (prev + 1) % HERO_SLIDE_ITEMS.length)
+  }, [])
+
+  useEffect(() => {
+    const timer = window.setInterval(goNext, SLIDE_MS)
+    return () => window.clearInterval(timer)
+  }, [goNext])
+
+  return (
+    <div id="home">
+      <MobileHero activeIndex={activeIndex} onSelect={setActiveIndex} />
+      <DesktopHero activeIndex={activeIndex} />
+    </div>
   )
 }
 

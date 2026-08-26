@@ -4,6 +4,8 @@ import Hero from '../components/hero/Hero'
 import Navbar from '../components/nav/Navbar'
 import OurProductsCarousel from '../components/products/OurProductsCarousel'
 import OurPartnersMarquee from '../components/partners/OurPartnersMarquee'
+import GlobalReachSection from '../components/partners/GlobalReachSection'
+import QualityPromiseSection from '../components/home/QualityPromiseSection'
 import BeOurPartner from '../components/partners/BeOurPartner'
 import FloatingActions from '../components/shared/FloatingActions'
 import DiscountPromoPopup from '../components/shared/DiscountPromoPopup'
@@ -34,12 +36,13 @@ export default function Home({ ready = true }: HomeProps) {
   }, [ready, lenis])
 
   return (
-    <main style={{ backgroundColor: '#F8F3E7' }}>
+    <main className="overflow-x-clip" style={{ backgroundColor: '#F8F3E7' }}>
       <Navbar />
       <Hero />
       <TrustBadges />
       <OurProductsCarousel />
       <OurPartnersMarquee />
+      <GlobalReachSection />
 
       <DeferredMount minHeight="70vh" fallback={<SectionPlaceholder minHeight="70vh" />}>
         <Suspense fallback={<SectionPlaceholder minHeight="70vh" />}>
@@ -47,6 +50,7 @@ export default function Home({ ready = true }: HomeProps) {
         </Suspense>
       </DeferredMount>
 
+      <QualityPromiseSection />
       <BeOurPartner />
       <SiteFooter />
 

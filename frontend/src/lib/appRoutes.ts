@@ -17,6 +17,8 @@ export const APP_ROUTES = {
   wholesale: '/wholesale',
   dealership: '/dealership',
   contact: '/contact',
+  privacy: '/privacy',
+  shippingPolicy: '/shipping-policy',
 } as const
 
 export type AppRoute = (typeof APP_ROUTES)[keyof typeof APP_ROUTES]
@@ -85,7 +87,8 @@ export function isPublicPath(pathname: string) {
     isShopPath(pathname) ||
     isKnowMorePath(pathname) ||
     isWholesalePath(pathname) ||
-    isContactPath(pathname)
+    isContactPath(pathname) ||
+    isLegalPolicyPath(pathname)
   )
 }
 
@@ -133,6 +136,18 @@ export function isContactPath(pathname: string) {
   return pathname === APP_ROUTES.contact
 }
 
+export function isPrivacyPath(pathname: string) {
+  return pathname === APP_ROUTES.privacy
+}
+
+export function isShippingPolicyPath(pathname: string) {
+  return pathname === APP_ROUTES.shippingPolicy
+}
+
+export function isLegalPolicyPath(pathname: string) {
+  return isPrivacyPath(pathname) || isShippingPolicyPath(pathname)
+}
+
 export function isAdminPath(pathname: string) {
   return pathname === APP_ROUTES.admin || pathname.startsWith(`${APP_ROUTES.admin}/`)
 }
@@ -168,6 +183,7 @@ export function isAppPagePath(pathname: string) {
     isWishlistPath(pathname) ||
     isWholesalePath(pathname) ||
     isContactPath(pathname) ||
+    isLegalPolicyPath(pathname) ||
     isKnowMorePath(pathname) ||
     isAdminPath(pathname)
   )
@@ -197,6 +213,7 @@ export function navigateApp(path: string) {
     isKnowMorePath(pathname) ||
     isWholesalePath(pathname) ||
     isContactPath(pathname) ||
+    isLegalPolicyPath(pathname) ||
     isAdminPath(pathname) ||
     isAuthPath(pathname)
   ) {

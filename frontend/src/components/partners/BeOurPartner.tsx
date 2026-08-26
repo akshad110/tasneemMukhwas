@@ -26,11 +26,11 @@ export default function BeOurPartner() {
   return (
     <section
       id="be-our-partner"
-      className="relative w-full overflow-hidden px-4 py-12 md:px-8 md:py-16 lg:px-10"
+      className="relative w-full overflow-hidden px-5 py-10 sm:px-8 sm:py-14 md:py-16 lg:px-10 lg:py-20"
       style={{ backgroundColor: BRAND_CREAM_LIGHT }}
       aria-label="Be our partner"
     >
-      <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
+      <div className="mx-auto flex max-w-[1320px] flex-col items-center text-center">
         <p
           className="m-0 text-[0.68rem] font-semibold tracking-[0.18em] uppercase"
           style={{ color: GOLD, fontFamily: BRAND_SANS }}

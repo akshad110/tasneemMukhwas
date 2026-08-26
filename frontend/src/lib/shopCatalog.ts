@@ -43,6 +43,9 @@ export function buildGramVariants(grams: number[], fill: string, image: string):
 /** Uniform light panel behind product imagery on shop cards */
 export const PRODUCT_CARD_PANEL_BG = '#F8F3E7'
 
+/** Max gallery images stored per product (admin + API). */
+export const PRODUCT_MAX_GALLERY_IMAGES = 4
+
 /** Map old "Default" variants to 100 gm for display and cart. */
 export function normalizeProductVariants(variants: ShopVariant[]): ShopVariant[] {
   if (!variants.length) {
@@ -107,7 +110,7 @@ export function getComparePrice(p: ShopProduct): number | undefined {
 
 export function getProductImages(p: ShopProduct): string[] {
   const fromList = (p.images ?? []).filter(Boolean)
-  if (fromList.length) return fromList.slice(0, 3)
+  if (fromList.length) return fromList.slice(0, PRODUCT_MAX_GALLERY_IMAGES)
   return p.image ? [p.image] : []
 }
 

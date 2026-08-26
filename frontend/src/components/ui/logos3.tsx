@@ -29,7 +29,7 @@ export function Logos3({
 
   return (
     <section className={cn('relative w-full overflow-hidden', className)} aria-label={heading} style={{ backgroundColor: BRAND_CREAM_LIGHT }}>
-      <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-10">
+      <div className="mx-auto max-w-[1320px] px-5 sm:px-8 lg:px-10">
         <header className="mb-8 text-center md:mb-10">
           <h2
             className="m-0 uppercase"

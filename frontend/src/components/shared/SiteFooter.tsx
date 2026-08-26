@@ -36,8 +36,8 @@ type FooterLink = {
 const COMPANY_LINKS: FooterLink[] = [
   { label: 'About Us', href: APP_ROUTES.knowMore },
   { label: 'Terms & Conditions', href: '#terms' },
-  { label: 'Privacy', href: '#privacy' },
-  { label: 'Shipping Policy', href: '#shipping' },
+  { label: 'Privacy', href: APP_ROUTES.privacy },
+  { label: 'Shipping Policy', href: APP_ROUTES.shippingPolicy },
 ]
 
 const CONNECT_LINKS: FooterLink[] = [

@@ -51,7 +51,7 @@ export default function TrustBadges() {
       style={{ backgroundColor: CREAM }}
       aria-label="Trust badges"
     >
-      <ul className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-6 gap-y-2 px-3 py-2.5 sm:gap-x-10 sm:px-6 md:py-3">
+      <ul className="mx-auto flex max-w-[1320px] flex-wrap items-center justify-center gap-x-4 gap-y-2 px-5 py-2.5 sm:gap-x-8 sm:px-8 md:py-3 lg:px-10">
         {BADGES.map((badge) => (
           <li
             key={badge.label}

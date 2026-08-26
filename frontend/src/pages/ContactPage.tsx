@@ -1,4 +1,4 @@
-import { useEffect, type MouseEvent } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import ContactGlobe from '../components/contact/ContactGlobe'
 import ContactFeedbackForm from '../components/contact/ContactFeedbackForm'
@@ -7,7 +7,15 @@ import BackToHomeButton from '../components/shared/BackToHomeButton'
 import SiteFooter from '../components/shared/SiteFooter'
 import FloatingActions from '../components/shared/FloatingActions'
 import { BRAND_BRANCHES } from '../lib/brandBranches'
-import { BRAND_INK, BRAND_CREAM, BRAND_TEXTURE, BRAND_HERO_BANNER } from '../lib/brand'
+import {
+  BRAND_CREAM,
+  BRAND_CREAM_DEEP,
+  BRAND_CREAM_LIGHT,
+  BRAND_INK,
+  BRAND_MUTED,
+  BRAND_SANS,
+  BRAND_SERIF,
+} from '../lib/brand'
 import {
   CONTACT_ADDRESS,
   CONTACT_EMAIL,
@@ -19,9 +27,10 @@ import { scrollAppToTop } from '../lib/scrollControl'
 
 const INK = BRAND_INK
 const CREAM = BRAND_CREAM
-const GOLD = '#b8860b'
-const PAGE = '#f2f4f5'
-const MUTED = 'rgba(10,46,34,0.62)'
+const CREAM_LIGHT = BRAND_CREAM_LIGHT
+const CREAM_DEEP = BRAND_CREAM_DEEP
+const MUTED = BRAND_MUTED
+const BORDER = '#E6D8C3'
 const EASE = [0.22, 1, 0.36, 1] as const
 
 const HOURS = [
@@ -29,11 +38,102 @@ const HOURS = [
   { day: 'Sunday', time: 'Enquiries via WhatsApp' },
 ] as const
 
-function noopVisit(e: MouseEvent<HTMLButtonElement>) {
-  e.preventDefault()
+const CARD =
+  'rounded-none border-2 bg-[#FFFEF2] p-5 sm:p-6'
+
+function Reveal({
+  children,
+  className = '',
+  delay = 0,
+}: {
+  children: ReactNode
+  className?: string
+  delay?: number
+}) {
+  return (
+    <motion.div
+      className={className}
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.12 }}
+      transition={{ duration: 0.5, delay, ease: EASE }}
+    >
+      {children}
+    </motion.div>
+  )
+}
+
+function Eyebrow({ children }: { children: string }) {
+  return (
+    <p
+      className="m-0 text-[0.62rem] font-semibold tracking-[0.18em] uppercase"
+      style={{ color: MUTED, fontFamily: BRAND_SANS }}
+    >
+      {children}
+    </p>
+  )
+}
+
+function SectionIntro({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr] lg:items-end lg:gap-10">
+      <h2
+        className="m-0 text-[clamp(1.75rem,4vw,2.75rem)] leading-[1.08] tracking-[-0.02em]"
+        style={{ color: INK, fontFamily: BRAND_SERIF }}
+      >
+        {title}
+      </h2>
+      <p
+        className="m-0 max-w-md text-[0.94rem] leading-[1.75] lg:justify-self-end"
+        style={{ color: MUTED, fontFamily: BRAND_SANS }}
+      >
+        {description}
+      </p>
+    </div>
+  )
+}
+
+function ContactDetail({
+  label,
+  children,
+  href,
+}: {
+  label: string
+  children: ReactNode
+  href?: string
+}) {
+  const inner = (
+    <>
+      <Eyebrow>{label}</Eyebrow>
+      <p className="mt-2 m-0 text-[0.92rem] font-medium leading-relaxed" style={{ color: INK, fontFamily: BRAND_SANS }}>
+        {children}
+      </p>
+    </>
+  )
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        className={`${CARD} block no-underline transition hover:bg-[#F8F3E7]`}
+        style={{ borderColor: BORDER }}
+      >
+        {inner}
+      </a>
+    )
+  }
+
+  return (
+    <div className={CARD} style={{ borderColor: BORDER }}>
+      {inner}
+    </div>
+  )
 }
 
 export default function ContactPage() {
+  const [activeBranchId, setActiveBranchId] = useState(BRAND_BRANCHES[0].id)
+  const activeBranch = BRAND_BRANCHES.find((b) => b.id === activeBranchId) ?? BRAND_BRANCHES[0]
+
   useEffect(() => {
     document.title = 'Contact · Tasneem Mukhwas'
     scrollAppToTop(true)
@@ -43,187 +143,179 @@ export default function ContactPage() {
   }, [])
 
   return (
-    <div className="min-h-svh overflow-x-clip" style={{ backgroundColor: PAGE }}>
+    <div className="min-h-svh overflow-x-clip" style={{ backgroundColor: CREAM, color: INK, fontFamily: BRAND_SANS }}>
       <Navbar />
 
-      {/* Hero */}
-      <section className="relative overflow-hidden border-b border-[rgba(10,46,34,0.1)]">
-        <div className="relative h-[15rem] sm:h-[18rem] lg:h-[20rem]">
-          <img src={BRAND_HERO_BANNER} alt="" className="absolute inset-0 h-full w-full object-cover" aria-hidden />
-          <img src={BRAND_TEXTURE} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover opacity-30" />
-          <div
-            aria-hidden
-            className="absolute inset-0"
-            style={{
-              background:
-                'linear-gradient(180deg, rgba(10,46,34,0.55) 0%, rgba(10,46,34,0.35) 50%, rgba(10,46,34,0.72) 100%)',
-            }}
-          />
-          <div className="absolute inset-0 flex flex-col items-center justify-center px-5 text-center">
-            <motion.p
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: EASE }}
-              className="m-0 text-[0.68rem] font-semibold tracking-[0.22em] uppercase"
-              style={{ color: 'rgba(242,244,245,0.62)' }}
-            >
-              Chhapi · Gujarat · India
-            </motion.p>
-            <motion.h1
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.08, ease: EASE }}
-              className="mt-3 m-0 max-w-3xl text-[clamp(1.85rem,5vw,3.5rem)] leading-tight uppercase"
-              style={{ color: CREAM, fontFamily: 'Anton, Impact, sans-serif' }}
-            >
-              Contact Us
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.14, ease: EASE }}
-              className="mx-auto mt-3 max-w-xl text-[0.88rem] leading-relaxed sm:mt-4 sm:text-[0.95rem]"
-              style={{ color: 'rgba(242,244,245,0.78)' }}
-            >
-              Reach Tasneem Mukhwas and our sister brands from one Chhapi address — call, email, or WhatsApp
-              our team for orders, bulk enquiries, and partnerships.
-            </motion.p>
-          </div>
-        </div>
-      </section>
+      <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45, ease: EASE }}>
+        {/* Hero */}
+        <section
+          style={{
+            backgroundColor: CREAM_DEEP,
+            paddingTop: 'calc(4.75rem + env(safe-area-inset-top, 0px))',
+          }}
+        >
+          <div className="mx-auto max-w-[1320px] px-5 py-12 sm:px-8 lg:px-10 lg:py-16">
+            <BackToHomeButton className="mb-8" />
 
-      <main className="mx-auto max-w-[1100px] min-w-0 overflow-x-clip px-4 py-10 sm:px-8 sm:py-16">
-        <BackToHomeButton className="mb-8 sm:mb-10" />
-
-        <div className="grid min-w-0 gap-8 sm:gap-12 lg:grid-cols-2 lg:items-start">
-          <div
-            className="min-w-0 overflow-hidden rounded-2xl border p-4 sm:rounded-3xl sm:p-6 lg:p-8"
-            style={{ borderColor: 'rgba(10,46,34,0.1)', backgroundColor: '#fff' }}
-          >
-            <ContactGlobe />
-            <p className="mt-3 text-center text-[0.72rem] sm:mt-4 sm:text-[0.78rem]" style={{ color: MUTED }}>
-              Chhapi · Banaskantha · Gujarat
-            </p>
-          </div>
-
-          <div className="min-w-0 space-y-4 sm:space-y-5">
-            <div className="rounded-2xl border p-4 sm:p-5" style={{ borderColor: 'rgba(10,46,34,0.1)', backgroundColor: '#fff' }}>
-              <p className="m-0 text-[0.65rem] font-semibold tracking-[0.14em] uppercase" style={{ color: GOLD }}>
-                Headquarters
-              </p>
-              <p className="mt-2 m-0 text-[0.86rem] leading-relaxed sm:text-[0.92rem]" style={{ color: INK }}>
-                {CONTACT_ADDRESS}
-              </p>
-            </div>
-
-            <div className="grid min-w-0 gap-3 sm:grid-cols-2 sm:gap-4">
-              <a
-                href={`tel:${CONTACT_PHONE_TEL}`}
-                className="min-w-0 rounded-2xl border p-4 no-underline transition hover:-translate-y-0.5 sm:p-5"
-                style={{ borderColor: 'rgba(10,46,34,0.1)', backgroundColor: '#fff' }}
-              >
-                <p className="m-0 text-[0.65rem] font-semibold tracking-[0.14em] uppercase" style={{ color: GOLD }}>Phone</p>
-                <p className="mt-2 m-0 text-[0.88rem] font-semibold sm:text-[0.95rem]" style={{ color: INK }}>{CONTACT_PHONE_DISPLAY}</p>
-              </a>
-              <a
-                href={`mailto:${CONTACT_EMAIL}`}
-                className="min-w-0 rounded-2xl border p-4 no-underline transition hover:-translate-y-0.5 sm:p-5"
-                style={{ borderColor: 'rgba(10,46,34,0.1)', backgroundColor: '#fff' }}
-              >
-                <p className="m-0 text-[0.65rem] font-semibold tracking-[0.14em] uppercase" style={{ color: GOLD }}>Email</p>
-                <p className="mt-2 m-0 break-words text-[0.82rem] font-semibold [overflow-wrap:anywhere] sm:text-[0.88rem]" style={{ color: INK }}>
-                  {CONTACT_EMAIL}
-                </p>
-              </a>
-            </div>
-
-            <a
-              href={WHATSAPP_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center rounded-full py-3 text-[0.75rem] font-bold tracking-wide uppercase no-underline sm:py-3.5 sm:text-[0.8rem]"
-              style={{ backgroundColor: INK, color: CREAM }}
-            >
-              Chat on WhatsApp
-            </a>
-
-            <div className="rounded-2xl border p-4 sm:p-5" style={{ borderColor: 'rgba(10,46,34,0.1)', backgroundColor: 'rgba(248,249,250,0.9)' }}>
-              <p className="m-0 text-[0.65rem] font-semibold tracking-[0.14em] uppercase" style={{ color: GOLD }}>
-                Business hours
-              </p>
-              <ul className="mt-3 m-0 list-none space-y-2 p-0">
-                {HOURS.map((h) => (
-                  <li key={h.day} className="flex flex-col gap-0.5 text-[0.84rem] sm:flex-row sm:justify-between sm:gap-4 sm:text-[0.88rem]" style={{ color: INK }}>
-                    <span className="font-medium">{h.day}</span>
-                    <span className="sm:text-right" style={{ color: MUTED }}>{h.time}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <ContactFeedbackForm className="mt-12 min-w-0 sm:mt-16" />
-
-        {/* Sister branches */}
-        <section className="mt-12 min-w-0 sm:mt-16">
-          <p className="m-0 text-[0.68rem] font-semibold tracking-[0.2em] uppercase" style={{ color: GOLD }}>
-            Our network
-          </p>
-          <h2 className="mt-2 m-0 text-[1.75rem] font-bold uppercase" style={{ color: INK, fontFamily: 'Anton, Impact, sans-serif' }}>
-            Sister branches
-          </h2>
-          <p className="mt-3 m-0 max-w-2xl text-[0.95rem] leading-relaxed" style={{ color: MUTED }}>
-            Tasneem Mukhwas sits at the centre of a family of brands — each with its own identity, sharing
-            the same commitment to hygiene, tradition, and Chhapi-born craft.
-          </p>
-
-          <div className="mt-10 grid gap-6 sm:grid-cols-2">
-            {BRAND_BRANCHES.map((branch, i) => (
-              <motion.article
-                key={branch.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.5, delay: i * 0.06, ease: EASE }}
-                className="flex h-full flex-col rounded-3xl border p-6"
-                style={{
-                  borderColor: 'rgba(10,46,34,0.1)',
-                  backgroundColor: '#fff',
-                  boxShadow: '0 20px 44px -32px rgba(10,46,34,0.22)',
-                }}
-              >
-                <p className="m-0 text-[0.62rem] font-semibold tracking-[0.16em] uppercase" style={{ color: GOLD }}>
-                  Sister branch
-                </p>
-                <h3 className="mt-2 m-0 text-[1.15rem] font-bold tracking-wide uppercase" style={{ color: INK }}>
-                  {branch.name}
-                </h3>
-                <p className="mt-3 m-0 text-[0.9rem] leading-relaxed" style={{ color: INK }}>
-                  {branch.description}
-                </p>
-                <p className="mt-2 m-0 text-[0.84rem] leading-relaxed" style={{ color: MUTED }}>
-                  {branch.about}
-                </p>
-                <p className="mt-4 m-0 text-[0.8rem] leading-relaxed" style={{ color: MUTED }}>
-                  <span className="font-semibold" style={{ color: INK }}>Location · </span>
-                  {branch.location}
-                </p>
-                <button
-                  type="button"
-                  onClick={noopVisit}
-                  className="mt-auto inline-flex cursor-pointer items-center gap-1.5 self-start border-0 bg-transparent pt-5 text-[0.78rem] font-semibold tracking-wide uppercase"
-                  style={{ color: GOLD }}
-                  aria-disabled="true"
+            <div className="grid items-start gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
+              <Reveal>
+                <Eyebrow>Chhapi · Gujarat · India</Eyebrow>
+                <h1
+                  className="mt-3 m-0 text-[clamp(2rem,5vw,3.25rem)] leading-[1.08] tracking-[-0.02em]"
+                  style={{ fontFamily: BRAND_SERIF, color: INK }}
                 >
-                  {branch.websiteLabel}
-                  <span aria-hidden>→</span>
-                </button>
-              </motion.article>
-            ))}
+                  Contact us
+                </h1>
+                <p
+                  className="mt-5 m-0 max-w-xl text-[0.98rem] leading-[1.85]"
+                  style={{ color: MUTED, fontFamily: BRAND_SANS }}
+                >
+                  Reach Tasneem Mukhwas for retail orders, bulk enquiries, and partnerships. Call, email, or
+                  message us on WhatsApp — our team replies from our Chhapi facility.
+                </p>
+              </Reveal>
+
+              <Reveal delay={0.08}>
+                <div className="border-2 p-5 sm:p-6" style={{ borderColor: BORDER, backgroundColor: CREAM_LIGHT }}>
+                  <Eyebrow>Head office</Eyebrow>
+                  <p className="mt-3 m-0 text-[0.92rem] leading-[1.75]" style={{ color: INK }}>
+                    {CONTACT_ADDRESS}
+                  </p>
+                  <a
+                    href={WHATSAPP_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-5 inline-flex items-center justify-center px-6 py-3 text-[0.72rem] font-semibold tracking-[0.12em] uppercase no-underline transition hover:brightness-110"
+                    style={{ backgroundColor: INK, color: CREAM_LIGHT, fontFamily: BRAND_SANS }}
+                  >
+                    Chat on WhatsApp
+                  </a>
+                </div>
+              </Reveal>
+            </div>
           </div>
         </section>
-      </main>
+
+        {/* Globe + contact details */}
+        <section style={{ backgroundColor: CREAM }}>
+          <div className="mx-auto max-w-[1320px] px-5 py-14 sm:px-8 lg:px-10 lg:py-20">
+            <Reveal className="mb-10 lg:mb-14">
+              <SectionIntro
+                title="Find us in Gujarat"
+                description="Our manufacturing and dispatch hub sits on the Chhapi highway in Banaskantha — the heart of our mukhwas craft."
+              />
+            </Reveal>
+
+            <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-12">
+              <Reveal>
+                <div
+                  className="flex min-h-[280px] items-center justify-center border-2 p-6 sm:min-h-[340px] sm:p-8"
+                  style={{ borderColor: BORDER, backgroundColor: CREAM_LIGHT }}
+                >
+                  <ContactGlobe />
+                </div>
+                <p className="mt-3 text-center text-[0.78rem]" style={{ color: MUTED }}>
+                  Chhapi · Banaskantha · Gujarat
+                </p>
+              </Reveal>
+
+              <Reveal delay={0.06} className="grid gap-4 sm:grid-cols-2">
+                <ContactDetail label="Phone" href={`tel:${CONTACT_PHONE_TEL}`}>
+                  {CONTACT_PHONE_DISPLAY}
+                </ContactDetail>
+                <ContactDetail label="Email" href={`mailto:${CONTACT_EMAIL}`}>
+                  {CONTACT_EMAIL}
+                </ContactDetail>
+
+                <div className={`${CARD} sm:col-span-2`} style={{ borderColor: BORDER }}>
+                  <Eyebrow>Business hours</Eyebrow>
+                  <ul className="mt-3 m-0 list-none space-y-2.5 p-0">
+                    {HOURS.map((row) => (
+                      <li
+                        key={row.day}
+                        className="flex flex-col gap-0.5 text-[0.88rem] sm:flex-row sm:justify-between sm:gap-4"
+                        style={{ fontFamily: BRAND_SANS }}
+                      >
+                        <span className="font-medium" style={{ color: INK }}>
+                          {row.day}
+                        </span>
+                        <span style={{ color: MUTED }}>{row.time}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </Reveal>
+            </div>
+          </div>
+        </section>
+
+        {/* Sister brands */}
+        <section style={{ backgroundColor: CREAM_LIGHT }}>
+          <div className="mx-auto max-w-[1320px] px-5 py-14 sm:px-8 lg:px-10 lg:py-20">
+            <Reveal className="mb-8 lg:mb-10">
+              <SectionIntro
+                title="Our network"
+                description="Tasneem Mukhwas sits at the centre of a family of brands — each with its own identity, sharing the same Chhapi-born standards."
+              />
+            </Reveal>
+
+            <Reveal delay={0.05}>
+              <div className="flex flex-wrap gap-2">
+                {BRAND_BRANCHES.map((branch) => {
+                  const selected = branch.id === activeBranchId
+                  return (
+                    <button
+                      key={branch.id}
+                      type="button"
+                      onClick={() => setActiveBranchId(branch.id)}
+                      className="cursor-pointer border-2 px-3.5 py-2 text-[0.68rem] font-semibold tracking-[0.08em] uppercase transition"
+                      style={{
+                        fontFamily: BRAND_SANS,
+                        borderColor: selected ? INK : BORDER,
+                        backgroundColor: selected ? INK : 'transparent',
+                        color: selected ? CREAM_LIGHT : INK,
+                      }}
+                    >
+                      {branch.short}
+                    </button>
+                  )
+                })}
+              </div>
+            </Reveal>
+
+            <Reveal delay={0.1} className="mt-6">
+              <article className="border-2 p-6 sm:p-8" style={{ borderColor: BORDER, backgroundColor: CREAM }}>
+                <Eyebrow>Sister brand</Eyebrow>
+                <h3
+                  className="mt-2 m-0 text-[clamp(1.25rem,3vw,1.65rem)] leading-tight"
+                  style={{ color: INK, fontFamily: BRAND_SERIF }}
+                >
+                  {activeBranch.name}
+                </h3>
+                <p className="mt-4 m-0 text-[0.94rem] leading-[1.75]" style={{ color: INK }}>
+                  {activeBranch.description}
+                </p>
+                <p className="mt-3 m-0 text-[0.9rem] leading-[1.75]" style={{ color: MUTED }}>
+                  {activeBranch.about}
+                </p>
+                <p className="mt-5 m-0 text-[0.88rem] leading-[1.7]" style={{ color: MUTED }}>
+                  <span className="font-semibold" style={{ color: INK }}>
+                    Location ·{' '}
+                  </span>
+                  {activeBranch.location}
+                </p>
+              </article>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* Feedback */}
+        <section style={{ backgroundColor: CREAM }}>
+          <div className="mx-auto max-w-[1320px] px-5 py-14 sm:px-8 lg:px-10 lg:py-20">
+            <ContactFeedbackForm />
+          </div>
+        </section>
+      </motion.main>
 
       <SiteFooter />
       <FloatingActions />

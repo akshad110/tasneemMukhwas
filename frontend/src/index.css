@@ -1313,13 +1313,281 @@ body {
 .nav-link:hover,
 .nav-link:focus-visible {
   color: var(--nav-link-hover-color, #b8860b) !important;
-  border-color: var(--nav-link-hover-border, #b8860b) !important;
   font-weight: 600;
+}
+
+.nav-link:hover .nav-link__label,
+.nav-link:focus-visible .nav-link__label,
+.group:hover > .nav-link .nav-link__label,
+.group:focus-within > .nav-link .nav-link__label {
+  border-color: var(--nav-link-hover-border, #b8860b) !important;
 }
 
 .nav-link:focus-visible {
   outline: 2px solid var(--nav-link-hover-border, #b8860b);
   outline-offset: 3px;
+}
+
+.group:hover > .nav-link svg,
+.group:focus-within > .nav-link svg {
+  color: var(--nav-link-hover-color, #b8860b);
+}
+
+/* Quality promise — split panel with scalloped edge (Joyspoon-style) */
+.quality-promise {
+  background-color: #F8F3E7;
+}
+
+.quality-promise__split {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 0;
+}
+
+@media (min-width: 768px) {
+  .quality-promise__split {
+    grid-template-columns: minmax(0, 0.42fr) minmax(0, 0.58fr);
+    min-height: clamp(22rem, 42vw, 28rem);
+  }
+}
+
+.quality-promise__visual {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: clamp(14rem, 52vw, 18rem);
+  padding: 2rem 1.5rem;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255, 254, 242, 0.35) 0%, transparent 45%),
+    linear-gradient(145deg, #d9cbb0 0%, #c9b995 52%, #b8a683 100%);
+}
+
+@media (min-width: 768px) {
+  .quality-promise__visual {
+    min-height: 100%;
+    padding: 2.5rem 2rem 2.5rem 2.5rem;
+  }
+}
+
+.quality-promise__photo {
+  width: min(100%, 20rem);
+  height: auto;
+  max-height: min(72vw, 16rem);
+  object-fit: cover;
+  object-position: center;
+  border-radius: 999px;
+  box-shadow:
+    0 24px 48px -28px rgba(10, 46, 34, 0.35),
+    0 0 0 6px rgba(255, 254, 242, 0.55);
+}
+
+@media (min-width: 768px) {
+  .quality-promise__photo {
+    width: min(100%, 22rem);
+    max-height: 19rem;
+  }
+}
+
+.quality-promise__scallop {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .quality-promise__scallop {
+    display: block;
+    position: absolute;
+    left: calc(42% - 10px);
+    top: 0;
+    z-index: 2;
+    width: 20px;
+    height: 100%;
+    pointer-events: none;
+  }
+}
+
+.quality-promise__panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.25rem 2.25rem;
+  background-color: #e8efe8;
+  background-image:
+    radial-gradient(circle at 80% 20%, rgba(184, 134, 11, 0.06) 0%, transparent 42%),
+    radial-gradient(circle at 15% 85%, rgba(10, 46, 34, 0.04) 0%, transparent 40%);
+}
+
+@media (min-width: 768px) {
+  .quality-promise__panel {
+    padding: 2.5rem 2rem 2.5rem 2.25rem;
+  }
+}
+
+.quality-promise__panel-inner {
+  width: 100%;
+  max-width: 34rem;
+}
+
+.quality-promise__title {
+  font-size: clamp(1.45rem, 4.8vw, 2.35rem);
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  line-height: 1.08;
+}
+
+.quality-promise__copy {
+  font-size: clamp(0.84rem, 2.4vw, 0.96rem);
+  line-height: 1.65;
+}
+
+.quality-promise__badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1.25rem 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .quality-promise__badges {
+    gap: 1.5rem 2rem;
+  }
+}
+
+.quality-badge__ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  color: #5c4033;
+}
+
+.quality-badge__svg {
+  display: block;
+  width: clamp(6.75rem, 21vw, 8.75rem);
+  height: clamp(6.75rem, 21vw, 8.75rem);
+  filter: drop-shadow(0 8px 18px rgba(92, 64, 51, 0.18));
+}
+
+@media (min-width: 640px) {
+  .quality-badge__svg {
+    width: clamp(7.25rem, 14vw, 8.75rem);
+    height: clamp(7.25rem, 14vw, 8.75rem);
+  }
+}
+
+.quality-badge__icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* Hero — mobile compact banner (Jolliz-style split) */
+.hero-mobile-shell {
+  width: 100%;
+}
+
+.hero-mobile-banner {
+  position: relative;
+  overflow: hidden;
+  min-height: clamp(15.5rem, 46vw, 18.5rem);
+  background:
+    radial-gradient(ellipse 90% 70% at 15% 20%, rgba(184, 134, 11, 0.16) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 85% 80%, rgba(248, 243, 231, 0.08) 0%, transparent 50%),
+    linear-gradient(135deg, #0d3a2b 0%, #0a2e22 48%, #08241c 100%);
+}
+
+.hero-mobile-banner__pattern {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.14;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(248, 243, 231, 0.35) 0 2px, transparent 3px),
+    radial-gradient(circle at 70% 65%, rgba(184, 134, 11, 0.35) 0 2px, transparent 3px),
+    radial-gradient(circle at 45% 80%, rgba(248, 243, 231, 0.25) 0 1.5px, transparent 2.5px);
+  background-size: 28px 28px, 34px 34px, 22px 22px;
+}
+
+.hero-mobile-banner__grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  min-height: inherit;
+  padding: 1rem 0.85rem 1rem 1rem;
+}
+
+@media (min-width: 390px) {
+  .hero-mobile-banner__grid {
+    gap: 0.5rem 0.75rem;
+    padding: 1.15rem 1rem 1.15rem 1.15rem;
+  }
+}
+
+.hero-mobile-banner__copy {
+  min-width: 0;
+  padding-right: 0.15rem;
+}
+
+.hero-mobile-banner__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.52rem 1rem;
+  border-radius: 999px;
+  background: linear-gradient(145deg, #c9971c, #b8860b);
+  color: #0a2e22;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.45);
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.hero-mobile-banner__cta:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.hero-mobile-banner__visual {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 0;
+  height: clamp(9.5rem, 38vw, 12.5rem);
+}
+
+.hero-mobile-banner__image {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.28));
+}
+
+@media (max-width: 359px) {
+  .hero-mobile-banner {
+    min-height: 14.75rem;
+  }
+
+  .hero-mobile-banner__grid {
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+    padding-inline: 0.75rem;
+  }
+
+  .hero-mobile-banner__visual {
+    height: 8.75rem;
+  }
 }
 
 /* Hero — full-area click; pill popup on hover over right product zone */
@@ -1432,11 +1700,11 @@ body {
   overflow: hidden;
   height: clamp(480px, 62vh, 560px);
   border-radius: 20px;
-  border: 1px solid rgba(10, 46, 34, 0.1);
-  background: #ffffff;
+  border: 4px solid #E6D8C3;
+  background: #FFFEF2;
   box-shadow:
-    0 24px 48px -28px rgba(10, 46, 34, 0.28),
-    0 8px 20px -12px rgba(10, 46, 34, 0.12);
+    0 24px 48px -28px rgba(10, 46, 34, 0.22),
+    0 8px 20px -12px rgba(10, 46, 34, 0.1);
   transform-style: preserve-3d;
   will-change: transform;
   transition:
@@ -1449,10 +1717,10 @@ body {
 }
 
 .our-products-card__inner--active:hover {
-  border-color: rgba(10, 46, 34, 0.22);
+  border-color: #d4c4ad;
   box-shadow:
-    0 28px 52px -26px rgba(10, 46, 34, 0.34),
-    0 10px 24px -12px rgba(10, 46, 34, 0.14);
+    0 28px 52px -26px rgba(10, 46, 34, 0.28),
+    0 10px 24px -12px rgba(10, 46, 34, 0.12);
 }
 
 .our-products-card__ring {
@@ -1499,7 +1767,7 @@ body {
   height: 100%;
   min-height: 0;
   border-radius: inherit;
-  background: #ffffff;
+  background: #FFFEF2;
 }
 
 @keyframes our-products-border-fill {
@@ -1520,7 +1788,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 1.5rem 1.15rem 0.65rem;
-  background: #ffffff;
+  background: #F8F3E7;
 }
 
 .our-products-card__image {
@@ -1537,7 +1805,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
-  border-top: 1px solid rgba(10, 46, 34, 0.06);
+  border-top: 2px solid #E6D8C3;
+  background: #FFFEF2;
 }
 
 .our-products-card__label {
@@ -1617,7 +1886,38 @@ body {
 
 @media (max-width: 640px) {
   .our-products-carousel {
-    padding-inline: 2.35rem;
+    min-height: clamp(420px, 58svh, 520px);
+    padding-inline: 2rem;
+  }
+
+  .our-products-stage {
+    height: clamp(420px, 58svh, 520px);
+    perspective: 900px;
+  }
+
+  .our-products-card {
+    width: min(300px, 88vw);
+  }
+
+  .our-products-card__inner {
+    height: clamp(400px, 54svh, 500px);
+  }
+
+  .our-products-card__image {
+    max-height: 220px;
+  }
+
+  .our-products-card__body {
+    padding: 0.85rem 1rem 1.1rem;
+  }
+
+  .our-products-card__ingredients {
+    font-size: 0.8rem;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .our-products-arrow {
@@ -1631,6 +1931,16 @@ body {
 
   .our-products-arrow--right {
     right: 0;
+  }
+}
+
+@media (max-width: 399px) {
+  .our-products-carousel {
+    padding-inline: 1.65rem;
+  }
+
+  .our-products-card {
+    width: min(280px, 92vw);
   }
 }
 
@@ -3079,11 +3389,62 @@ body {
   }
 }
 
+/* Auth page — flat darker cream panels, no light gradients */
+.auth-page {
+  background-color: #e0d3bc;
+}
+
+.auth-split-visual--cream {
+  background-color: #cfc0a8;
+  border-right: 1px solid rgba(10, 46, 34, 0.1);
+}
+
+.auth-split-form {
+  background-color: #e0d3bc;
+}
+
+.auth-form-card {
+  border: 2px solid #E6D8C3;
+  border-radius: 1.5rem;
+  background: #FFFEF2;
+  padding: 1.35rem 1.25rem;
+  box-shadow:
+    0 28px 64px -40px rgba(10, 46, 34, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+@media (min-width: 640px) {
+  .auth-form-card {
+    padding: 1.75rem 1.65rem;
+    border-radius: 1.75rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .auth-form-card {
+    padding: 2rem 1.85rem;
+    border-radius: 2rem 2.25rem 2.25rem 2rem;
+  }
+}
+
+.auth-field {
+  border-color: rgba(10, 46, 34, 0.14);
+  background-color: #FFFEF2;
+  color: #0a2e22;
+  font-family: Montserrat, system-ui, sans-serif;
+}
+
+.auth-field:focus {
+  border-color: rgba(184, 134, 11, 0.55);
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.12);
+}
+
 /* Auth page — 50/50 split, matched C-curve */
 @media (min-width: 1024px) {
   .auth-split-visual {
     clip-path: url(#auth-left-curve);
-    filter: drop-shadow(-4px 0 16px rgba(10, 46, 34, 0.08));
+    filter: drop-shadow(-6px 0 20px rgba(10, 46, 34, 0.06));
   }
 
   .auth-split-form {

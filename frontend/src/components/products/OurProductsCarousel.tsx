@@ -13,9 +13,14 @@ import {
 } from 'react'
 import { CAROUSEL_PRODUCTS } from '../../lib/carouselProducts'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
+import {
+  BRAND_CREAM,
+  BRAND_DISPLAY,
+  BRAND_INK,
+  BRAND_MUTED,
+  BRAND_SANS,
+} from '../../lib/brand'
 
-const INK = '#0a2e22'
-const MUTED = '#5a7268'
 const TOTAL = CAROUSEL_PRODUCTS.length
 const AUTO_MS = 4500
 
@@ -30,13 +35,34 @@ function shortestOffset(index: number, active: number) {
   return diff
 }
 
+function useSlideGap() {
+  const [gap, setGap] = useState(300)
+
+  useEffect(() => {
+    const update = () => {
+      const w = window.innerWidth
+      if (w < 400) setGap(168)
+      else if (w < 640) setGap(200)
+      else if (w < 768) setGap(240)
+      else if (w < 1024) setGap(270)
+      else setGap(300)
+    }
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [])
+
+  return gap
+}
+
 type CarouselCardProps = {
   product: (typeof CAROUSEL_PRODUCTS)[number]
   offset: number
   isActive: boolean
+  slideGap: number
 }
 
-function CarouselCard({ product, offset, isActive }: CarouselCardProps) {
+function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps) {
   const rotateX = useSpring(0, { stiffness: 220, damping: 24 })
   const rotateY = useSpring(0, { stiffness: 220, damping: 24 })
   const abs = Math.abs(offset)
@@ -56,8 +82,8 @@ function CarouselCard({ product, offset, isActive }: CarouselCardProps) {
   }
 
   const baseRotateY = offset * -32
-  const translateX = offset * 300
-  const translateZ = -abs * 160
+  const translateX = offset * slideGap
+  const translateZ = -abs * Math.min(160, slideGap * 0.55)
   const scale = isActive ? 1 : Math.max(0.78, 1 - abs * 0.1)
   const opacity = abs > 2 ? 0 : 1 - abs * 0.22
   const pointerEvents = abs > 1 ? 'none' : 'auto'
@@ -119,6 +145,7 @@ export default function OurProductsCarousel() {
   const [activeIndex, setActiveIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const didDragRef = useRef(false)
+  const slideGap = useSlideGap()
 
   const goNext = useCallback(() => {
     setActiveIndex((prev) => wrapIndex(prev + 1))
@@ -156,18 +183,19 @@ export default function OurProductsCarousel() {
   return (
     <section
       id="products"
-      className="relative w-full overflow-hidden bg-white px-4 py-12 md:px-8 md:py-16 lg:px-10"
+      className="relative w-full overflow-hidden px-5 py-10 sm:px-8 sm:py-14 lg:px-10 lg:py-20"
+      style={{ backgroundColor: BRAND_CREAM }}
       aria-label="Our products"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div className="mx-auto max-w-7xl">
-        <header className="mb-8 text-center md:mb-10">
+      <div className="mx-auto max-w-[1320px]">
+        <header className="mb-6 text-center sm:mb-8 md:mb-10">
           <h2
             className="m-0 uppercase"
             style={{
-              color: INK,
-              fontFamily: 'Anton, Impact, sans-serif',
+              color: BRAND_INK,
+              fontFamily: BRAND_DISPLAY,
               fontSize: 'clamp(1.5rem, 3.8vw, 2.65rem)',
               fontWeight: 400,
               letterSpacing: '0.06em',
@@ -177,8 +205,8 @@ export default function OurProductsCarousel() {
             Our Products
           </h2>
           <p
-            className="mx-auto mt-3 max-w-xl text-sm md:text-base"
-            style={{ color: MUTED, fontFamily: 'Inter, sans-serif' }}
+            className="mx-auto mt-3 max-w-xl text-[0.88rem] leading-relaxed sm:text-[0.94rem]"
+            style={{ color: BRAND_MUTED, fontFamily: BRAND_SANS }}
           >
             Signature mukhwas blends — crafted for freshness, tradition, and everyday delight.
           </p>
@@ -234,22 +262,23 @@ export default function OurProductsCarousel() {
                 product={product}
                 offset={shortestOffset(index, activeIndex)}
                 isActive={index === activeIndex}
+                slideGap={slideGap}
               />
             ))}
           </motion.div>
         </div>
 
-        <div className="mt-8 flex justify-center md:mt-10">
+        <div className="mt-6 flex justify-center sm:mt-8 md:mt-10">
           <a
             href="/shop"
             onClick={(e) => {
               e.preventDefault()
               navigateApp(APP_ROUTES.shop)
             }}
-            className="cursor-pointer rounded-full border px-7 py-2.5 text-[0.78rem] font-semibold tracking-[0.14em] uppercase no-underline transition-colors hover:bg-[#0a2e22] hover:text-white"
+            className="cursor-pointer rounded-full border px-6 py-2.5 text-[0.72rem] font-semibold tracking-[0.14em] uppercase no-underline transition-colors hover:bg-[#0a2e22] hover:text-white sm:px-7 sm:text-[0.78rem]"
             style={{
-              fontFamily: 'Inter, sans-serif',
-              color: INK,
+              fontFamily: BRAND_SANS,
+              color: BRAND_INK,
               borderColor: 'rgba(10,46,34,0.28)',
               backgroundColor: 'transparent',
             }}

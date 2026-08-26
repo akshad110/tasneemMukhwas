@@ -17,6 +17,8 @@ import {
   isShopPath,
   isWholesalePath,
   isWishlistPath,
+  isPrivacyPath,
+  isShippingPolicyPath,
   navigateApp,
   APP_ROUTES,
   clearPersistRoute,
@@ -37,6 +39,8 @@ import ProfilePage from './pages/ProfilePage'
 import SettingsPage from './pages/SettingsPage'
 import ShopPage from './pages/ShopPage'
 import WishlistPage from './pages/WishlistPage'
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
+import ShippingPolicyPage from './pages/ShippingPolicyPage'
 
 function AppRoutes({ path }: { path: string }) {
   const { user, loading } = useAuth()
@@ -51,6 +55,8 @@ function AppRoutes({ path }: { path: string }) {
   const knowMore = isKnowMorePath(path)
   const wholesale = isWholesalePath(path)
   const contact = isContactPath(path)
+  const privacy = isPrivacyPath(path)
+  const shippingPolicy = isShippingPolicyPath(path)
   const admin = isAdminPath(path)
   const authMode = path === '/signup' ? 'signup' : 'login'
 
@@ -73,6 +79,8 @@ function AppRoutes({ path }: { path: string }) {
   if (knowMore) return <KnowMorePage />
   if (wholesale) return <WholesalePage />
   if (contact) return <ContactPage />
+  if (privacy) return <PrivacyPolicyPage />
+  if (shippingPolicy) return <ShippingPolicyPage />
   if (admin) return <AdminPage />
 
   return <Home ready />

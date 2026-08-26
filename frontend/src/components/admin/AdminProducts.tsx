@@ -11,6 +11,7 @@ import {
   CATEGORIES,
   GRAM_OPTIONS,
   PRODUCT_CARD_PANEL_BG,
+  PRODUCT_MAX_GALLERY_IMAGES,
   buildGramVariants,
   parseGramOptionsFromVariants,
   type ShopProduct,
@@ -25,6 +26,8 @@ const LINE = 'rgba(10,46,34,0.08)'
 
 const BRAND_FILL = '#0a2e22'
 
+type ProductImageSlots = [string, string, string, string]
+
 type Editable = {
   id: string
   name: string
@@ -33,7 +36,7 @@ type Editable = {
   showDiscountedPrice: boolean
   discountedPrice: number
   outOfStock: boolean
-  images: [string, string, string]
+  images: ProductImageSlots
   shortDescription: string
   description: string
   brand: string
@@ -42,12 +45,12 @@ type Editable = {
   gramOptions: number[]
 }
 
+function padImageSlots(images: string[]): ProductImageSlots {
+  return [...images, '', '', '', ''].slice(0, PRODUCT_MAX_GALLERY_IMAGES) as ProductImageSlots
+}
+
 function toEditable(p: ShopProduct): Editable {
-  const imgs = [...(p.images?.length ? p.images : [p.image]), '', '', ''].slice(0, 3) as [
-    string,
-    string,
-    string,
-  ]
+  const imgs = padImageSlots(p.images?.length ? p.images : [p.image])
   return {
     id: p.id,
     name: p.name,
@@ -67,7 +70,7 @@ function toEditable(p: ShopProduct): Editable {
 }
 
 function toShopProduct(e: Editable, existing?: ShopProduct): ShopProduct {
-  const images = e.images.map((x) => x.trim()).filter(Boolean).slice(0, 3)
+  const images = e.images.map((x) => x.trim()).filter(Boolean).slice(0, PRODUCT_MAX_GALLERY_IMAGES)
   const image = images[0] ?? existing?.image ?? '/products/shahi-mukhwas.png'
   const gallery = images.length ? images : image ? [image] : []
   const fill = existing?.fill || BRAND_FILL
@@ -181,7 +184,7 @@ export default function AdminProducts() {
     showDiscountedPrice: false,
     discountedPrice: 149,
     outOfStock: false,
-    images: ['', '', ''],
+    images: ['', '', '', ''],
     shortDescription: '',
     description: '',
     brand: 'Tasneem',
@@ -211,20 +214,20 @@ export default function AdminProducts() {
     if (editing?.id === id) setEditing(null)
   }
 
-  const setImageAt = async (index: 0 | 1 | 2, e: ChangeEvent<HTMLInputElement>) => {
+  const setImageAt = async (index: 0 | 1 | 2 | 3, e: ChangeEvent<HTMLInputElement>) => {
     if (!editing) return
     const file = e.target.files?.[0]
     if (!file) return
     const dataUrl = await compressProductImage(file)
-    const images = [...editing.images] as [string, string, string]
+    const images = [...editing.images] as ProductImageSlots
     images[index] = dataUrl
     setEditing({ ...editing, images })
     e.target.value = ''
   }
 
-  const clearImageAt = (index: 0 | 1 | 2) => {
+  const clearImageAt = (index: 0 | 1 | 2 | 3) => {
     if (!editing) return
-    const images = [...editing.images] as [string, string, string]
+    const images = [...editing.images] as ProductImageSlots
     images[index] = ''
     setEditing({ ...editing, images })
   }
@@ -322,8 +325,8 @@ export default function AdminProducts() {
                             if (!row.images.find(Boolean)) {
                               try {
                                 const data = await loadProductImages(r.id)
-                                const gallery = (data.images?.length ? data.images : data.image ? [data.image] : []).slice(0, 3)
-                                row.images = [...gallery, '', ''].slice(0, 3) as [string, string, string]
+                                const gallery = (data.images?.length ? data.images : data.image ? [data.image] : []).slice(0, PRODUCT_MAX_GALLERY_IMAGES)
+                                row.images = padImageSlots(gallery)
                               } catch {
                                 /* keep empty slots */
                               }
@@ -361,7 +364,7 @@ export default function AdminProducts() {
           aria-label={creating ? 'Add product' : 'Edit product'}
         >
           <div
-            className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border p-5 shadow-xl [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl border p-5 shadow-xl [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             style={{ backgroundColor: CARD, borderColor: LINE }}
           >
             <h2 className="m-0 text-[1.15rem] font-bold" style={{ color: INK }}>
@@ -370,10 +373,10 @@ export default function AdminProducts() {
             <div className="mt-4 space-y-3">
               <div>
                 <p className="m-0 mb-2 text-[0.78rem]" style={{ color: MUTED }}>
-                  Images (optional — up to 3). Shop cards use a fixed light panel behind product photos.
+                  Images (optional — up to 4). Shop cards use a fixed light panel behind product photos.
                 </p>
-                <div className="grid grid-cols-3 gap-2">
-                  {([0, 1, 2] as const).map((i) => (
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {([0, 1, 2, 3] as const).map((i) => (
                     <div
                       key={i}
                       className="rounded-xl border p-2"

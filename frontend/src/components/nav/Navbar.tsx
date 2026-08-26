@@ -1,4 +1,5 @@
 import { useLenis } from 'lenis/react'
+import { ChevronDown } from 'lucide-react'
 import { useEffect, useState, type MouseEvent, type ReactNode } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
@@ -19,6 +20,7 @@ import {
   isContactPath,
   navigateApp,
 } from '../../lib/appRoutes'
+import { CATEGORIES } from '../../lib/shopCatalog'
 import MobileBottomNav from './MobileBottomNav'
 import {
   getActiveSectionId,
@@ -43,6 +45,24 @@ const RIGHT_NAV_LINKS = [
 const NAV_LINKS = [...LEFT_NAV_LINKS, ...RIGHT_NAV_LINKS]
 
 type NavLinkItem = (typeof NAV_LINKS)[number]
+
+type NavDropdownItem = {
+  label: string
+}
+
+const ABOUT_DROPDOWN_ITEMS: NavDropdownItem[] = [
+  { label: 'Our Services' },
+  { label: 'Why Choose Us' },
+]
+
+const SHOP_DROPDOWN_ITEMS: NavDropdownItem[] = CATEGORIES.map((category) => ({
+  label: category,
+}))
+
+const NAV_DROPDOWN_BY_ID: Partial<Record<SectionId, NavDropdownItem[]>> = {
+  about: ABOUT_DROPDOWN_ITEMS,
+  products: SHOP_DROPDOWN_ITEMS,
+}
 
 const INK = '#0a2e22'
 const GOLD = '#b8860b'
@@ -197,6 +217,26 @@ function NavLinks({
   onNavigate?: (id: SectionId) => void
   onPrefetchShop?: () => void
 }) {
+  const dropdownMenuClass = (align: 'left' | 'right') =>
+    stacked
+      ? 'mt-1 flex w-full flex-col gap-0.5 pl-3'
+      : `invisible absolute ${align === 'right' ? 'right-0' : 'left-0'} top-[calc(100%+8px)] z-50 min-w-[196px] translate-y-1 rounded-xl border bg-[#FFFEF2] py-1.5 opacity-0 shadow-lg transition duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100`
+
+  const dropdownItemClass = stacked
+    ? 'flex w-full cursor-pointer items-center border-0 bg-transparent px-2 py-2 text-left text-[0.82rem] font-medium transition hover:text-[#b8860b]'
+    : 'flex w-full cursor-pointer items-center border-0 bg-transparent px-3.5 py-2 text-left text-[0.78rem] font-semibold transition hover:bg-[#E6D8C3]/45'
+
+  const openDropdownTarget = (linkId: SectionId) => {
+    if (linkId === 'about') {
+      onNavigate?.('about')
+      return
+    }
+    if (linkId === 'products') {
+      onPrefetchShop?.()
+      onNavigate?.('products')
+    }
+  }
+
   return (
     <ul
       className={
@@ -207,6 +247,8 @@ function NavLinks({
     >
       {links.map((link) => {
         const isActive = activeId === link.id
+        const dropdownItems = NAV_DROPDOWN_BY_ID[link.id] ?? []
+        const hasDropdown = dropdownItems.length > 0
         const href =
           link.id === 'about'
             ? APP_ROUTES.knowMore
@@ -218,8 +260,10 @@ function NavLinks({
                   ? APP_ROUTES.contact
                   : pathForSection(link.id)
 
+        const dropdownAlignClass = link.id === 'products' ? 'right' : 'left'
+
         return (
-          <li key={link.label}>
+          <li key={link.label} className={hasDropdown && !stacked ? 'group relative' : undefined}>
             <a
               href={href}
               onClick={(e: MouseEvent<HTMLAnchorElement>) => {
@@ -235,19 +279,63 @@ function NavLinks({
               onTouchStart={() => {
                 if (link.id === 'products') onPrefetchShop?.()
               }}
-              className="nav-link group cursor-pointer border-b-2 pb-0.5 text-[0.72rem] font-semibold tracking-[0.08em] uppercase no-underline transition-[color,border-color,font-weight] duration-200 xl:text-[0.78rem]"
+              className="nav-link group/link inline-flex cursor-pointer items-center gap-1 text-[0.72rem] font-semibold tracking-[0.08em] uppercase no-underline transition-[color,font-weight] duration-200 xl:text-[0.78rem]"
               style={{
                 color: isActive ? INK : NAV_LINK,
-                borderColor: isActive ? GOLD : 'transparent',
                 fontFamily: 'Inter, sans-serif',
                 fontWeight: isActive ? 700 : 600,
                 ['--nav-link-hover-color' as string]: GOLD,
                 ['--nav-link-hover-border' as string]: GOLD,
               }}
               aria-current={isActive ? 'page' : undefined}
+              aria-haspopup={hasDropdown ? 'menu' : undefined}
             >
-              {link.label}
+              <span
+                className="nav-link__label border-b-2 pb-0.5 transition-[border-color,color] duration-200"
+                style={{
+                  borderColor: isActive ? GOLD : 'transparent',
+                }}
+              >
+                {link.label}
+              </span>
+              {hasDropdown ? (
+                <ChevronDown
+                  className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${
+                    stacked ? '' : 'group-hover:rotate-180 group-focus-within:rotate-180'
+                  }`}
+                  strokeWidth={2.4}
+                  aria-hidden
+                />
+              ) : null}
             </a>
+
+            {hasDropdown ? (
+              <div
+                className={dropdownMenuClass(stacked ? 'left' : dropdownAlignClass)}
+                style={
+                  stacked
+                    ? undefined
+                    : {
+                        borderColor: '#E6D8C3',
+                        boxShadow: '0 16px 36px -18px rgba(10,46,34,0.35)',
+                      }
+                }
+                role="menu"
+              >
+                {dropdownItems.map((item) => (
+                  <button
+                    key={item.label}
+                    type="button"
+                    role="menuitem"
+                    onClick={() => openDropdownTarget(link.id)}
+                    className={dropdownItemClass}
+                    style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </li>
         )
       })}
