@@ -1,13 +1,12 @@
 import ScrollZoomReveal from '../framer/ScrollZoomReveal.js'
 import LayoutIsland from '../../utils/LayoutIsland'
-import AboutStoryInside from './AboutStoryInside'
 import { BRAND_CREAM, BRAND_CREAM_LIGHT, BRAND_INK } from '../../lib/brand'
 
-const ABOUT_STORY_BG = encodeURI('/Mukhwas_ingredients_arranged_on_…_202608182142.jpeg')
+const ABOUT_VIDEO_SRC = '/videos/about-brand.mp4'
 
 /**
- * About Us — scroll-zoom hero opens into the full story panel (AboutStoryInside).
- * Page scroll (Lenis) scrubs zoom + story — no nested overflow scroller.
+ * About Us — scroll-zoom opens into the brand story video panel.
+ * Page scroll (Lenis) scrubs zoom + video area — no nested overflow scroller.
  */
 export default function AboutZoom() {
   return (
@@ -20,15 +19,13 @@ export default function AboutZoom() {
       <div className="relative z-10">
         <LayoutIsland>
           <ScrollZoomReveal
-            videoUrl=""
-            image={{
-              src: ABOUT_STORY_BG,
-              alt: 'Mukhwas ingredients arranged on a bright surface',
-            }}
+            videoUrl={ABOUT_VIDEO_SRC}
+            autoPlay={false}
+            loop={false}
             leftText="About"
             rightText="Us"
             buttonText=""
-            buttonLink="#about-story"
+            buttonLink="#about"
             textColor={BRAND_INK}
             buttonTextColor={BRAND_INK}
             buttonBgColor={BRAND_CREAM}
@@ -52,9 +49,7 @@ export default function AboutZoom() {
               letterSpacing: '0.02em',
             }}
             style={{ width: '100%', backgroundColor: BRAND_CREAM_LIGHT }}
-          >
-            <AboutStoryInside />
-          </ScrollZoomReveal>
+          />
         </LayoutIsland>
       </div>
     </section>

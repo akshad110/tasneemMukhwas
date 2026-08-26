@@ -23,7 +23,6 @@ import {
 import { CATEGORIES } from '../../lib/shopCatalog'
 import MobileBottomNav from './MobileBottomNav'
 import {
-  getActiveSectionId,
   pathForSection,
   scrollToSection,
   syncActiveSectionFromScroll,
@@ -128,13 +127,7 @@ function useActiveSection() {
     if (isShopPath(pathname)) return 'products'
     if (isWholesalePath(pathname)) return 'wholesale'
     if (isContactPath(pathname)) return 'contact'
-
-    if (pathname === '/' || isHomeScrollPath(pathname)) {
-      const section = getActiveSectionId()
-      if (section === 'contact' || section === 'about') return 'home'
-      return section
-    }
-
+    if (pathname === '/' || isHomeScrollPath(pathname)) return 'home'
     return 'home'
   }
 

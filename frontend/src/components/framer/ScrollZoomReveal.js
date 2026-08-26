@@ -176,8 +176,10 @@ function AnimatedScrollZoom(props) {
   const videoRef = useRef(null)
   const storyInnerRef = useRef(null)
   const [isPlaying, setIsPlaying] = useState(autoPlay)
+  const [videoMuted, setVideoMuted] = useState(Boolean(muted))
   const [screen, setScreen] = useState('desktop')
   const hasStory = Boolean(children)
+  const useVideoMode = Boolean(videoUrl) && !hasStory
   const [storyTravel, setStoryTravel] = useState(0)
   const [storyHold, setStoryHold] = useState(0)
   const [zoomEnd, setZoomEnd] = useState(hasStory ? 0.32 : 1)
@@ -250,14 +252,18 @@ function AnimatedScrollZoom(props) {
     hasStory ? [0, z, 1] : [0, 1],
     hasStory
       ? [current.startWidth, '100vw', '100vw']
-      : [current.startWidth, '100vw'],
+      : useVideoMode
+        ? [current.startWidth, '100%']
+        : [current.startWidth, '100vw'],
   )
   const height = useTransform(
     smoothProgress,
     hasStory ? [0, z, 1] : [0, 1],
     hasStory
       ? [current.startHeight, '100svh', '100svh']
-      : [current.startHeight, '100svh'],
+      : useVideoMode
+        ? [current.startHeight, '100%']
+        : [current.startHeight, '100svh'],
   )
   const rawRadius = useTransform(
     smoothProgress,
@@ -276,6 +282,12 @@ function AnimatedScrollZoom(props) {
     [0, 0, 1, 1, 0],
   )
   const topTitleY = useTransform(smoothProgress, [z * 0.45, z * 0.7], [40, 0])
+
+  const videoHeaderOpacity = useTransform(
+    smoothProgress,
+    useVideoMode ? [0.84, 0.94] : [0, 1],
+    useVideoMode ? [0, 1] : [0, 1],
+  )
 
   const centerTextOpacity = useTransform(
     smoothProgress,
@@ -304,6 +316,72 @@ function AnimatedScrollZoom(props) {
     }
   }
 
+  const toggleVideoPlay = () => {
+    const video = videoRef.current
+    if (!video) return
+    if (video.paused) {
+      video.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false))
+      return
+    }
+    video.pause()
+    setIsPlaying(false)
+  }
+
+  const toggleVideoMute = () => {
+    const video = videoRef.current
+    if (!video) return
+    video.muted = !video.muted
+    setVideoMuted(video.muted)
+  }
+
+  useEffect(() => {
+    if (!useVideoMode || !videoRef.current) return
+    const playThreshold = 0.9
+    const pauseThreshold = 0.82
+    const syncPlayback = (progress) => {
+      const video = videoRef.current
+      if (!video) return
+
+      if (progress >= playThreshold) {
+        if (!video.paused) return
+        video.muted = videoMuted
+        video
+          .play()
+          .then(() => setIsPlaying(true))
+          .catch(() => {
+            video.muted = true
+            setVideoMuted(true)
+            video.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false))
+          })
+        return
+      }
+
+      if (progress < pauseThreshold && !video.paused) {
+        video.pause()
+        setIsPlaying(false)
+      }
+    }
+    syncPlayback(smoothProgress.get())
+    const unsub = smoothProgress.on('change', syncPlayback)
+    return () => unsub()
+  }, [useVideoMode, smoothProgress, videoMuted])
+
+  useEffect(() => {
+    if (!useVideoMode || !ref.current) return
+    const node = ref.current
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const video = videoRef.current
+        if (!video || entry?.isIntersecting) return
+        video.pause()
+        setIsPlaying(false)
+      },
+      { threshold: 0.08 },
+    )
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [useVideoMode])
+
   const topTitle = [leftText, rightText].filter(Boolean).join(' ')
   const topFontSize =
     screen === 'mobile'
@@ -314,6 +392,269 @@ function AnimatedScrollZoom(props) {
   const sectionHeight = hasStory
     ? `calc(125vh + ${storyHold}px + ${storyTravel}px)`
     : '105vh'
+
+  const mediaFrameStyle = {
+    width,
+    height,
+    borderRadius,
+    overflow: 'hidden',
+    position: 'relative',
+    flexShrink: 0,
+    zIndex: 1,
+    willChange: 'width, height, border-radius',
+    background: stickyBg,
+  }
+
+  const mediaChildren = [
+    !useVideoMode
+      ? /* @__PURE__ */ _jsx(motion.img, {
+          src: imageSrc,
+          alt: image?.alt || 'Showreel background',
+          style: {
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            width: '110vw',
+            height: '110svh',
+            minWidth: '100%',
+            minHeight: '100%',
+            objectFit: 'cover',
+            filter: hasStory ? 'brightness(0.96) saturate(0.98)' : undefined,
+            transform: 'translate(-50%, -50%)',
+            opacity: isPlaying ? 0 : 1,
+            transition: 'opacity 0.4s ease',
+            background: hasStory ? 'transparent' : stickyBg,
+            pointerEvents: 'none',
+          },
+        })
+      : null,
+    hasStory
+      ? /* @__PURE__ */ _jsx('div', {
+          'aria-hidden': true,
+          style: {
+            position: 'absolute',
+            inset: 0,
+            zIndex: 5,
+            pointerEvents: 'none',
+            background:
+              'linear-gradient(180deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.16) 100%)',
+          },
+        })
+      : null,
+    videoUrl
+      ? /* @__PURE__ */ _jsxs('video', {
+          ref: videoRef,
+          loop,
+          muted: videoMuted,
+          playsInline: true,
+          preload: 'metadata',
+          onPlay: () => setIsPlaying(true),
+          onPause: () => setIsPlaying(false),
+          style: {
+            position: 'absolute',
+            left: '0',
+            top: '0',
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            opacity: useVideoMode ? 1 : isPlaying ? 1 : 0,
+            pointerEvents: useVideoMode || isPlaying ? 'auto' : 'none',
+            transition: useVideoMode ? 'none' : 'opacity 0.4s ease',
+            background: stickyBg,
+          },
+          children: /* @__PURE__ */ _jsx('source', {
+            src: videoUrl,
+            type: 'video/mp4',
+          }),
+        })
+      : null,
+    useVideoMode
+      ? /* @__PURE__ */ _jsxs('div', {
+          style: {
+            position: 'absolute',
+            insetInline: 0,
+            bottom: 0,
+            zIndex: 20,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+            padding: '2.5rem 0.85rem 0.85rem',
+            background:
+              'linear-gradient(180deg, transparent 0%, rgba(10,46,34,0.72) 100%)',
+            pointerEvents: 'auto',
+          },
+          children: [
+            /* @__PURE__ */ _jsxs('div', {
+              style: { display: 'flex', alignItems: 'center', gap: '8px' },
+              children: [
+                /* @__PURE__ */ _jsx('button', {
+                  type: 'button',
+                  onClick: toggleVideoPlay,
+                  'aria-label': isPlaying ? 'Pause video' : 'Play video',
+                  style: {
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '40px',
+                    height: '40px',
+                    border: 'none',
+                    borderRadius: '999px',
+                    background: '#FFFEF2',
+                    color: textColor || '#0a2e22',
+                    cursor: 'pointer',
+                  },
+                  children: isPlaying
+                    ? /* @__PURE__ */ _jsxs('svg', {
+                        width: 18,
+                        height: 18,
+                        viewBox: '0 0 24 24',
+                        fill: 'currentColor',
+                        children: [
+                          /* @__PURE__ */ _jsx('rect', { x: 6, y: 5, width: 4, height: 14, rx: 1 }),
+                          /* @__PURE__ */ _jsx('rect', { x: 14, y: 5, width: 4, height: 14, rx: 1 }),
+                        ],
+                      })
+                    : /* @__PURE__ */ _jsx('svg', {
+                        width: 18,
+                        height: 18,
+                        viewBox: '0 0 24 24',
+                        fill: 'currentColor',
+                        children: /* @__PURE__ */ _jsx('path', {
+                          d: 'M8 5.14v13.72a1 1 0 0 0 1.5.86l11.04-6.86a1 1 0 0 0 0-1.72L9.5 4.28A1 1 0 0 0 8 5.14z',
+                        }),
+                      }),
+                }),
+                /* @__PURE__ */ _jsx('button', {
+                  type: 'button',
+                  onClick: toggleVideoMute,
+                  'aria-label': videoMuted ? 'Unmute video' : 'Mute video',
+                  style: {
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '40px',
+                    height: '40px',
+                    border: 'none',
+                    borderRadius: '999px',
+                    background: 'rgba(255,254,242,0.92)',
+                    color: textColor || '#0a2e22',
+                    cursor: 'pointer',
+                  },
+                  children: videoMuted
+                    ? /* @__PURE__ */ _jsx('svg', {
+                        width: 18,
+                        height: 18,
+                        viewBox: '0 0 24 24',
+                        fill: 'none',
+                        stroke: 'currentColor',
+                        strokeWidth: 2.2,
+                        children: /* @__PURE__ */ _jsx('path', {
+                          d: 'M11 5 6 9H3v6h3l5 4V5zm8.59 3.41L17 8.83M17 15.17l2.59-2.58M15.17 17 17 15.17M17 8.83 15.17 7',
+                        }),
+                      })
+                    : /* @__PURE__ */ _jsx('svg', {
+                        width: 18,
+                        height: 18,
+                        viewBox: '0 0 24 24',
+                        fill: 'none',
+                        stroke: 'currentColor',
+                        strokeWidth: 2.2,
+                        children: /* @__PURE__ */ _jsx('path', {
+                          d: 'M11 5 6 9H3v6h3l5 4V5zm8.5 3.5a4.5 4.5 0 0 1 0 7M15 9.5a2.5 2.5 0 0 1 0 5',
+                        }),
+                      }),
+                }),
+              ],
+            }),
+            /* @__PURE__ */ _jsx('p', {
+              style: {
+                margin: 0,
+                fontFamily: 'Montserrat, sans-serif',
+                fontSize: '0.72rem',
+                fontWeight: 500,
+                color: 'rgba(255,254,242,0.82)',
+              },
+              children: 'Tasneem Mukhwas — our story',
+            }),
+          ],
+        })
+      : null,
+    hasStory
+      ? /* @__PURE__ */ _jsx(motion.div, {
+          style: {
+            position: 'absolute',
+            inset: 0,
+            zIndex: 15,
+            overflow: 'hidden',
+            pointerEvents: 'auto',
+            opacity: storyOpacity,
+          },
+          children: /* @__PURE__ */ _jsx(motion.div, {
+            ref: storyInnerRef,
+            style: {
+              y: storyY,
+              width: '100%',
+              paddingTop: 'max(7rem, 14vh)',
+              paddingBottom: '3rem',
+              willChange: 'transform',
+            },
+            children,
+          }),
+        })
+      : null,
+    !isPlaying && buttonText && !hasStory && !useVideoMode
+      ? /* @__PURE__ */ _jsx(motion.div, {
+          style: {
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10,
+            pointerEvents: 'none',
+          },
+          opacity: centerTextOpacity,
+          y: centerTextY,
+          children: /* @__PURE__ */ _jsxs('a', {
+            href: buttonLink,
+            onClick: handlePlayClick,
+            'aria-label': buttonText || 'Play showreel',
+            style: {
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 700,
+              color: buttonTextColor,
+              textAlign: 'center',
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+              ...buttonFont,
+              fontSize: current.centerFont,
+              cursor: 'pointer',
+              pointerEvents: 'auto',
+            },
+            children: [
+              buttonText,
+              renderIcon(
+                iconType,
+                screen,
+                buttonBgColor,
+                buttonTextColor,
+                customIconImage,
+              ),
+            ],
+          }),
+        })
+      : null,
+  ]
+
+  const mediaFrame = /* @__PURE__ */ _jsxs(motion.div, {
+    style: mediaFrameStyle,
+    children: mediaChildren,
+  })
 
   return /* @__PURE__ */ _jsx('section', {
     ref,
@@ -332,8 +673,9 @@ function AnimatedScrollZoom(props) {
         height: '100svh',
         minHeight: '100vh',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        flexDirection: useVideoMode ? 'column' : 'row',
+        alignItems: useVideoMode ? 'stretch' : 'center',
+        justifyContent: useVideoMode ? 'flex-start' : 'center',
         gap: 0,
         padding: 0,
         margin: 0,
@@ -341,151 +683,50 @@ function AnimatedScrollZoom(props) {
         background: stickyBg,
       },
       children: [
-        /* Media */
-        /* @__PURE__ */ _jsxs(motion.div, {
-          style: {
-            width,
-            height,
-            borderRadius,
-            overflow: 'hidden',
-            position: 'relative',
-            flexShrink: 0,
-            zIndex: 1,
-            willChange: 'width, height, border-radius',
-            background: hasStory ? 'transparent' : stickyBg,
-          },
-          children: [
-            /* @__PURE__ */ _jsx(motion.img, {
-              src: imageSrc,
-              alt: image?.alt || 'Showreel background',
+        useVideoMode && topTitle
+          ? /* @__PURE__ */ _jsx('header', {
               style: {
-                position: 'absolute',
-                left: '50%',
-                top: '50%',
-                width: '110vw',
-                height: '110svh',
-                minWidth: '100%',
-                minHeight: '100%',
-                objectFit: 'cover',
-                filter: hasStory ? 'brightness(0.96) saturate(0.98)' : undefined,
-                transform: 'translate(-50%, -50%)',
-                opacity: isPlaying ? 0 : 1,
-                transition: 'opacity 0.4s ease',
-                background: hasStory ? 'transparent' : stickyBg,
+                width: '100%',
+                flexShrink: 0,
+                paddingTop: 'max(5rem, 8vh)',
+                paddingBottom: 'clamp(1.25rem, 3vh, 2rem)',
+                textAlign: 'center',
+                background: stickyBg,
+                zIndex: 2,
               },
-            }),
-            hasStory
-              ? /* @__PURE__ */ _jsx('div', {
-                  'aria-hidden': true,
-                  style: {
-                    position: 'absolute',
-                    inset: 0,
-                    zIndex: 5,
-                    pointerEvents: 'none',
-                    background:
-                      'linear-gradient(180deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.16) 100%)',
-                  },
-                })
-              : null,
-            videoUrl
-              ? /* @__PURE__ */ _jsx('video', {
-                  ref: videoRef,
-                  autoPlay,
-                  loop,
-                  muted,
-                  playsInline: true,
-                  style: {
-                    position: 'absolute',
-                    left: '0',
-                    top: '0',
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    opacity: isPlaying ? 1 : 0,
-                    pointerEvents: isPlaying ? 'auto' : 'none',
-                    transition: 'opacity 0.4s ease',
-                  },
-                  children: /* @__PURE__ */ _jsx('source', {
-                    src: videoUrl,
-                    type: 'video/mp4',
-                  }),
-                })
-              : null,
-            hasStory
-              ? /* @__PURE__ */ _jsx(motion.div, {
-                  style: {
-                    position: 'absolute',
-                    inset: 0,
-                    zIndex: 15,
-                    overflow: 'hidden',
-                    pointerEvents: 'auto',
-                    opacity: storyOpacity,
-                  },
-                  children: /* @__PURE__ */ _jsx(motion.div, {
-                    ref: storyInnerRef,
-                    style: {
-                      y: storyY,
-                      width: '100%',
-                      // Extra top space so About Us title sits clearly under the navbar
-                      paddingTop: 'max(7rem, 14vh)',
-                      paddingBottom: '3rem',
-                      willChange: 'transform',
-                    },
-                    children,
-                  }),
-                })
-              : null,
-            !isPlaying && buttonText && !hasStory
-              ? /* @__PURE__ */ _jsx(motion.div, {
-                  style: {
-                    position: 'absolute',
-                    inset: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 10,
-                    pointerEvents: 'none',
-                  },
-                  opacity: centerTextOpacity,
-                  y: centerTextY,
-                  children: /* @__PURE__ */ _jsxs('a', {
-                    href: buttonLink,
-                    onClick: handlePlayClick,
-                    'aria-label': buttonText || 'Play showreel',
-                    style: {
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '10px',
-                      fontFamily: 'Inter, sans-serif',
-                      fontWeight: 700,
-                      color: buttonTextColor,
-                      textAlign: 'center',
-                      textDecoration: 'none',
-                      whiteSpace: 'nowrap',
-                      ...buttonFont,
-                      fontSize: current.centerFont,
-                      cursor: 'pointer',
-                      pointerEvents: 'auto',
-                    },
-                    children: [
-                      buttonText,
-                      renderIcon(
-                        iconType,
-                        screen,
-                        buttonBgColor,
-                        buttonTextColor,
-                        customIconImage,
-                      ),
-                    ],
-                  }),
-                })
-              : null,
-          ],
-        }),
+              children: /* @__PURE__ */ _jsx(motion.h2, {
+                style: {
+                  margin: 0,
+                  color: textColor,
+                  fontFamily:
+                    (leftFont && leftFont.fontFamily) || 'Anton, Impact, sans-serif',
+                  fontSize: topFontSize,
+                  fontWeight: 400,
+                  letterSpacing: '0.02em',
+                  lineHeight: 1,
+                  whiteSpace: 'nowrap',
+                  opacity: videoHeaderOpacity,
+                },
+                children: topTitle,
+              }),
+            })
+          : null,
+        useVideoMode
+          ? /* @__PURE__ */ _jsx('div', {
+              style: {
+                flex: 1,
+                width: '100%',
+                minHeight: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              },
+              children: mediaFrame,
+            })
+          : mediaFrame,
 
-        /* Top title — only when no in-panel story */
-        topTitle && !hasStory
+        /* Top title — only when no in-panel story and not video mode */
+        topTitle && !hasStory && !useVideoMode
           ? /* @__PURE__ */ _jsx(motion.h2, {
               style: {
                 position: 'absolute',
