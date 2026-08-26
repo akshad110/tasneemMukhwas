@@ -44,8 +44,8 @@ export default function Home({ ready = true }: HomeProps) {
       <OurPartnersMarquee />
       <GlobalReachSection />
 
-      <DeferredMount minHeight="70vh" fallback={<SectionPlaceholder minHeight="70vh" />}>
-        <Suspense fallback={<SectionPlaceholder minHeight="70vh" />}>
+      <DeferredMount fallback={<SectionPlaceholder minHeight="40vh" className="bg-[#FFFEF2]" />}>
+        <Suspense fallback={<SectionPlaceholder minHeight="40vh" className="bg-[#FFFEF2]" />}>
           <AboutZoom />
         </Suspense>
       </DeferredMount>
