@@ -50,7 +50,7 @@ export default function WhatTasneemDoPage() {
   }, [])
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: BRAND_CREAM, color: BRAND_INK, fontFamily: BRAND_SANS }}>
+    <div className="page-shell min-h-screen" style={{ backgroundColor: BRAND_CREAM, color: BRAND_INK, fontFamily: BRAND_SANS }}>
       <Navbar />
 
       <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45, ease: EASE }}>
@@ -134,8 +134,8 @@ export default function WhatTasneemDoPage() {
             >
               <img
                 src={ingredientImage}
-                alt="Tasneem mukhwas pouches on wooden table"
-                className="block aspect-[16/10] max-h-[200px] w-full object-cover sm:max-h-[220px] lg:max-h-[240px]"
+                alt="Mukhwas seeds, spices, and ingredients arranged in bowls on a wooden table"
+                className="block aspect-[16/10] max-h-[200px] w-full object-cover object-center sm:max-h-[220px] lg:max-h-[240px]"
                 loading="lazy"
               />
             </div>
@@ -288,7 +288,7 @@ export default function WhatTasneemDoPage() {
                   className="overflow-hidden rounded-xl border"
                   style={{ borderColor: 'rgba(184,134,11,0.22)', backgroundColor: BRAND_CREAM_LIGHT }}
                 >
-                  <img src={img.src} alt={img.alt} className="block aspect-[16/10] max-h-[140px] w-full object-cover sm:max-h-[160px]" loading="lazy" />
+                  <img src={img.src} alt={img.alt} className="block aspect-[4/3] w-full object-cover" loading="lazy" />
                   <figcaption
                     className="px-3 py-2.5 text-[0.72rem] font-semibold tracking-[0.06em] uppercase"
                     style={{ color: BRAND_INK, fontFamily: BRAND_SANS }}

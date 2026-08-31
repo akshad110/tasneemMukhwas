@@ -26,6 +26,7 @@ import {
   pathForSection,
   scrollToSection,
   syncActiveSectionFromScroll,
+  ensureHomePath,
   type SectionId,
 } from '../../lib/sectionNav'
 import BrandLogo from '../shared/BrandLogo'
@@ -137,10 +138,11 @@ function useActiveSection() {
       const pathname = window.location.pathname
 
       if (pathname === '/' || isHomeScrollPath(pathname)) {
-        syncActiveSectionFromScroll()
+        if (pathname !== '/') ensureHomePath()
+        setActiveId(syncActiveSectionFromScroll())
+      } else {
+        setActiveId(resolveActive(pathname))
       }
-
-      setActiveId(resolveActive(window.location.pathname))
       ticking = false
     }
 

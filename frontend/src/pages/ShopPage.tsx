@@ -293,7 +293,7 @@ export default function ShopPage() {
   )
 
   return (
-    <div className="relative min-h-svh w-full" style={{ backgroundColor: PAGE }}>
+    <div className="relative min-h-svh w-full max-w-full overflow-x-clip page-shell" style={{ backgroundColor: PAGE }}>
       <div className="pointer-events-none absolute inset-0 z-0">
         <img
           src={TEXTURE}
@@ -320,10 +320,10 @@ export default function ShopPage() {
       <div className="relative z-10 flex min-h-svh flex-col">
         <Navbar />
 
-        <main className="flex flex-1 flex-col pt-0 pb-0" aria-label="Shop">
+        <main className="flex min-w-0 w-full max-w-full flex-1 flex-col overflow-x-clip pt-0 pb-0" aria-label="Shop">
           <ShopBanner />
 
-          <div className="flex flex-1 items-start">
+          <div className="flex min-w-0 w-full max-w-full items-start overflow-x-clip">
             <div
               className={`${filtersOpen ? 'fixed inset-0 z-50 lg:static lg:inset-auto lg:z-auto' : 'hidden lg:block'} lg:self-stretch`}
             >
@@ -365,15 +365,13 @@ export default function ShopPage() {
 
             <div className="min-w-0 flex-1">
               <div
-                className="shop-toolbar sticky top-[calc(env(safe-area-inset-top,0px)+3.75rem)] z-40 border-b px-3 py-2.5 backdrop-blur-md sm:px-5 sm:py-3 md:top-[calc(env(safe-area-inset-top,0px)+4rem)]"
+                className="shop-toolbar sticky z-40 border-b px-3 py-2.5 sm:px-5 sm:py-3"
                 style={{
                   borderColor: BORDER,
-                  backgroundColor: 'rgba(255,254,242,0.94)',
-                  boxShadow: '0 1px 0 rgba(10,46,34,0.06)',
                 }}
               >
-                <div className="flex w-full min-w-0 flex-col gap-2.5 lg:flex-row lg:flex-wrap lg:items-center lg:gap-3">
-                  <div className="flex w-full min-w-0 items-center gap-2 lg:w-auto lg:shrink-0">
+                <div className="shop-toolbar__row">
+                  <div className="shop-toolbar__meta">
                     <button
                       type="button"
                       onClick={() => setFiltersOpen((v) => !v)}
@@ -389,60 +387,62 @@ export default function ShopPage() {
                     </button>
 
                     <p
-                      className="m-0 min-w-0 flex-1 truncate text-[0.72rem] sm:text-[0.82rem] lg:flex-none lg:whitespace-nowrap"
+                      className="m-0 min-w-0 flex-1 truncate text-[0.72rem] sm:flex-none sm:text-[0.82rem] sm:whitespace-nowrap"
                       style={{ color: MUTED, fontFamily: BRAND_SANS }}
                     >
                       Showing <span style={{ color: GOLD, fontWeight: 600 }}>{sorted.length}</span> of{' '}
                       {products.length}
                     </p>
+                  </div>
 
+                  <div className="shop-toolbar__controls flex min-w-0 items-center gap-2 sm:max-w-[18rem] lg:max-w-[15.5rem]">
+                    <div className="relative min-w-0 flex-1">
+                      <label htmlFor="shop-search" className="sr-only">
+                        Search products
+                      </label>
+                      <span
+                        className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2"
+                        style={{ color: MUTED }}
+                        aria-hidden
+                      >
+                        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="11" cy="11" r="7" />
+                          <path d="M20 20l-3.5-3.5" strokeLinecap="round" />
+                        </svg>
+                      </span>
+                      <input
+                        id="shop-search"
+                        type="search"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder="Search mukhwas, paan, seeds…"
+                        enterKeyHint="search"
+                        autoComplete="off"
+                        className="w-full min-w-0 rounded-xl border py-2 pr-3 pl-9 text-[0.86rem] outline-none transition placeholder:opacity-45 focus:border-[#b8860b]/70"
+                        style={{
+                          color: INK,
+                          backgroundColor: BRAND_CREAM_LIGHT,
+                          borderColor: BORDER,
+                          fontFamily: BRAND_SANS,
+                        }}
+                      />
+                    </div>
+
+                    {sort !== 'default' && (
+                      <span className="hidden shrink-0 text-[0.72rem] font-semibold tracking-wide sm:inline" style={{ color: GOLD }}>
+                        {sortLabel}
+                      </span>
+                    )}
                     <button
                       type="button"
                       onClick={cycleSort}
-                      className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border transition hover:bg-white/70 lg:order-last"
+                      className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border transition hover:bg-white/70"
                       style={{ borderColor: BORDER, color: INK, backgroundColor: PANEL }}
                       aria-label={`Sort products${sort !== 'default' ? `: ${sortLabel}` : ''}`}
                       title={sort === 'default' ? 'Sort A → Z' : sort === 'name-asc' ? 'Sort Z → A' : 'Clear sort'}
                     >
                       <SortIcon mode={sort === 'name-desc' ? 'name-desc' : 'name-asc'} />
                     </button>
-                    {sort !== 'default' && (
-                      <span className="hidden shrink-0 text-[0.72rem] font-semibold tracking-wide sm:inline lg:order-last" style={{ color: GOLD }}>
-                        {sortLabel}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="relative w-full min-w-0 lg:max-w-lg lg:flex-1">
-                    <label htmlFor="shop-search" className="sr-only">
-                      Search products
-                    </label>
-                    <span
-                      className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2"
-                      style={{ color: MUTED }}
-                      aria-hidden
-                    >
-                      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="11" cy="11" r="7" />
-                        <path d="M20 20l-3.5-3.5" strokeLinecap="round" />
-                      </svg>
-                    </span>
-                    <input
-                      id="shop-search"
-                      type="search"
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                      placeholder="Search mukhwas, paan, seeds…"
-                      enterKeyHint="search"
-                      autoComplete="off"
-                      className="w-full min-w-0 rounded-xl border py-2.5 pr-3 pl-9 text-base outline-none transition placeholder:opacity-45 focus:border-[#b8860b]/70 sm:text-[0.86rem]"
-                      style={{
-                        color: INK,
-                        backgroundColor: BRAND_CREAM_LIGHT,
-                        borderColor: BORDER,
-                        fontFamily: BRAND_SANS,
-                      }}
-                    />
                   </div>
                 </div>
               </div>
@@ -503,14 +503,14 @@ export default function ShopPage() {
               </section>
             </div>
           </div>
-        </main>
 
-        <Suspense fallback={<SectionPlaceholder minHeight="40vh" />}>
-          <HomeTestimonials />
-        </Suspense>
-        <Suspense fallback={<SectionPlaceholder minHeight="28vh" />}>
-          <HomeReviewStrip />
-        </Suspense>
+          <Suspense fallback={<SectionPlaceholder minHeight="40vh" />}>
+            <HomeTestimonials />
+          </Suspense>
+          <Suspense fallback={<SectionPlaceholder minHeight="28vh" />}>
+            <HomeReviewStrip />
+          </Suspense>
+        </main>
 
         <SiteFooter />
         <FloatingActions />

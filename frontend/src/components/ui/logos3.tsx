@@ -54,7 +54,7 @@ export function Logos3({
           ) : null}
         </header>
 
-        <div className="partners-carousel-shell relative mx-auto lg:max-w-6xl">
+        <div className="partners-carousel-shell relative mx-auto w-full max-w-6xl">
           <Carousel
             opts={{
               loop: true,
@@ -78,21 +78,23 @@ export function Logos3({
                   key={`${logo.id}-${index}`}
                   className="partners-carousel-slide flex shrink-0 basis-auto grow-0 justify-center pl-0"
                 >
-                  <div className="partner-logo-slot">
-                    <img
-                      src={logo.image}
-                      alt={logo.description}
-                      title={logo.description}
-                      loading="lazy"
-                      decoding="async"
-                      draggable={false}
-                      className="partner-logo-slot__img"
-                      style={
-                        logo.scale && logo.scale !== 1
-                          ? { transform: `scale(${logo.scale})` }
-                          : undefined
-                      }
-                    />
+                  <div className="partner-logo-card">
+                    <div className="partner-logo-slot">
+                      <img
+                        src={logo.image}
+                        alt={logo.description}
+                        title={logo.description}
+                        loading="lazy"
+                        decoding="async"
+                        draggable={false}
+                        className="partner-logo-slot__img"
+                        style={
+                          logo.scale && logo.scale !== 1
+                            ? { transform: `scale(${logo.scale})` }
+                            : undefined
+                        }
+                      />
+                    </div>
                   </div>
                 </CarouselItem>
               ))}
@@ -101,11 +103,11 @@ export function Logos3({
 
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-y-0 left-0 z-[2] w-12 bg-gradient-to-r from-[#FFFEF2] to-transparent sm:w-16"
+            className="partners-carousel-fade partners-carousel-fade--left pointer-events-none absolute inset-y-0 left-0 z-[2] w-10 sm:w-14"
           />
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-y-0 right-0 z-[2] w-12 bg-gradient-to-l from-[#FFFEF2] to-transparent sm:w-16"
+            className="partners-carousel-fade partners-carousel-fade--right pointer-events-none absolute inset-y-0 right-0 z-[2] w-10 sm:w-14"
           />
         </div>
       </div>

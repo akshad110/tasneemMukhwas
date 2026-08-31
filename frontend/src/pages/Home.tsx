@@ -39,7 +39,7 @@ export default function Home({ ready = true }: HomeProps) {
   }, [ready, lenis])
 
   return (
-    <main className="overflow-x-hidden md:overflow-x-clip" style={{ backgroundColor: '#F8F3E7' }}>
+    <main className="page-shell overflow-x-clip" style={{ backgroundColor: '#F8F3E7' }}>
       <Navbar />
       <Hero />
       <TrustBadges />

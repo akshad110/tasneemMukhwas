@@ -76,7 +76,7 @@ function Eyebrow({ children }: { children: string }) {
 
 function SectionIntro({ title, description }: { title: string; description: string }) {
   return (
-    <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr] lg:items-end lg:gap-10">
+    <div className="section-header-split">
       <h2
         className="m-0 text-[clamp(1.75rem,4vw,2.75rem)] leading-[1.08] tracking-[-0.02em]"
         style={{ color: INK, fontFamily: BRAND_SERIF }}
@@ -84,7 +84,7 @@ function SectionIntro({ title, description }: { title: string; description: stri
         {title}
       </h2>
       <p
-        className="m-0 max-w-md text-[0.94rem] leading-[1.75] lg:justify-self-end"
+        className="section-header-split__desc m-0 max-w-none text-[0.94rem] leading-[1.75] lg:max-w-md"
         style={{ color: MUTED, fontFamily: BRAND_SANS }}
       >
         {description}
@@ -143,7 +143,7 @@ export default function ContactPage() {
   }, [])
 
   return (
-    <div className="min-h-svh overflow-x-clip" style={{ backgroundColor: CREAM, color: INK, fontFamily: BRAND_SANS }}>
+    <div className="page-shell min-h-svh overflow-x-clip" style={{ backgroundColor: CREAM, color: INK, fontFamily: BRAND_SANS }}>
       <Navbar />
 
       <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45, ease: EASE }}>

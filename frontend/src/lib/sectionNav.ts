@@ -16,17 +16,12 @@ const ID_BY_PATH = Object.fromEntries(
   SECTION_ROUTES.map((s) => [s.path, s.id]),
 ) as Record<string, SectionId>
 
-/** Ignore scroll-driven URL updates while a nav click is animating. */
+/** Ignore scroll-driven section updates while a nav click is animating. */
 let navLockUntil = 0
+let navLockSection: SectionId | null = null
 
 export function pathForSection(id: SectionId): string {
   return PATH_BY_ID[id] ?? '/'
-}
-
-/** Scroll-sync URL on the home page — contact has its own /contact route. */
-function pathForHomeScrollSync(id: SectionId): string {
-  if (id === 'contact') return '/'
-  return pathForSection(id)
 }
 
 export function sectionFromPath(pathname: string): SectionId {
@@ -40,12 +35,18 @@ export function setSectionPath(path: string) {
   window.history.replaceState(null, '', next)
 }
 
-/** Always land on `/` after refresh / hard load. */
-export function resetPathToHome() {
-  navLockUntil = 0
+/** Normalize legacy section-scroll URLs back to `/` without touching nav locks. */
+export function ensureHomePath() {
   if (window.location.pathname !== '/' || window.location.hash || window.location.search) {
     window.history.replaceState(null, '', '/')
   }
+}
+
+/** Always land on `/` after refresh / hard load. */
+export function resetPathToHome() {
+  navLockUntil = 0
+  navLockSection = null
+  ensureHomePath()
 }
 
 type ScrollTarget = {
@@ -56,9 +57,8 @@ type ScrollTarget = {
 }
 
 export function scrollToSection(id: SectionId, lenis?: ScrollTarget | null) {
-  const path = pathForSection(id)
   navLockUntil = Date.now() + 1400
-  setSectionPath(path)
+  navLockSection = id
 
   if (id === 'home') {
     if (lenis) lenis.scrollTo(0, { duration: 0.85 })
@@ -95,12 +95,11 @@ export function getActiveSectionId(): SectionId {
   return current
 }
 
-/** Scrollspy helper — skips URL/underline updates while a click-nav animation runs. */
+/** Scrollspy helper — skips section updates while a click-nav animation runs. */
 export function syncActiveSectionFromScroll(): SectionId {
-  if (Date.now() < navLockUntil) {
-    return sectionFromPath(window.location.pathname)
+  if (Date.now() < navLockUntil && navLockSection) {
+    return navLockSection
   }
-  const current = getActiveSectionId()
-  setSectionPath(pathForHomeScrollSync(current))
-  return current
+  navLockSection = null
+  return getActiveSectionId()
 }

@@ -25,8 +25,8 @@ export const MUKHWAS_BENEFITS_HOME = {
       body: 'Sweet, salted, paan, and seed blends — something for every preference and occasion.',
     },
   ],
-  image: '/Red_pouch_and_mukhwas_bowl_202608251659.jpeg',
-  imageAlt: 'Tasneem mukhwas pouch and bowl of mouth freshener',
+  image: '/Bowls_of_mukhwas_displayed_2K_202608312345.jpeg',
+  imageAlt: 'Bowls of assorted mukhwas blends displayed on a linen table',
 } as const
 
 export type BenefitCategory = {
@@ -36,8 +36,6 @@ export type BenefitCategory = {
   intro: string
   heroImage: string
   heroImageAlt: string
-  secondaryImage: string
-  secondaryImageAlt: string
   benefits: readonly { title: string; body: string }[]
   closing: string
   faqs: readonly { q: string; a: string }[]
@@ -50,10 +48,8 @@ export const BENEFIT_CATEGORIES: readonly BenefitCategory[] = [
     title: '10 Benefits of Mukhwas',
     intro:
       'From homes and restaurants to celebrations — mukhwas brings flavour, tradition, and a refreshing finish to everyday meals.',
-    heroImage: '/Red_pouch_and_mukhwas_bowl_202608251659.jpeg',
-    heroImageAlt: 'Mukhwas bowl and Tasneem pouch',
-    secondaryImage: '/Mukhwas_pouches_on_wooden_table_202608251659.jpeg',
-    secondaryImageAlt: 'Variety of mukhwas pouches',
+    heroImage: encodeURI('/Sesame_seeds_overflowing_jute_bag_202609010053.jpeg'),
+    heroImageAlt: 'Organic sesame seeds spilling from a jute bag labeled Til',
     benefits: [
       {
         title: 'Refreshing way to finish a meal',
@@ -103,10 +99,8 @@ export const BENEFIT_CATEGORIES: readonly BenefitCategory[] = [
     title: 'Benefits of Fennel Seeds (Saunf)',
     intro:
       'Saunf is one of the most recognised mukhwas ingredients — naturally sweet, aromatic, and deeply rooted in Indian after-meal culture.',
-    heroImage: encodeURI('/Mukhwas_ingredients_arranged_on_…_202608182142.jpeg'),
-    heroImageAlt: 'Fennel and traditional mukhwas ingredients',
-    secondaryImage: '/Tasneem_pouch_on_glass_surface_202608251649.jpeg',
-    secondaryImageAlt: 'Tasneem mukhwas with fennel-based blend',
+    heroImage: encodeURI('/Fennel_seeds_in_ceramic_dish_202609010053.jpeg'),
+    heroImageAlt: 'Fennel seeds and mukhwas mix in a ceramic dish with fresh saunf sprigs',
     benefits: [
       {
         title: 'Traditionally enjoyed after meals',
@@ -156,10 +150,8 @@ export const BENEFIT_CATEGORIES: readonly BenefitCategory[] = [
     title: 'Benefits of Sesame Seeds (Til)',
     intro:
       'Tiny seeds with a nutty flavour and naturally occurring nutrients — til has been part of Indian sweets, snacks, and mukhwas for generations.',
-    heroImage: '/Mukhwas_pouches_on_wooden_table_202608251630.jpeg',
-    heroImageAlt: 'Sesame-based mukhwas pouches',
-    secondaryImage: '/Mukhwas_pouches_on_wooden_table_202608251659.jpeg',
-    secondaryImageAlt: 'Roasted seed mukhwas blends',
+    heroImage: encodeURI('/Sesame_seeds_overflowing_jute_bag_202609010052.jpeg'),
+    heroImageAlt: 'Organic til sesame seeds overflowing from a jute bag on stone',
     benefits: [
       {
         title: 'Source of healthy fats',
@@ -209,10 +201,8 @@ export const BENEFIT_CATEGORIES: readonly BenefitCategory[] = [
     title: 'Benefits of Flax Seeds (Alsi)',
     intro:
       'Small seeds with impressive nutrition — alsi is rich in fiber, healthy fats, plant-based omega-3 (ALA), protein, and lignans.',
-    heroImage: encodeURI('/Mukhwas_ingredients_arranged_on_…_202608182142.jpeg'),
-    heroImageAlt: 'Flax and mukhwas seeds',
-    secondaryImage: '/Mukhwas_pouches_on_wooden_table_202608251630.jpeg',
-    secondaryImageAlt: 'Alsi til mukhwas pouches',
+    heroImage: encodeURI('/Flax_seeds_in_glass_jar_202609010052.jpeg'),
+    heroImageAlt: 'Organic flax seeds (alsi) in a labeled glass jar',
     benefits: [
       {
         title: 'Rich in dietary fiber',

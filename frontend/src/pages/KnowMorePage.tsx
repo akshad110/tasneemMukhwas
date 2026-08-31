@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
-import { useEffect, useRef, useState } from 'react'
-import { motion, animate, useInView } from 'framer-motion'
+import { useEffect } from 'react'
+import { motion } from 'framer-motion'
+import { Award, Factory, Globe, Package, ShieldCheck, Truck } from 'lucide-react'
 import Navbar from '../components/nav/Navbar'
 import BackToHomeButton from '../components/shared/BackToHomeButton'
 import SiteFooter from '../components/shared/SiteFooter'
@@ -27,8 +28,7 @@ const MUTED = BRAND_MUTED
 const GOLD = BRAND_GOLD
 const EASE = [0.22, 1, 0.36, 1] as const
 
-const HERO_IMG = '/Mukhwas_pouches_on_wooden_table_202608251659.jpeg'
-const INGREDIENTS_IMG = encodeURI('/Mukhwas_ingredients_arranged_on_…_202608182142.jpeg')
+const HERO_IMG = encodeURI('/Tasneem_Mukhwas_pouch_on_surface_202609010124.jpeg')
 const FOUNDER_PORTRAIT = encodeURI('/ChatGPT Image Aug 21, 2026 at 02_51_39 PM.png')
 
 const OUR_SERVICES = [
@@ -56,40 +56,60 @@ const SERVICE_GRID = [
   {
     label: 'Classic Mukhwas',
     title: 'Everyday mouth fresheners',
-    image: '/Mukhwas_pouches_on_wooden_table_202608251630.jpeg',
+    image: encodeURI('/Ceramic_bowl_with_mukhwas_blend_202609010113.jpeg'),
     href: APP_ROUTES.shop,
   },
   {
     label: 'Paan Specials',
     title: 'Master Paan & paan shots',
-    image: '/Red_pouch_and_mukhwas_bowl_202608251659.jpeg',
+    image: encodeURI('/Paan_display_and_shots_2K_202609010113.jpeg'),
     href: APP_ROUTES.shop,
   },
   {
     label: 'Export & IEC',
     title: 'International dispatch',
-    image: '/Tasneem_pouch_on_glass_surface_202608251649.jpeg',
+    image: encodeURI('/Shipping_boxes_loaded_on_pallet_202609010113.jpeg'),
     href: APP_ROUTES.wholesale,
   },
   {
     label: 'HORECA supply',
     title: 'Hotels & hospitality',
-    image: '/Mango_snack_on_counter_2K_202608251649.jpeg',
+    image: encodeURI('/Mouth_fresheners_in_serving_bowl_202609010115.jpeg'),
     href: APP_ROUTES.wholesale,
   },
 ] as const
 
-const WHY_STATS = [
-  { kind: 'count' as const, to: 12, suffix: '+', label: 'Years of craft' },
-  { kind: 'text' as const, value: '100%', label: 'Natural ingredients' },
-  { kind: 'count' as const, to: 40, suffix: '+', label: 'Product SKUs' },
-  { kind: 'count' as const, to: 500, suffix: '+', label: 'Trade partners' },
-] as const
-
-const WHY_POINTS = [
-  'WHO-GMP aligned manufacturing from our Chhapi, Banaskantha facility.',
-  'Farm-to-pack traceability with multi-stage cleaning and sealed retail packs.',
-  'Trusted by retailers, hospitality partners, and export buyers since 2016.',
+const WHY_CHOOSE_ITEMS = [
+  {
+    title: 'Quality Assured',
+    body: 'Strict quality checks in every batch.',
+    icon: ShieldCheck,
+  },
+  {
+    title: 'Own Manufacturing',
+    body: 'Reliable production for bulk orders.',
+    icon: Factory,
+  },
+  {
+    title: 'Private Label',
+    body: 'Custom branding and packaging support.',
+    icon: Package,
+  },
+  {
+    title: 'Bulk Orders',
+    body: 'Designed for distributors and wholesalers.',
+    icon: Truck,
+  },
+  {
+    title: 'Export Ready',
+    body: 'Prepared for international supply.',
+    icon: Globe,
+  },
+  {
+    title: 'Consistent Taste',
+    body: 'Traditional flavours with reliable quality.',
+    icon: Award,
+  },
 ] as const
 
 const CERTIFICATIONS = [
@@ -123,6 +143,7 @@ const LICENCES = [
     src: encodeURI('/WhatsApp Image 2026-08-15 at 12.02.17 PM (1).jpeg'),
     title: 'Award of Excellence 2025',
     caption: 'Khadhya Khurak 2025 — Gandhinagar food expo.',
+    rotate: -90,
   },
   {
     src: encodeURI('/WhatsApp Image 2026-08-15 at 12.02.17 PM.jpeg'),
@@ -170,7 +191,7 @@ function SectionHeader({
   light?: boolean
 }) {
   return (
-    <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end lg:gap-12">
+    <div className="grid section-header-split">
       <h2
         className="m-0 text-[clamp(2rem,5vw,3.4rem)] leading-[1.05] tracking-[-0.02em]"
         style={{ color: light ? CREAM_LIGHT : INK, fontFamily: BRAND_SERIF }}
@@ -178,7 +199,7 @@ function SectionHeader({
         {title}
       </h2>
       <p
-        className="m-0 max-w-md text-[0.95rem] leading-[1.75] lg:justify-self-end"
+        className="section-header-split__desc m-0 max-w-none text-[0.95rem] leading-[1.75] lg:max-w-md"
         style={{ color: light ? 'rgba(255,254,242,0.78)' : MUTED, fontFamily: BRAND_SANS }}
       >
         {description}
@@ -200,7 +221,7 @@ function PrimaryButton({
     <button
       type="button"
       onClick={onClick}
-      className="cursor-pointer border-0 px-7 py-3.5 text-[0.78rem] font-semibold tracking-[0.14em] uppercase transition hover:brightness-110"
+      className="w-full cursor-pointer border-0 px-7 py-3.5 text-[0.78rem] font-semibold tracking-[0.14em] uppercase transition hover:brightness-110 sm:w-auto"
       style={{
         backgroundColor: dark ? INK : CREAM_LIGHT,
         color: dark ? CREAM_LIGHT : INK,
@@ -213,30 +234,6 @@ function PrimaryButton({
   )
 }
 
-function CountUpStat({ to, suffix = '', delay = 0 }: { to: number; suffix?: string; delay?: number }) {
-  const ref = useRef<HTMLSpanElement>(null)
-  const inView = useInView(ref, { once: true, amount: 0.45 })
-  const [value, setValue] = useState(0)
-
-  useEffect(() => {
-    if (!inView) return
-    const controls = animate(0, to, {
-      duration: 1.6,
-      delay,
-      ease: EASE,
-      onUpdate: (v) => setValue(Math.round(v)),
-    })
-    return () => controls.stop()
-  }, [inView, to, delay])
-
-  return (
-    <span ref={ref}>
-      {value}
-      {suffix}
-    </span>
-  )
-}
-
 export default function KnowMorePage() {
   useEffect(() => {
     scrollAppToTop(true)
@@ -245,7 +242,7 @@ export default function KnowMorePage() {
   }, [])
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: CREAM, fontFamily: BRAND_SANS, color: INK }}>
+    <div className="page-shell min-h-screen" style={{ backgroundColor: CREAM, fontFamily: BRAND_SANS, color: INK }}>
       <Navbar />
 
       <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, ease: EASE }}>
@@ -304,7 +301,7 @@ export default function KnowMorePage() {
               </Reveal>
 
               <Reveal delay={0.1}>
-                <div className="overflow-hidden" style={{ backgroundColor: CREAM_LIGHT }}>
+                <div className="overflow-hidden rounded-xl lg:rounded-2xl" style={{ backgroundColor: CREAM_LIGHT }}>
                   <img src={HERO_IMG} alt="Tasneem Mukhwas pouches" className="block aspect-[5/4] w-full object-cover" />
                 </div>
               </Reveal>
@@ -315,11 +312,11 @@ export default function KnowMorePage() {
         {/* Leadership — directly below intro */}
         <section style={{ backgroundColor: CREAM }}>
           <div className="mx-auto grid max-w-[1320px] items-center gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[minmax(240px,300px)_1fr] lg:px-10 lg:py-20">
-            <Reveal>
+            <Reveal className="mx-auto w-full max-w-[300px] lg:mx-0">
               <img
                 src={FOUNDER_PORTRAIT}
                 alt="A Y Patel"
-                className="block aspect-[4/5] w-full max-w-[300px] object-cover object-top"
+                className="block aspect-[4/5] w-full object-cover object-top"
                 style={{ backgroundColor: CREAM_LIGHT }}
                 loading="lazy"
               />
@@ -434,92 +431,51 @@ export default function KnowMorePage() {
           </div>
         </section>
 
-        {/* Why Choose Us — stats over image */}
-        <section className="relative overflow-hidden" style={{ backgroundColor: CREAM_DEEP }}>
-          <div className="relative min-h-[420px] sm:min-h-[480px]">
-            <img
-              src={INGREDIENTS_IMG}
-              alt=""
-              className="absolute inset-0 h-full w-full object-cover"
-              aria-hidden
-            />
-            <div
-              className="absolute inset-0"
-              style={{ background: 'linear-gradient(180deg, rgba(230,216,195,0.55) 0%, rgba(10,46,34,0.72) 100%)' }}
-              aria-hidden
-            />
-
-            <div className="relative z-10 mx-auto max-w-[1320px] px-5 py-14 sm:px-8 lg:px-10 lg:py-20">
-              <Reveal>
-                <SectionHeader
-                  light
-                  title="Why choose us"
-                  description="A family craft scaled with certified hygiene, consistent recipes, and partners who rely on us for everyday freshness."
-                />
-              </Reveal>
-
-              <div className="mt-14 grid grid-cols-2 gap-8 border-t border-white/20 pt-10 md:grid-cols-4">
-                {WHY_STATS.map((stat, i) => (
-                  <Reveal key={stat.label} delay={i * 0.07}>
-                    <p
-                      className="m-0 text-[clamp(2rem,5vw,3rem)] leading-none"
-                      style={{ color: CREAM_LIGHT, fontFamily: BRAND_SERIF }}
-                    >
-                      {stat.kind === 'count' ? (
-                        <CountUpStat to={stat.to} suffix={stat.suffix} delay={0.15 + i * 0.08} />
-                      ) : (
-                        stat.value
-                      )}
-                    </p>
-                    <p
-                      className="mt-2 m-0 text-[0.72rem] leading-snug tracking-wide"
-                      style={{ color: 'rgba(255,254,242,0.72)' }}
-                    >
-                      {stat.label}
-                    </p>
-                  </Reveal>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Why choose us — split feature */}
+        {/* Why Choose Us */}
         <section style={{ backgroundColor: CREAM_LIGHT }}>
-          <div className="mx-auto grid max-w-[1320px] lg:grid-cols-2">
+          <div className="mx-auto max-w-[1320px] px-5 py-14 sm:px-8 lg:px-10 lg:py-20">
             <Reveal>
-              <img
-                src="/Mukhwas_pouches_on_wooden_table_202608251630.jpeg"
-                alt="Mukhwas production"
-                className="block h-full min-h-[320px] w-full object-cover"
-                loading="lazy"
-              />
-            </Reveal>
-            <Reveal delay={0.08}>
-              <div className="flex flex-col justify-center p-8 sm:p-10 lg:p-14" style={{ backgroundColor: CREAM_DEEP }}>
-              <h3
-                className="m-0 text-[clamp(1.75rem,3.5vw,2.5rem)] leading-tight"
-                style={{ fontFamily: BRAND_SERIF, color: INK }}
+              <h2
+                className="m-0 text-center text-[clamp(2rem,5vw,3.4rem)] leading-[1.05] tracking-[-0.02em]"
+                style={{ color: INK, fontFamily: BRAND_SERIF }}
               >
-                Quality you can taste in every pinch
-              </h3>
-              <ul className="mt-6 m-0 flex list-none flex-col gap-4 p-0">
-                {WHY_POINTS.map((point) => (
-                  <li
-                    key={point}
-                    className="flex gap-3 text-[0.92rem] leading-[1.75]"
-                    style={{ color: MUTED }}
-                  >
-                    <span className="mt-2 inline-block h-1.5 w-1.5 shrink-0 rotate-45" style={{ backgroundColor: GOLD }} aria-hidden />
-                    {point}
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-8">
-                <PrimaryButton onClick={() => navigateApp(APP_ROUTES.wholesale)}>Become a partner</PrimaryButton>
-              </div>
-              </div>
+                Why Choose Us
+              </h2>
             </Reveal>
+
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:mt-12 lg:grid-cols-3 lg:gap-5">
+              {WHY_CHOOSE_ITEMS.map((item, i) => {
+                const Icon = item.icon
+                return (
+                  <Reveal key={item.title} delay={i * 0.05}>
+                    <article
+                      className="flex h-full flex-col items-center rounded-2xl border px-5 py-7 text-center sm:px-6 sm:py-8"
+                      style={{
+                        borderColor: 'rgba(10,46,34,0.1)',
+                        backgroundColor: 'rgba(255,255,255,0.72)',
+                      }}
+                    >
+                      <span
+                        className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl"
+                        style={{ backgroundColor: 'rgba(10,46,34,0.06)', color: INK }}
+                        aria-hidden
+                      >
+                        <Icon className="h-6 w-6" strokeWidth={1.75} />
+                      </span>
+                      <h3
+                        className="m-0 text-[1.05rem] font-bold leading-snug sm:text-[1.12rem]"
+                        style={{ color: INK, fontFamily: BRAND_SANS }}
+                      >
+                        {item.title}
+                      </h3>
+                      <p className="mt-2.5 m-0 max-w-[18rem] text-[0.88rem] leading-[1.65]" style={{ color: MUTED }}>
+                        {item.body}
+                      </p>
+                    </article>
+                  </Reveal>
+                )
+              })}
+            </div>
           </div>
         </section>
 
@@ -533,7 +489,7 @@ export default function KnowMorePage() {
               />
             </Reveal>
 
-            <div className="grid gap-6 lg:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {CERTIFICATIONS.map((cert, i) => (
                 <Reveal key={cert.title} delay={i * 0.08} className="h-full">
                   <article className="flex h-full flex-col" style={{ backgroundColor: CREAM_LIGHT }}>
@@ -579,11 +535,12 @@ export default function KnowMorePage() {
             <div className="know-licence-scroll flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4">
               {LICENCES.map((item) => (
                 <figure key={item.title} className="shrink-0 snap-center">
-                  <div className="overflow-hidden p-2" style={{ backgroundColor: CREAM_LIGHT }}>
+                  <div className="flex aspect-[3/4] w-[210px] items-center justify-center overflow-hidden sm:w-[230px]">
                     <img
                       src={item.src}
                       alt={item.title}
-                      className="block aspect-[3/4] w-[210px] object-cover object-top sm:w-[230px]"
+                      className="max-h-full max-w-full object-contain"
+                      style={'rotate' in item && item.rotate ? { transform: `rotate(${item.rotate}deg)` } : undefined}
                       loading="lazy"
                     />
                   </div>
@@ -654,7 +611,9 @@ export default function KnowMorePage() {
             >
               Ready to taste the tradition?
             </h2>
-            <PrimaryButton onClick={() => navigateApp(APP_ROUTES.shop)}>Shop mukhwas</PrimaryButton>
+            <div className="w-full sm:w-auto">
+              <PrimaryButton onClick={() => navigateApp(APP_ROUTES.shop)}>Shop mukhwas</PrimaryButton>
+            </div>
           </div>
         </section>
       </motion.main>

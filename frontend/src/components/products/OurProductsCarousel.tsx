@@ -63,22 +63,33 @@ type CarouselCardProps = {
 }
 
 function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps) {
-  const rotateX = useSpring(0, { stiffness: 220, damping: 24 })
-  const rotateY = useSpring(0, { stiffness: 220, damping: 24 })
+  const [imageHovered, setImageHovered] = useState(false)
+  const [titleHovered, setTitleHovered] = useState(false)
+  const hoverActive = imageHovered || titleHovered
+  const rotateX = useSpring(0, { stiffness: 180, damping: 26 })
+  const rotateY = useSpring(0, { stiffness: 180, damping: 26 })
   const abs = Math.abs(offset)
 
+  const hoverTransition = {
+    type: 'tween' as const,
+    duration: 0.75,
+    ease: [0.22, 1, 0.36, 1] as const,
+  }
+
   const onMove = (e: ReactMouseEvent<HTMLElement>) => {
-    if (!isActive) return
+    if (!isActive || hoverActive) return
     const rect = e.currentTarget.getBoundingClientRect()
     const px = (e.clientX - rect.left) / rect.width - 0.5
     const py = (e.clientY - rect.top) / rect.height - 0.5
-    rotateY.set(px * 18)
-    rotateX.set(-py * 14)
+    rotateY.set(px * 12)
+    rotateX.set(-py * 10)
   }
 
   const onLeave = () => {
     rotateX.set(0)
     rotateY.set(0)
+    setImageHovered(false)
+    setTitleHovered(false)
   }
 
   const baseRotateY = offset * -32
@@ -109,10 +120,10 @@ function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps
       }}
     >
       <motion.div
-        className={`our-products-card__inner${isActive ? ' our-products-card__inner--active' : ''}`}
+        className={`our-products-card__inner${isActive ? ' our-products-card__inner--active' : ''}${hoverActive ? ' our-products-card__inner--content-hover' : ''}`}
         style={{
-          rotateX: isActive ? rotateX : 0,
-          rotateY: isActive ? rotateY : 0,
+          rotateX: isActive && !hoverActive ? rotateX : 0,
+          rotateY: isActive && !hoverActive ? rotateY : 0,
           transformStyle: 'preserve-3d',
         }}
         onMouseMove={onMove}
@@ -120,19 +131,39 @@ function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps
       >
         {isActive ? <span className="our-products-card__ring" aria-hidden /> : null}
         <div className="our-products-card__content">
-          <div className="our-products-card__media">
-            <img
+          <div
+            className="our-products-card__media"
+            onMouseEnter={() => isActive && setImageHovered(true)}
+            onMouseLeave={() => setImageHovered(false)}
+          >
+            <motion.img
               src={product.image}
               alt={product.name}
               loading="lazy"
               decoding="async"
               draggable={false}
               className="our-products-card__image"
+              animate={{
+                scale: isActive && imageHovered ? 1.26 : 1,
+                y: isActive && imageHovered ? -6 : 0,
+              }}
+              transition={hoverTransition}
             />
           </div>
           <div className="our-products-card__body">
             <p className="our-products-card__label">Ingredients</p>
-            <h3 className="our-products-card__name">{product.name}</h3>
+            <motion.h3
+              className="our-products-card__name"
+              onMouseEnter={() => isActive && setTitleHovered(true)}
+              onMouseLeave={() => setTitleHovered(false)}
+              animate={{
+                scale: isActive && titleHovered ? 1.045 : 1,
+              }}
+              transition={hoverTransition}
+              style={{ transformOrigin: 'left center' }}
+            >
+              {product.name}
+            </motion.h3>
             <p className="our-products-card__ingredients">{product.ingredients}</p>
           </div>
         </div>

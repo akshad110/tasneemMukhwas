@@ -1,9 +1,43 @@
+import type { CSSProperties } from 'react'
 import AdminGramEditor from './AdminGramEditor'
 
 const INK = '#0a2e22'
 const MUTED = 'rgba(10,46,34,0.55)'
 const LINE = 'rgba(10,46,34,0.08)'
 const CARD = '#ffffff'
+
+function formatPriceDisplay(value: number): string {
+  return value > 0 ? String(value) : ''
+}
+
+function parsePriceInput(raw: string): number {
+  const digits = raw.replace(/\D/g, '')
+  if (!digits) return 0
+  return Number.parseInt(digits, 10)
+}
+
+type PriceInputProps = {
+  value: number
+  onChange: (value: number) => void
+  className?: string
+  style?: CSSProperties
+  placeholder?: string
+}
+
+function PriceInput({ value, onChange, className, style, placeholder = '0' }: PriceInputProps) {
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      pattern="[0-9]*"
+      className={className}
+      style={style}
+      value={formatPriceDisplay(value)}
+      placeholder={placeholder}
+      onChange={(e) => onChange(parsePriceInput(e.target.value))}
+    />
+  )
+}
 
 export type PackFormFields = {
   enabled: boolean
@@ -89,13 +123,11 @@ export default function AdminPackSection({
 
           <label className="block text-[0.78rem]" style={{ color: MUTED }}>
             Price (₹)
-            <input
-              type="number"
-              min={1}
+            <PriceInput
               className="mt-1 w-full rounded-xl border px-3 py-2.5 text-[0.9rem] outline-none"
               style={{ borderColor: LINE, color: INK, backgroundColor: CARD }}
               value={fields.price}
-              onChange={(e) => onChange({ price: Number(e.target.value) })}
+              onChange={(price) => onChange({ price })}
             />
           </label>
 
@@ -114,13 +146,11 @@ export default function AdminPackSection({
           {fields.showDiscountedPrice ? (
             <label className="block text-[0.78rem]" style={{ color: MUTED }}>
               Discounted price (₹)
-              <input
-                type="number"
-                min={1}
+              <PriceInput
                 className="mt-1 w-full rounded-xl border px-3 py-2.5 text-[0.9rem] outline-none"
                 style={{ borderColor: LINE, color: INK, backgroundColor: CARD }}
                 value={fields.discountedPrice}
-                onChange={(e) => onChange({ discountedPrice: Number(e.target.value) })}
+                onChange={(discountedPrice) => onChange({ discountedPrice })}
               />
             </label>
           ) : null}

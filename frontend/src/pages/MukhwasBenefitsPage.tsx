@@ -39,7 +39,7 @@ export default function MukhwasBenefitsPage() {
   }, [activeId])
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: BRAND_CREAM, color: BRAND_INK, fontFamily: BRAND_SANS }}>
+    <div className="page-shell min-h-screen" style={{ backgroundColor: BRAND_CREAM, color: BRAND_INK, fontFamily: BRAND_SANS }}>
       <Navbar />
 
       <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45, ease: EASE }}>
@@ -66,37 +66,39 @@ export default function MukhwasBenefitsPage() {
             <p className="mt-4 m-0 max-w-2xl text-[0.95rem] leading-[1.85]" style={{ color: BRAND_MUTED }}>
               Explore why Indians love mukhwas — and the traditional seeds that make every blend special.
             </p>
-
-            <div
-              className="mt-8 flex gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              role="tablist"
-              aria-label="Benefit categories"
-            >
-              {BENEFIT_CATEGORIES.map((cat) => {
-                const selected = cat.id === activeId
-                return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={selected}
-                    onClick={() => setActiveId(cat.id)}
-                    className="shrink-0 cursor-pointer rounded-full border-2 px-5 py-2.5 text-[0.78rem] font-bold tracking-[0.06em] transition sm:px-6 sm:text-[0.82rem]"
-                    style={{
-                      borderColor: selected ? BRAND_INK : 'rgba(184,134,11,0.35)',
-                      backgroundColor: selected ? BRAND_INK : BRAND_CREAM_LIGHT,
-                      color: selected ? BRAND_CREAM_LIGHT : BRAND_INK,
-                      fontFamily: BRAND_SANS,
-                      boxShadow: selected ? '0 10px 24px -12px rgba(10,46,34,0.45)' : 'none',
-                    }}
-                  >
-                    {cat.tabLabel === 'Mukhwas' ? 'Benefits of Mukhwas' : `Benefits of ${cat.tabLabel}`}
-                  </button>
-                )
-              })}
-            </div>
           </div>
         </section>
+
+        <div
+          className="benefits-page-tabs sticky z-40"
+          role="tablist"
+          aria-label="Benefit categories"
+        >
+          <div className="mx-auto flex max-w-[1180px] gap-3 overflow-x-auto px-5 py-3 sm:px-8 lg:px-10 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {BENEFIT_CATEGORIES.map((cat) => {
+              const selected = cat.id === activeId
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  onClick={() => setActiveId(cat.id)}
+                  className="shrink-0 cursor-pointer rounded-full border-2 px-5 py-2.5 text-[0.78rem] font-bold tracking-[0.06em] transition sm:px-6 sm:text-[0.82rem]"
+                  style={{
+                    borderColor: selected ? BRAND_INK : 'rgba(184,134,11,0.35)',
+                    backgroundColor: selected ? BRAND_INK : BRAND_CREAM_LIGHT,
+                    color: selected ? BRAND_CREAM_LIGHT : BRAND_INK,
+                    fontFamily: BRAND_SANS,
+                    boxShadow: selected ? '0 10px 24px -12px rgba(10,46,34,0.45)' : 'none',
+                  }}
+                >
+                  {cat.tabLabel === 'Mukhwas' ? 'Benefits of Mukhwas' : `Benefits of ${cat.tabLabel}`}
+                </button>
+              )
+            })}
+          </div>
+        </div>
 
         <AnimatePresence mode="wait">
           <motion.section
@@ -107,30 +109,25 @@ export default function MukhwasBenefitsPage() {
             transition={{ duration: 0.35, ease: EASE }}
             style={{ backgroundColor: BRAND_CREAM_LIGHT }}
           >
-            <div className="mx-auto max-w-[1180px] px-5 py-12 sm:px-8 lg:px-10 lg:py-16">
-              <div className="grid items-start gap-10 lg:grid-cols-2 lg:gap-14">
-                <div className="flex flex-col gap-3">
-                  <div
-                    className="overflow-hidden rounded-2xl border shadow-[0_20px_40px_-28px_rgba(10,46,34,0.35)]"
-                    style={{ borderColor: 'rgba(184,134,11,0.28)' }}
-                  >
-                    <img
-                      src={active.heroImage}
-                      alt={active.heroImageAlt}
-                      className="block aspect-[16/10] max-h-[160px] w-full object-cover sm:max-h-[180px]"
-                      loading="lazy"
-                    />
-                  </div>
-                  <div
-                    className="overflow-hidden rounded-xl border"
-                    style={{ borderColor: 'rgba(184,134,11,0.2)' }}
-                  >
-                    <img
-                      src={active.secondaryImage}
-                      alt={active.secondaryImageAlt}
-                      className="block aspect-[16/10] max-h-[160px] w-full object-cover sm:max-h-[180px]"
-                      loading="lazy"
-                    />
+            <div className="benefits-page-content mx-auto max-w-[1180px] px-5 py-12 sm:px-8 lg:px-10 lg:py-16">
+              <div className="grid items-start gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:gap-14">
+                <div className="benefits-page-visual lg:sticky lg:self-start">
+                  <div className="benefits-page-visual__frame">
+                    <AnimatePresence mode="wait">
+                      <motion.img
+                        key={active.id}
+                        src={active.heroImage}
+                        alt={active.heroImageAlt}
+                        loading="lazy"
+                        decoding="async"
+                        draggable={false}
+                        className="benefits-page-visual__image"
+                        initial={{ opacity: 0, scale: 0.96 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.98 }}
+                        transition={{ duration: 0.45, ease: EASE }}
+                      />
+                    </AnimatePresence>
                   </div>
                 </div>
 

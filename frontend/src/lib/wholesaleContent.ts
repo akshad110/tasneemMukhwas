@@ -43,19 +43,19 @@ export const SOLUTION_CARDS = [
     tag: 'Retail',
     title: 'Counters & modern trade',
     body: 'Sealed pouches and display packs for kirana, supermarkets, and quick-commerce listings.',
-    image: '/Mukhwas_pouches_on_wooden_table_202608251630.jpeg',
+    image: encodeURI('/Tasneem_Mukhwas_pouches_on_shelf_202609010137.jpeg'),
   },
   {
     tag: 'HORECA',
     title: 'Hotels & hospitality',
     body: 'Consistent blends for restaurants, catering, and hotel welcome trays — volume dispatch from Chhapi.',
-    image: '/Red_pouch_and_mukhwas_bowl_202608251659.jpeg',
+    image: encodeURI('/Mukhwas_served_on_welcome_tray_202609010137.jpeg'),
   },
   {
     tag: 'Corporate',
     title: 'Gifting & private label',
     body: 'Branded hampers, OEM pouches, and export-ready cartons with documentation support.',
-    image: '/Tasneem_pouch_on_glass_surface_202608251649.jpeg',
+    image: encodeURI('/Corporate_gift_hamper_display_2K_202609010137.jpeg'),
   },
 ] as const
 

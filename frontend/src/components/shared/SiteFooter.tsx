@@ -168,7 +168,7 @@ function FooterLinkList({
           <a
             href={link.href}
             onClick={(e) => onNav(e, link.href)}
-            className="cursor-pointer text-[0.88rem] no-underline transition-colors hover:text-[#0a2e22]"
+            className="footer-link cursor-pointer text-[0.88rem] transition-colors duration-300 hover:text-[#0a2e22]"
             style={{ color: MUTED, fontFamily: BRAND_SANS }}
             {...(link.external || link.href.startsWith('http')
               ? { target: '_blank', rel: 'noopener noreferrer' }
@@ -192,7 +192,7 @@ function ContactLine({
   href?: string
 }) {
   const className =
-    'mt-3 flex items-center gap-2.5 text-[0.84rem] no-underline transition-colors hover:text-[#0a2e22]'
+    'mt-3 flex items-center gap-2.5 text-[0.84rem] no-underline transition-colors duration-300 hover:text-[#0a2e22]'
   const style = { color: MUTED, fontFamily: BRAND_SANS }
 
   const iconWrap = (
@@ -208,7 +208,7 @@ function ContactLine({
     return (
       <a href={href} className={className} style={style}>
         {iconWrap}
-        {children}
+        <span className="footer-link">{children}</span>
       </a>
     )
   }

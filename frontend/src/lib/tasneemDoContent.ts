@@ -23,8 +23,8 @@ export const WHAT_TASNEEM_DO_HOME = {
       body: 'Familiar Indian ingredients presented with the transparency, hygiene, and consistency today’s consumers expect.',
     },
   ],
-  image: encodeURI('/Mukhwas_ingredients_arranged_on_…_202608182142.jpeg'),
-  imageAlt: 'Natural mukhwas seeds and ingredients arranged for production',
+  image: encodeURI('/Mukhwas_ingredients_arranged_on_…_202608312340.jpeg'),
+  imageAlt: 'Mukhwas seeds, spices, and ingredients arranged in bowls on a wooden table',
 } as const
 
 export const INGREDIENT_TABLE = [
@@ -70,7 +70,7 @@ export const WHAT_TASNEEM_DO_PAGE = {
       body: 'Suva carries a more noticeable herbal and aromatic character than fennel or sesame. Used with care, it creates depth and individuality — because a good mukhwas does not need every ingredient to taste the same; each should have its own role.',
     },
   ],
-  ingredientImage: '/Mukhwas_pouches_on_wooden_table_202608251630.jpeg',
+  ingredientImage: encodeURI('/Mukhwas_ingredients_arranged_on_…_202608312340.jpeg'),
   selectionTitle: 'Why Ingredient Selection Matters to Us',
   selectionIntro:
     'When someone enjoys a spoonful of mukhwas, they notice the flavour. From our side, there is much more behind that small serving.',
@@ -154,18 +154,18 @@ export const WHAT_TASNEEM_DO_PAGE = {
     ],
     images: [
       {
-        src: encodeURI('/Mukhwas_ingredients_arranged_on_…_202608182142.jpeg'),
-        alt: 'Natural mukhwas ingredients arranged for production',
+        src: encodeURI('/Inspecting_raw_mukhwas_ingredients_2K_202609010006.jpeg'),
+        alt: 'Quality inspector selecting raw mukhwas ingredients with tweezers',
         caption: 'Carefully selected ingredients',
       },
       {
-        src: '/Mukhwas_pouches_on_wooden_table_202608251659.jpeg',
-        alt: 'Sealed Tasneem mukhwas pouches',
+        src: encodeURI('/Worker_monitoring_mukhwas_roasting_2K_202609010006.jpeg'),
+        alt: 'Quality control worker monitoring mukhwas roasting in a hygienic facility',
         caption: 'Sealed retail packs',
       },
       {
-        src: '/Tasneem_pouch_on_glass_surface_202608251649.jpeg',
-        alt: 'Tasneem Mukhwas pouch on display',
+        src: encodeURI('/Tasneem_Mukhwas_pouches_on_pedestal_202609010006.jpeg'),
+        alt: 'Tasneem Mukhwas pouches displayed on a marble pedestal',
         caption: 'Modern presentation',
       },
     ],

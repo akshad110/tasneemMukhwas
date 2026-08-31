@@ -67,12 +67,6 @@ export default function WhatTasneemDoSection() {
               className="relative z-[1] block aspect-[16/10] max-h-[200px] w-full rounded-[1rem] object-cover object-center sm:max-h-[220px] lg:max-h-[240px]"
             />
           </div>
-          <p
-            className="mt-3 text-center text-[0.62rem] font-semibold tracking-[0.18em] uppercase lg:text-left"
-            style={{ color: BRAND_GOLD, fontFamily: BRAND_SANS }}
-          >
-            Demo imagery · Seeds & ingredients
-          </p>
         </motion.div>
 
         <motion.div

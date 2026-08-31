@@ -12,7 +12,6 @@ import {
 } from '../lib/contact'
 import { scrollAppToTop } from '../lib/scrollControl'
 import {
-  DEALERSHIP_HERO,
   DEALERSHIP_INTRO,
   DEALERSHIP_STATS,
   FEATURE_GRID,
@@ -41,8 +40,8 @@ const MUTED = BRAND_MUTED
 const EASE = [0.22, 1, 0.36, 1] as const
 
 const HERO_IMG = '/Mukhwas_pouches_on_wooden_table_202608251659.jpeg'
-const GROW_IMG = '/Mango_snack_on_counter_2K_202608251649.jpeg'
-const COLLAB_IMG = encodeURI('/Mukhwas_ingredients_arranged_on_…_202608182142.jpeg')
+const GROW_IMG = encodeURI('/Tasneem_Mukhwas_pouches_on_shelf_202609010137.jpeg')
+const COLLAB_IMG = encodeURI('/Corporate_gift_hamper_on_desk_202609010134.jpeg')
 
 function Reveal({
   children,
@@ -68,7 +67,7 @@ function Reveal({
 
 function SectionHeader({ title, description }: { title: string; description?: string }) {
   return (
-    <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr] lg:items-end lg:gap-12">
+    <div className="section-header-split">
       <h2
         className="m-0 text-[clamp(1.85rem,4.5vw,3rem)] leading-[1.08] tracking-[-0.02em]"
         style={{ fontFamily: BRAND_SERIF, color: INK }}
@@ -76,7 +75,7 @@ function SectionHeader({ title, description }: { title: string; description?: st
         {title}
       </h2>
       {description ? (
-        <p className="m-0 max-w-md text-[0.95rem] leading-[1.75]" style={{ color: MUTED, fontFamily: BRAND_SANS }}>
+        <p className="section-header-split__desc m-0 max-w-none text-[0.95rem] leading-[1.75] lg:max-w-md" style={{ color: MUTED, fontFamily: BRAND_SANS }}>
           {description}
         </p>
       ) : null}
@@ -99,7 +98,7 @@ function PrimaryBtn({
     <a
       href={href}
       {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-      className="inline-flex items-center justify-center px-7 py-3.5 text-[0.78rem] font-semibold tracking-[0.12em] uppercase no-underline transition hover:brightness-110"
+      className="inline-flex w-full items-center justify-center px-7 py-3.5 text-[0.78rem] font-semibold tracking-[0.12em] uppercase no-underline transition hover:brightness-110 sm:w-auto"
       style={{
         backgroundColor: dark ? INK : CREAM_LIGHT,
         color: dark ? CREAM_LIGHT : INK,
@@ -133,69 +132,25 @@ export default function WholesalePage() {
   }, [])
 
   return (
-    <div className="min-h-svh" style={{ backgroundColor: CREAM, fontFamily: BRAND_SANS, color: INK }}>
+    <div className="page-shell min-h-svh" style={{ backgroundColor: CREAM, fontFamily: BRAND_SANS, color: INK }}>
       <Navbar />
 
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="relative min-h-[22rem] sm:min-h-[26rem] lg:min-h-[30rem]">
-          <img src={HERO_IMG} alt="" className="absolute inset-0 h-full w-full object-cover" aria-hidden />
+          <img
+            src={HERO_IMG}
+            alt="Tasneem Mukhwas wholesale and dealership"
+            className="absolute inset-0 h-full w-full object-cover object-center"
+          />
           <div
             className="absolute inset-0"
             style={{
               background:
-                'linear-gradient(180deg, rgba(10,46,34,0.72) 0%, rgba(10,46,34,0.45) 45%, rgba(10,46,34,0.82) 100%)',
+                'linear-gradient(180deg, rgba(10,46,34,0.28) 0%, rgba(10,46,34,0.18) 45%, rgba(10,46,34,0.32) 100%)',
             }}
             aria-hidden
           />
-          <div
-            className="relative z-10 flex min-h-[22rem] flex-col items-center justify-center px-5 py-16 text-center sm:min-h-[26rem] sm:px-8 lg:min-h-[30rem] lg:px-10"
-            style={{ paddingTop: 'calc(4.5rem + env(safe-area-inset-top, 0px))' }}
-          >
-            <motion.p
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: EASE }}
-              className="m-0 text-[0.68rem] font-semibold tracking-[0.22em] uppercase"
-              style={{ color: 'rgba(255,254,242,0.65)' }}
-            >
-              {DEALERSHIP_HERO.eyebrow}
-            </motion.p>
-            <motion.h1
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.08, ease: EASE }}
-              className="mt-4 m-0 max-w-4xl text-[clamp(1.85rem,5.5vw,3.5rem)] leading-[1.08]"
-              style={{ color: CREAM_LIGHT, fontFamily: BRAND_SERIF }}
-            >
-              {DEALERSHIP_HERO.title}
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.16, ease: EASE }}
-              className="mt-5 m-0 max-w-2xl text-[0.98rem] leading-[1.75]"
-              style={{ color: 'rgba(255,254,242,0.78)' }}
-            >
-              {DEALERSHIP_HERO.subtitle}
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.24, ease: EASE }}
-              className="mt-8 flex flex-wrap items-center justify-center gap-3"
-            >
-              <PrimaryBtn href={WHATSAPP_BULK_URL} external>
-                Get started
-              </PrimaryBtn>
-              <PrimaryBtn
-                href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Dealership / Bulk enquiry')}`}
-                dark={false}
-              >
-                Email enquiry
-              </PrimaryBtn>
-            </motion.div>
-          </div>
         </div>
       </section>
 
@@ -215,9 +170,9 @@ export default function WholesalePage() {
         {/* Stats */}
         <section style={{ backgroundColor: CREAM }}>
           <div className="mx-auto max-w-[1320px] border-y px-5 py-12 sm:px-8 lg:px-10 lg:py-14" style={{ borderColor: 'rgba(10,46,34,0.1)' }}>
-            <div className="grid gap-8 md:grid-cols-3 md:gap-0 md:divide-x" style={{ '--tw-divide-opacity': 1 } as React.CSSProperties}>
+            <div className="stat-grid-responsive">
               {DEALERSHIP_STATS.map((stat, i) => (
-                <Reveal key={stat.label} delay={i * 0.06} className="md:px-8 md:first:pl-0 md:last:pr-0">
+                <Reveal key={stat.label} delay={i * 0.06}>
                   <p className="m-0 text-[clamp(2rem,4vw,2.75rem)] leading-none" style={{ fontFamily: BRAND_SERIF, color: INK }}>
                     {stat.value}
                   </p>
@@ -285,38 +240,48 @@ export default function WholesalePage() {
         </section>
 
         {/* Alternating — collaborate */}
-        <section style={{ backgroundColor: CREAM_DEEP }}>
-          <div className="mx-auto grid max-w-[1320px] items-center gap-10 lg:grid-cols-2 lg:gap-0">
-            <Reveal>
-              <img src={COLLAB_IMG} alt="Mukhwas ingredients" className="block min-h-[280px] w-full object-cover lg:min-h-[420px]" loading="lazy" />
-            </Reveal>
-            <Reveal delay={0.08} className="p-8 sm:p-10 lg:p-14">
-              <p className="m-0 text-[0.62rem] font-bold tracking-[0.2em] uppercase" style={{ color: 'rgba(10,46,34,0.45)' }}>
-                Collaborate
-              </p>
-              <h2 className="mt-3 m-0 text-[clamp(1.75rem,3.5vw,2.5rem)] leading-tight" style={{ fontFamily: BRAND_SERIF, color: INK }}>
-                Memorable gifts for every occasion
-              </h2>
-              <p className="mt-5 m-0 text-[0.95rem] leading-[1.85]" style={{ color: MUTED }}>
-                Collaborate with us to source wholesale mukhwas and create memorable gifts that will leave a
-                lasting impression on your clients and guests — from corporate hampers to event favours.
-              </p>
-              <a
-                href={WHATSAPP_BULK_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-6 inline-block text-[0.78rem] font-semibold tracking-[0.1em] uppercase no-underline hover:underline"
-                style={{ color: INK }}
-              >
-                Learn more →
-              </a>
-            </Reveal>
+        <section style={{ backgroundColor: CREAM }}>
+          <div className="mx-auto max-w-[1320px] px-5 py-10 sm:px-8 sm:py-12 lg:px-10 lg:py-16">
+            <div
+              className="grid items-stretch overflow-hidden rounded-2xl lg:grid-cols-2 lg:rounded-3xl"
+              style={{ backgroundColor: CREAM_DEEP }}
+            >
+              <Reveal>
+                <img
+                  src={COLLAB_IMG}
+                  alt="Corporate gift hamper with Tasneem Mukhwas"
+                  className="block min-h-[280px] h-full w-full object-cover lg:min-h-[420px]"
+                  loading="lazy"
+                />
+              </Reveal>
+              <Reveal delay={0.08} className="flex flex-col justify-center p-8 sm:p-10 lg:p-14">
+                <p className="m-0 text-[0.62rem] font-bold tracking-[0.2em] uppercase" style={{ color: 'rgba(10,46,34,0.45)' }}>
+                  Collaborate
+                </p>
+                <h2 className="mt-3 m-0 text-[clamp(1.75rem,3.5vw,2.5rem)] leading-tight" style={{ fontFamily: BRAND_SERIF, color: INK }}>
+                  Memorable gifts for every occasion
+                </h2>
+                <p className="mt-5 m-0 text-[0.95rem] leading-[1.85]" style={{ color: MUTED }}>
+                  Collaborate with us to source wholesale mukhwas and create memorable gifts that will leave a
+                  lasting impression on your clients and guests — from corporate hampers to event favours.
+                </p>
+                <a
+                  href={WHATSAPP_BULK_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-6 inline-block text-[0.78rem] font-semibold tracking-[0.1em] uppercase no-underline hover:underline"
+                  style={{ color: INK }}
+                >
+                  Learn more →
+                </a>
+              </Reveal>
+            </div>
           </div>
         </section>
 
         {/* Grow with the crunch — alternating flip */}
         <section style={{ backgroundColor: CREAM_LIGHT }}>
-          <div className="mx-auto grid max-w-[1320px] items-center gap-10 lg:grid-cols-2 lg:gap-14 lg:px-10 lg:py-20">
+          <div className="mx-auto grid max-w-[1320px] items-center gap-10 px-5 py-10 sm:px-8 sm:py-12 lg:grid-cols-2 lg:gap-14 lg:px-10 lg:py-20">
             <Reveal className="order-2 lg:order-1 lg:px-5">
               <p className="m-0 text-[0.62rem] font-bold tracking-[0.2em] uppercase" style={{ color: 'rgba(10,46,34,0.45)' }}>
                 {GROW_SECTION.eyebrow}
@@ -348,7 +313,7 @@ export default function WholesalePage() {
                 description="Retail counters, hospitality trays, and corporate gifting — sealed fresh from Chhapi."
               />
             </Reveal>
-            <div className="grid gap-6 lg:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {SOLUTION_CARDS.map((card, i) => (
                 <Reveal key={card.title} delay={i * 0.08}>
                   <article className="flex h-full flex-col" style={{ backgroundColor: CREAM_LIGHT }}>
@@ -393,7 +358,7 @@ export default function WholesalePage() {
                 {CONTACT_PHONE_DISPLAY} · {CONTACT_EMAIL}
               </p>
             </div>
-            <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
               <PrimaryBtn href={`tel:${CONTACT_PHONE_TEL}`}>Call now</PrimaryBtn>
               <PrimaryBtn href={WHATSAPP_BULK_URL} external>
                 WhatsApp desk

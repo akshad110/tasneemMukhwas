@@ -62,6 +62,10 @@ export default function CategoriesSliderSection() {
       }
 
       const isMobile = window.matchMedia('(max-width: 767px)').matches
+      const header = document.querySelector('header')
+      const navHeight = header?.getBoundingClientRect().height ?? (isMobile ? 56 : 88)
+      const pinGap = isMobile ? 18 : 36
+      const tabPeek = isMobile ? 34 : 42
 
       lenis?.on('scroll', onLenisScroll)
 
@@ -69,6 +73,7 @@ export default function CategoriesSliderSection() {
         const wrappers = gsap.utils.toArray<HTMLElement>('.categories-slider__card-wrapper', root)
         const shells = gsap.utils.toArray<HTMLElement>('.categories-slider__card-shell', root)
         const count = shells.length
+        const pinEnd = isMobile ? 'bottom 420' : 'bottom bottom'
 
         wrappers.forEach((wrapper, i) => {
           const shell = shells[i]
@@ -77,8 +82,7 @@ export default function CategoriesSliderSection() {
           const isLast = i === count - 1
           const scale = isLast ? 1 : isMobile ? 0.94 + 0.012 * i : 0.9 + 0.025 * i
           const rotation = isLast || isMobile ? 0 : -10
-          const pinStart = isMobile ? 96 + 12 * i : 60 + 10 * i
-          const pinEnd = isMobile ? 'bottom 440' : 'bottom 550'
+          const pinStart = Math.round(navHeight + pinGap + tabPeek * i)
 
           gsap.to(shell, {
             scale,
@@ -118,7 +122,10 @@ export default function CategoriesSliderSection() {
     <section
       id="categories"
       className="categories-slider"
-      style={{ backgroundColor: BRAND_CREAM }}
+      style={{
+        backgroundColor: BRAND_CREAM,
+        ['--category-count' as string]: items.length,
+      }}
       aria-labelledby="categories-slider-title"
     >
       <svg width="0" height="0" aria-hidden className="absolute">
@@ -226,7 +233,9 @@ export default function CategoriesSliderSection() {
             )
           })}
         </div>
+        <div className="categories-slider__scroll-tail" aria-hidden />
       </div>
+      <div className="categories-slider__flow-spacer" aria-hidden />
     </section>
   )
 }

@@ -147,7 +147,7 @@ export default function ProductPackets({ active = true }: ProductPacketsProps) {
             </div>
 
             <a
-              href="/products"
+              href="/"
               onClick={goProducts}
               className="relative block cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#f2f4f5]/70"
               aria-label={`Order ${packet.name} now`}

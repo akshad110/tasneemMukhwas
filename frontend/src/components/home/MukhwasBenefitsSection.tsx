@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import {
+  BRAND_CREAM_DEEP,
   BRAND_CREAM_LIGHT,
   BRAND_GOLD,
   BRAND_INK,
@@ -126,38 +127,30 @@ export default function MukhwasBenefitsSection() {
             className="relative mx-auto w-full max-w-sm lg:max-w-none lg:self-start"
           >
             <div
-              className="absolute -left-3 top-8 z-[2] hidden rounded-full px-4 py-2 text-[0.65rem] font-bold tracking-[0.12em] uppercase shadow-md sm:block"
+              className="relative overflow-hidden rounded-[1.35rem] border p-2 shadow-[0_28px_60px_-32px_rgba(10,46,34,0.35)] sm:p-3"
               style={{
-                backgroundColor: BRAND_GOLD,
-                color: BRAND_INK,
-                fontFamily: BRAND_SANS,
+                borderColor: 'rgba(184,134,11,0.38)',
+                backgroundColor: BRAND_CREAM_LIGHT,
               }}
             >
-              Traditional · Refreshing
-            </div>
-            <div
-              className="relative overflow-hidden rounded-[1.5rem] border-2 shadow-[0_32px_64px_-36px_rgba(10,46,34,0.4)]"
-              style={{ borderColor: 'rgba(10,46,34,0.12)' }}
-            >
+              <div
+                className="absolute -right-3 -top-3 h-14 w-14 rounded-full border-2 sm:h-16 sm:w-16"
+                style={{ borderColor: 'rgba(184,134,11,0.45)', backgroundColor: 'rgba(184,134,11,0.12)' }}
+                aria-hidden
+              />
+              <div
+                className="absolute -bottom-3 -left-3 h-10 w-10 rotate-45 sm:h-12 sm:w-12"
+                style={{ backgroundColor: BRAND_CREAM_DEEP, border: '1px solid rgba(184,134,11,0.25)' }}
+                aria-hidden
+              />
               <img
                 src={image}
                 alt={imageAlt}
                 loading="lazy"
                 decoding="async"
                 draggable={false}
-                className="block aspect-[16/10] max-h-[200px] w-full object-cover object-center sm:max-h-[220px] lg:max-h-[240px]"
+                className="relative z-[1] block aspect-[16/10] max-h-[200px] w-full rounded-[1rem] object-cover object-center sm:max-h-[220px] lg:max-h-[240px]"
               />
-              <div
-                className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[rgba(10,46,34,0.75)] to-transparent px-5 pb-3 pt-8"
-                aria-hidden
-              >
-                <p
-                  className="m-0 text-[0.72rem] font-semibold tracking-[0.14em] uppercase"
-                  style={{ color: BRAND_CREAM_LIGHT, fontFamily: BRAND_SANS }}
-                >
-                  Demo imagery
-                </p>
-              </div>
             </div>
           </motion.div>
         </div>

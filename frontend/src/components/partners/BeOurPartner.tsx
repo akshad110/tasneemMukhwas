@@ -13,7 +13,7 @@ import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 import { CONTACT_EMAIL, CONTACT_PHONE_DISPLAY, CONTACT_PHONE_TEL, WHATSAPP_URL } from '../../lib/contact'
 
 const EASE = [0.22, 1, 0.36, 1] as const
-const PARTNER_IMAGE = encodeURI('/Mukhwas_pouches_on_wooden_table_202608251630.jpeg')
+const PARTNER_IMAGE = '/Professionals_shaking_hands_2K_202608312346.jpeg'
 
 const BENEFITS = [
   {
@@ -162,7 +162,7 @@ export default function BeOurPartner() {
             <div className="be-partner__enquiry-image-wrap">
               <img
                 src={PARTNER_IMAGE}
-                alt="Tasneem mukhwas pouches on display"
+                alt="Business partners shaking hands at a Tasneem Mukhwas retail store"
                 loading="lazy"
                 decoding="async"
                 className="be-partner__enquiry-image"
