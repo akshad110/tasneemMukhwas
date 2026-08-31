@@ -15,11 +15,15 @@ import {
   getComparePrice,
   getProductCardTeaser,
   getProductImages,
+  getProductPackTypes,
   getProductPanelFill,
   getSellPrice,
-  normalizeProductVariants,
+  getVariantsForPackType,
+  type PackType,
   type ShopProduct,
 } from '../../lib/shopCatalog'
+import ProductImageCarousel from './ProductImageCarousel'
+import ProductPackToggle from './ProductPackToggle'
 import {
   BRAND_CREAM,
   BRAND_CREAM_DEEP,
@@ -76,14 +80,18 @@ export default function ShopProductCard({
   promoLabel,
   onOpenDetail,
 }: ShopProductCardProps) {
-  const variants = useMemo(() => normalizeProductVariants(product.variants), [product.variants])
+  const packTypes = useMemo(() => getProductPackTypes(product), [product])
+  const [packType, setPackType] = useState<PackType>(() => packTypes[0] ?? 'packet')
+  const variants = useMemo(
+    () => getVariantsForPackType(product, packType),
+    [product, packType],
+  )
   const imageHostRef = useRef<HTMLDivElement>(null)
   const [lazyImages, setLazyImages] = useState<string[]>(() => {
     const cached = getCachedProductImages(product.id)
     if (cached.length) return cached
     return getProductImages(product)
   })
-  const [imageIndex] = useState(0)
   const { user } = useAuth()
   const { isWishlisted, toggle } = useWishlist()
   const liked = isWishlisted(product.id)
@@ -91,11 +99,17 @@ export default function ShopProductCard({
   const [imageHovered, setImageHovered] = useState(false)
   const { addItem, clearCart, getQty, setQty } = useCart()
 
-  const [variantId, setVariantId] = useState(variants[0]?.id ?? '100g')
+  const [variantId, setVariantId] = useState(variants[0]?.id ?? 'packet-100g')
 
   useEffect(() => {
-    setVariantId(variants[0]?.id ?? '100g')
-  }, [product.id, variants])
+    if (!packTypes.includes(packType)) {
+      setPackType(packTypes[0] ?? 'packet')
+    }
+  }, [product.id, packTypes, packType])
+
+  useEffect(() => {
+    setVariantId(variants[0]?.id ?? 'packet-100g')
+  }, [product.id, packType, variants])
 
   useEffect(() => {
     const applyImages = () => {
@@ -141,14 +155,12 @@ export default function ShopProductCard({
     }
   }, [product])
 
-  const activeImage =
-    lazyImages[Math.min(imageIndex, Math.max(0, lazyImages.length - 1))] ?? product.image
   const panelFill = getProductPanelFill(product)
   const cartQty = getQty(product.id, variantId)
-  const sellPrice = getSellPrice(product)
-  const comparePrice = getComparePrice(product)
+  const sellPrice = getSellPrice(product, packType)
+  const comparePrice = getComparePrice(product, packType)
   const outOfStock = Boolean(product.outOfStock)
-  const cardTeaser = getProductCardTeaser(product)
+  const cardTeaser = getProductCardTeaser(product, packType)
   const showSeeMore = Boolean(onOpenDetail)
 
   const requireAuth = () => {
@@ -251,6 +263,13 @@ export default function ShopProductCard({
         }}
       >
         <div className="flex min-h-0 flex-1 flex-col rounded-[0.8rem] p-1.5 min-[480px]:rounded-[0.95rem] min-[480px]:p-2 sm:p-2.5">
+        <ProductPackToggle
+          value={packType}
+          onChange={setPackType}
+          packetEnabled={product.packetEnabled !== false}
+          bottleEnabled={Boolean(product.bottleEnabled)}
+          compact
+        />
         <div
           ref={imageHostRef}
           className="relative h-[108px] shrink-0 overflow-hidden rounded-md border min-[480px]:h-[118px] min-[480px]:rounded-lg sm:h-[128px]"
@@ -261,27 +280,13 @@ export default function ShopProductCard({
           onMouseEnter={() => setImageHovered(true)}
           onMouseLeave={() => setImageHovered(false)}
         >
-          {activeImage ? (
-          <motion.img
-            src={activeImage}
+          <ProductImageCarousel
+            images={lazyImages}
             alt={product.name}
-            loading="lazy"
-            decoding="async"
-            className="relative z-[1] h-full w-full object-contain object-center px-1.5 pt-1"
-            draggable={false}
-            animate={{
-              scale: imageHovered && !outOfStock ? 1.05 : 1,
-              opacity: outOfStock ? 0.45 : 1,
-            }}
-            transition={{ duration: 0.38, ease: REVEAL_EASE }}
+            panelBg={panelFill || IMAGE_BG}
+            dimmed={outOfStock}
+            hovered={imageHovered}
           />
-          ) : (
-            <div
-              className="absolute inset-0 animate-pulse"
-              style={{ backgroundColor: 'rgba(10,46,34,0.06)' }}
-              aria-hidden
-            />
-          )}
 
           {outOfStock && (
             <span

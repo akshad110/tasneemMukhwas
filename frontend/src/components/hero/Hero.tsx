@@ -98,63 +98,66 @@ function MobileHero({
     >
       <div className="hero-mobile-shell">
         <div className="hero-mobile-banner">
-          <div className="hero-mobile-banner__pattern" aria-hidden />
-
-          <div className="hero-mobile-banner__grid">
-            <div className="hero-mobile-banner__copy">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={slide.title}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  <h1
-                    className="m-0 text-[clamp(1.35rem,6.2vw,1.85rem)] leading-[1.08] tracking-[-0.02em]"
-                    style={{ color: BRAND_CREAM, fontFamily: BRAND_SERIF }}
-                  >
-                    {slide.title}
-                  </h1>
-                  <p
-                    className="mt-2.5 m-0 text-[0.72rem] leading-relaxed sm:text-[0.78rem]"
-                    style={{
-                      color: 'rgba(248,243,231,0.82)',
-                      fontFamily: BRAND_SANS,
-                    }}
-                  >
-                    {slide.body}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={openShop}
-                    className="hero-mobile-banner__cta mt-3 cursor-pointer border-0 sm:mt-4"
-                    style={{ fontFamily: BRAND_SANS }}
-                  >
-                    Shop Now
-                  </button>
-                </motion.div>
-              </AnimatePresence>
-            </div>
-
-            <div className="hero-mobile-banner__visual" aria-hidden={false}>
-              <AnimatePresence mode="wait">
-                <motion.img
-                  key={slide.image}
-                  src={slide.image}
+          <div className="hero-mobile-banner__media" aria-hidden>
+            {HERO_SLIDE_ITEMS.map((item, index) => {
+              const isActive = index === activeIndex
+              return (
+                <img
+                  key={item.image}
+                  src={item.image}
                   alt=""
-                  initial={{ opacity: 0, x: 14, scale: 0.96 }}
-                  animate={{ opacity: 1, x: 0, scale: 1 }}
-                  exit={{ opacity: 0, x: -10, scale: 0.98 }}
-                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                  decoding={activeIndex === 0 ? 'sync' : 'async'}
-                  fetchPriority={activeIndex === 0 ? 'high' : 'auto'}
+                  decoding={index === 0 ? 'sync' : 'async'}
+                  fetchPriority={index === 0 ? 'high' : 'auto'}
                   loading="eager"
                   draggable={false}
-                  className="hero-mobile-banner__image"
+                  className="hero-mobile-banner__slide"
+                  style={{
+                    opacity: isActive ? 1 : 0,
+                    zIndex: isActive ? 2 : 1,
+                    transform: isActive ? 'scale(1)' : 'scale(1.05)',
+                    transition: `opacity ${FADE_MS}ms ${EASE}, transform ${FADE_MS + 600}ms ${EASE}`,
+                  }}
                 />
-              </AnimatePresence>
-            </div>
+              )
+            })}
+          </div>
+
+          <div className="hero-mobile-banner__overlay" aria-hidden />
+
+          <div className="hero-mobile-banner__content">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={slide.title}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <h1
+                  className="m-0 text-[clamp(1.35rem,6.2vw,1.85rem)] leading-[1.08] tracking-[-0.02em]"
+                  style={{ color: BRAND_CREAM, fontFamily: BRAND_SERIF }}
+                >
+                  {slide.title}
+                </h1>
+                <p
+                  className="mt-2.5 m-0 max-w-[22rem] text-[0.72rem] leading-relaxed sm:text-[0.78rem]"
+                  style={{
+                    color: 'rgba(248,243,231,0.88)',
+                    fontFamily: BRAND_SANS,
+                  }}
+                >
+                  {slide.body}
+                </p>
+                <button
+                  type="button"
+                  onClick={openShop}
+                  className="hero-mobile-banner__cta mt-3 cursor-pointer border-0 sm:mt-4"
+                  style={{ fontFamily: BRAND_SANS }}
+                >
+                  Shop Now
+                </button>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
 

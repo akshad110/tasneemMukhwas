@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import {
-  BRAND_CREAM_LIGHT,
   BRAND_DISPLAY,
   BRAND_INK,
   BRAND_MUTED,
@@ -128,76 +127,56 @@ function QualityBadgeRing({ badge }: { badge: QualityBadge }) {
   )
 }
 
-/** Scalloped vertical divider between image and content panels. */
-function ScallopEdge() {
-  const scallops = 14
-  const r = 10
-  const w = 20
-  const h = scallops * r * 2
-  let d = `M ${w} 0 L ${w} ${h} L 0 ${h} `
-  for (let i = scallops; i >= 0; i--) {
-    const y = i * r * 2
-    d += `L 0 ${y + r} A ${r} ${r} 0 0 0 ${w} ${y + r} `
-  }
-  d += 'Z'
-
-  return (
-    <svg
-      className="quality-promise__scallop"
-      viewBox={`0 0 ${w} ${h}`}
-      preserveAspectRatio="none"
-      aria-hidden
-    >
-      <path d={d} fill={BRAND_CREAM_LIGHT} />
-    </svg>
-  )
-}
-
 export default function QualityPromiseSection() {
   return (
     <section
       id="quality-promise"
-      className="quality-promise relative w-full overflow-hidden"
+      className="quality-promise relative w-full"
       aria-label="Our quality promise"
     >
-      <div className="quality-promise__split">
-        <div className="quality-promise__visual">
-          <img
-            src={INGREDIENTS_IMAGE}
-            alt="Assorted mukhwas seeds, fennel, and natural ingredients in a wooden bowl"
-            loading="lazy"
-            decoding="async"
-            draggable={false}
-            className="quality-promise__photo"
-          />
-        </div>
+      <div className="quality-promise__card">
+        <div className="quality-promise__split">
+          <div className="quality-promise__visual">
+            <div className="quality-promise__visual-frame">
+              <img
+                src={INGREDIENTS_IMAGE}
+                alt="Assorted mukhwas seeds, fennel, and natural ingredients in a wooden bowl"
+                loading="lazy"
+                decoding="async"
+                draggable={false}
+                className="quality-promise__photo"
+              />
+            </div>
+          </div>
 
-        <ScallopEdge />
+          <div className="quality-promise__divider" aria-hidden />
 
-        <div className="quality-promise__panel">
-          <div className="quality-promise__panel-inner">
-            <h2
-              className="quality-promise__title m-0 text-center uppercase"
-              style={{ fontFamily: BRAND_DISPLAY, color: BRAND_INK }}
-            >
-              Pure Today,
-              <br />
-              Trusted Always!
-            </h2>
+          <div className="quality-promise__panel">
+            <div className="quality-promise__panel-inner">
+              <p className="quality-promise__eyebrow m-0 uppercase">Our promise</p>
+              <h2
+                className="quality-promise__title m-0 uppercase"
+                style={{ fontFamily: BRAND_DISPLAY, color: BRAND_INK }}
+              >
+                Pure Today,
+                <br />
+                Trusted Always!
+              </h2>
 
-            <p
-              className="quality-promise__copy mx-auto mt-4 max-w-md text-center"
-              style={{ color: BRAND_MUTED, fontFamily: BRAND_SANS }}
-            >
-              Every Tasneem Mukhwas pack is made with carefully selected ingredients — clean
-              formulation, hygienic processing, and the authentic taste Gujarat has loved for
-              generations.
-            </p>
+              <p
+                className="quality-promise__copy mt-4"
+                style={{ color: BRAND_MUTED, fontFamily: BRAND_SANS }}
+              >
+                Every Tasneem Mukhwas pack is made with carefully selected ingredients — clean
+                formulation, hygienic processing, and the authentic taste Gujarat has loved for
+                generations.
+              </p>
 
-            <div className="quality-promise__badges mt-8 sm:mt-10">
-              {BADGES.map((badge) => (
-                <QualityBadgeRing key={badge.id} badge={badge} />
-              ))}
+              <div className="quality-promise__badges mt-6 sm:mt-8">
+                {BADGES.map((badge) => (
+                  <QualityBadgeRing key={badge.id} badge={badge} />
+                ))}
+              </div>
             </div>
           </div>
         </div>

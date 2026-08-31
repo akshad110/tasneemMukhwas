@@ -7,12 +7,13 @@ import {
   queueAdminProductImage,
   subscribeProductImages,
 } from '../../lib/productImageCache'
+import AdminPackSection from './AdminPackSection'
 import {
-  CATEGORIES,
-  GRAM_OPTIONS,
+  DEFAULT_CATEGORIES,
+  DEFAULT_GRAM,
   PRODUCT_CARD_PANEL_BG,
   PRODUCT_MAX_GALLERY_IMAGES,
-  buildGramVariants,
+  buildAllPackVariants,
   parseGramOptionsFromVariants,
   type ShopProduct,
 } from '../../lib/shopCatalog'
@@ -42,7 +43,15 @@ type Editable = {
   brand: string
   rating: number
   reviews: number
-  gramOptions: number[]
+  packetEnabled: boolean
+  bottleEnabled: boolean
+  packetGrams: number[]
+  bottleGrams: number[]
+  bottlePrice: number
+  bottleShowDiscountedPrice: boolean
+  bottleDiscountedPrice: number
+  bottleShortDescription: string
+  bottleDescription: string
 }
 
 function padImageSlots(images: string[]): ProductImageSlots {
@@ -65,7 +74,19 @@ function toEditable(p: ShopProduct): Editable {
     brand: p.brand,
     rating: p.rating,
     reviews: p.reviews,
-    gramOptions: parseGramOptionsFromVariants(p.variants),
+    packetEnabled: p.packetEnabled !== false,
+    bottleEnabled: Boolean(p.bottleEnabled),
+    packetGrams: p.packetGrams?.length
+      ? [...p.packetGrams]
+      : parseGramOptionsFromVariants(p.variants, 'packet'),
+    bottleGrams: p.bottleGrams?.length
+      ? [...p.bottleGrams]
+      : parseGramOptionsFromVariants(p.variants, 'bottle'),
+    bottlePrice: p.bottlePrice ?? p.price,
+    bottleShowDiscountedPrice: Boolean(p.bottleShowDiscountedPrice),
+    bottleDiscountedPrice: p.bottleDiscountedPrice ?? Math.round((p.bottlePrice ?? p.price) * 0.85),
+    bottleShortDescription: p.bottleShortDescription ?? '',
+    bottleDescription: p.bottleDescription ?? '',
   }
 }
 
@@ -74,8 +95,12 @@ function toShopProduct(e: Editable, existing?: ShopProduct): ShopProduct {
   const image = images[0] ?? existing?.image ?? '/products/shahi-mukhwas.png'
   const gallery = images.length ? images : image ? [image] : []
   const fill = existing?.fill || BRAND_FILL
-  const grams = e.gramOptions.length ? [...e.gramOptions].sort((a, b) => a - b) : [100]
-  const variants = buildGramVariants(grams, fill, gallery[0] || image)
+  const packetGrams = e.packetGrams.length ? [...e.packetGrams].sort((a, b) => a - b) : [DEFAULT_GRAM]
+  const bottleGrams = e.bottleGrams.length ? [...e.bottleGrams].sort((a, b) => a - b) : [DEFAULT_GRAM]
+  const variants = buildAllPackVariants(packetGrams, bottleGrams, fill, gallery[0] || image, {
+    packetEnabled: e.packetEnabled,
+    bottleEnabled: e.bottleEnabled,
+  })
 
   return {
     id: e.id,
@@ -96,6 +121,15 @@ function toShopProduct(e: Editable, existing?: ShopProduct): ShopProduct {
     reviews: e.reviews || existing?.reviews || 0,
     brand: e.brand || existing?.brand || 'Tasneem',
     variants,
+    packetEnabled: e.packetEnabled,
+    bottleEnabled: e.bottleEnabled,
+    packetGrams,
+    bottleGrams,
+    bottlePrice: e.bottleEnabled ? e.bottlePrice : undefined,
+    bottleShowDiscountedPrice: e.bottleEnabled ? e.bottleShowDiscountedPrice : false,
+    bottleDiscountedPrice: e.bottleEnabled && e.bottleShowDiscountedPrice ? e.bottleDiscountedPrice : undefined,
+    bottleShortDescription: e.bottleEnabled ? e.bottleShortDescription.trim() : '',
+    bottleDescription: e.bottleEnabled ? e.bottleDescription.trim() : '',
   }
 }
 
@@ -154,11 +188,17 @@ function AdminProductThumb({
 }
 
 export default function AdminProducts() {
-  const { products, upsertProduct, removeProduct, ensureLoaded } = useCatalog()
+  const { products, categories, categoryItems, upsertProduct, removeProduct, ensureLoaded, addCategory, removeCategory } =
+    useCatalog()
   const [editing, setEditing] = useState<Editable | null>(null)
   const [creating, setCreating] = useState(false)
   const [q, setQ] = useState('')
   const [saving, setSaving] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [newCategoryName, setNewCategoryName] = useState('')
+  const [categoryBusy, setCategoryBusy] = useState(false)
+
+  const categoryOptions = categories.length ? categories : [...DEFAULT_CATEGORIES]
 
   useEffect(() => {
     void ensureLoaded()
@@ -179,7 +219,7 @@ export default function AdminProducts() {
     // Temporary client id — CatalogContext creates via API when id is not in list
     id: `prod-${Date.now()}`,
     name: '',
-    category: CATEGORIES[0],
+    category: categoryOptions[0] ?? DEFAULT_CATEGORIES[0],
     price: 199,
     showDiscountedPrice: false,
     discountedPrice: 149,
@@ -190,13 +230,29 @@ export default function AdminProducts() {
     brand: 'Tasneem',
     rating: 5,
     reviews: 0,
-    gramOptions: [100, 250, 500],
+    packetEnabled: true,
+    bottleEnabled: false,
+    packetGrams: [DEFAULT_GRAM],
+    bottleGrams: [DEFAULT_GRAM],
+    bottlePrice: 199,
+    bottleShowDiscountedPrice: false,
+    bottleDiscountedPrice: 149,
+    bottleShortDescription: '',
+    bottleDescription: '',
   })
+
+  const packConfigValid = (row: Editable) => {
+    if (!row.packetEnabled && !row.bottleEnabled) return false
+    if (row.packetEnabled && (!row.packetGrams.length || !(row.price > 0))) return false
+    if (row.bottleEnabled && (!row.bottleGrams.length || !(row.bottlePrice > 0))) return false
+    if (row.packetEnabled && row.showDiscountedPrice && !(row.discountedPrice > 0)) return false
+    if (row.bottleEnabled && row.bottleShowDiscountedPrice && !(row.bottleDiscountedPrice > 0)) return false
+    return true
+  }
 
   const save = async (row: Editable) => {
     if (!row.name.trim()) return
-    if (row.showDiscountedPrice && !(row.discountedPrice > 0)) return
-    if (!row.gramOptions.length) return
+    if (!packConfigValid(row)) return
     setSaving(true)
     try {
       // New products use a temp id that is not in `products`, so upsert creates via API
@@ -210,8 +266,16 @@ export default function AdminProducts() {
   }
 
   const remove = async (id: string) => {
-    await removeProduct(id)
-    if (editing?.id === id) setEditing(null)
+    if (deletingId) return
+    setDeletingId(id)
+    try {
+      await removeProduct(id)
+      if (editing?.id === id) setEditing(null)
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : 'Could not delete product. Try again.')
+    } finally {
+      setDeletingId(null)
+    }
   }
 
   const setImageAt = async (index: 0 | 1 | 2 | 3, e: ChangeEvent<HTMLInputElement>) => {
@@ -233,6 +297,40 @@ export default function AdminProducts() {
   }
 
   const form = editing
+
+  const createCategory = async () => {
+    const name = newCategoryName.trim()
+    if (!name || categoryBusy) return
+    setCategoryBusy(true)
+    try {
+      const created = await addCategory(name)
+      setNewCategoryName('')
+      if (form) setEditing({ ...form, category: created })
+    } finally {
+      setCategoryBusy(false)
+    }
+  }
+
+  const deleteSelectedCategory = async () => {
+    if (!form || categoryBusy) return
+    const item = categoryItems.find((c) => c.name === form.category)
+    if (!item) {
+      window.alert('This category cannot be deleted from here.')
+      return
+    }
+    const ok = window.confirm(`Delete category "${item.name}"? This cannot be undone.`)
+    if (!ok) return
+    setCategoryBusy(true)
+    try {
+      await removeCategory(item.id)
+      const nextCategory = categoryOptions.find((c) => c !== item.name) ?? DEFAULT_CATEGORIES[0]
+      setEditing({ ...form, category: nextCategory })
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : 'Could not delete category.')
+    } finally {
+      setCategoryBusy(false)
+    }
+  }
 
   return (
     <div>
@@ -341,11 +439,12 @@ export default function AdminProducts() {
                       </button>
                       <button
                         type="button"
+                        disabled={deletingId === r.id}
                         onClick={() => void remove(r.id)}
-                        className="cursor-pointer rounded-lg border-0 px-2.5 py-1.5 text-[0.72rem] font-semibold"
+                        className="cursor-pointer rounded-lg border-0 px-2.5 py-1.5 text-[0.72rem] font-semibold disabled:opacity-60"
                         style={{ backgroundColor: '#f8d7d4', color: '#a32020' }}
                       >
-                        Delete
+                        {deletingId === r.id ? 'Deleting…' : 'Delete'}
                       </button>
                     </div>
                   </td>
@@ -373,7 +472,7 @@ export default function AdminProducts() {
             <div className="mt-4 space-y-3">
               <div>
                 <p className="m-0 mb-2 text-[0.78rem]" style={{ color: MUTED }}>
-                  Images (optional — up to 4). Shop cards use a fixed light panel behind product photos.
+                  Images (optional — up to 4). Mix packet and bottle photos; the shop carousel auto-slides through uploaded images only (1–4 dots).
                 </p>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {([0, 1, 2, 3] as const).map((i) => (
@@ -435,47 +534,62 @@ export default function AdminProducts() {
                 />
               </label>
 
-              <label className="block text-[0.78rem]" style={{ color: MUTED }}>
-                One-line description
-                <span className="ml-1 text-[0.68rem] opacity-80">(shown on shop cards)</span>
-                <input
-                  className="mt-1 w-full rounded-xl border px-3 py-2.5 text-[0.9rem] outline-none"
-                  style={{ borderColor: LINE, color: INK }}
-                  value={form.shortDescription}
-                  maxLength={200}
-                  placeholder="e.g. Refreshing paan blend with natural fennel and rose petals"
-                  onChange={(e) => setEditing({ ...form, shortDescription: e.target.value })}
-                />
-              </label>
-
-              <label className="block text-[0.78rem]" style={{ color: MUTED }}>
-                Long description
-                <span className="ml-1 text-[0.68rem] opacity-80">(opens in product detail)</span>
-                <textarea
-                  className="mt-1 min-h-[7rem] w-full resize-y rounded-xl border px-3 py-2.5 text-[0.9rem] outline-none"
-                  style={{ borderColor: LINE, color: INK }}
-                  value={form.description}
-                  maxLength={2000}
-                  placeholder="Ingredients, taste notes, storage, and serving suggestions…"
-                  onChange={(e) => setEditing({ ...form, description: e.target.value })}
-                />
-              </label>
-
-              <label className="block text-[0.78rem]" style={{ color: MUTED }}>
-                Product category
-                <select
-                  className="mt-1 w-full rounded-xl border px-3 py-2.5 text-[0.9rem] outline-none"
-                  style={{ borderColor: LINE, color: INK, backgroundColor: CARD }}
-                  value={form.category}
-                  onChange={(e) => setEditing({ ...form, category: e.target.value })}
-                >
-                  {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <div>
+                <p className="m-0 mb-2 text-[0.78rem] font-semibold" style={{ color: INK }}>
+                  Product category
+                </p>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <select
+                    className="w-full flex-1 rounded-xl border px-3 py-2.5 text-[0.9rem] outline-none"
+                    style={{ borderColor: LINE, color: INK, backgroundColor: CARD }}
+                    value={form.category}
+                    onChange={(e) => setEditing({ ...form, category: e.target.value })}
+                  >
+                    {categoryOptions.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    disabled={
+                      categoryBusy ||
+                      !categoryItems.some((c) => c.name === form.category)
+                    }
+                    onClick={() => void deleteSelectedCategory()}
+                    className="shrink-0 cursor-pointer rounded-xl border px-3 py-2.5 text-[0.78rem] font-semibold disabled:opacity-50"
+                    style={{ borderColor: 'rgba(163,32,32,0.28)', color: '#a32020', backgroundColor: '#fff' }}
+                    title="Delete selected category"
+                  >
+                    Delete
+                  </button>
+                </div>
+                <div className="mt-2 flex gap-2">
+                  <input
+                    className="min-w-0 flex-1 rounded-xl border px-3 py-2 text-[0.85rem] outline-none"
+                    style={{ borderColor: LINE, color: INK }}
+                    placeholder="New category name…"
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        void createCategory()
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    disabled={categoryBusy || !newCategoryName.trim()}
+                    onClick={() => void createCategory()}
+                    className="shrink-0 cursor-pointer rounded-xl border-0 px-3 py-2 text-[0.78rem] font-semibold disabled:opacity-60"
+                    style={{ backgroundColor: GOLD, color: INK }}
+                  >
+                    + Add
+                  </button>
+                </div>
+              </div>
 
               {!creating && (
                 <label
@@ -491,86 +605,62 @@ export default function AdminProducts() {
                 </label>
               )}
 
-              <label className="block text-[0.78rem]" style={{ color: MUTED }}>
-                Real price (₹)
-                <input
-                  type="number"
-                  min={1}
-                  className="mt-1 w-full rounded-xl border px-3 py-2.5 text-[0.9rem] outline-none"
-                  style={{ borderColor: LINE, color: INK }}
-                  value={form.price}
-                  onChange={(e) => setEditing({ ...form, price: Number(e.target.value) })}
-                />
-              </label>
-
-              <label
-                className="flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2.5 text-[0.85rem]"
-                style={{ borderColor: LINE, color: INK }}
-              >
-                <input
-                  type="checkbox"
-                  checked={form.showDiscountedPrice}
-                  onChange={(e) =>
-                    setEditing({ ...form, showDiscountedPrice: e.target.checked })
+              <div className="space-y-3">
+                <AdminPackSection
+                  title="Packet"
+                  subtitle="Pricing, copy, and gram options for pouch / packet packs."
+                  fields={{
+                    enabled: form.packetEnabled,
+                    shortDescription: form.shortDescription,
+                    description: form.description,
+                    price: form.price,
+                    showDiscountedPrice: form.showDiscountedPrice,
+                    discountedPrice: form.discountedPrice,
+                    grams: form.packetGrams,
+                  }}
+                  onChange={(patch) =>
+                    setEditing({
+                      ...form,
+                      packetEnabled: patch.enabled ?? form.packetEnabled,
+                      shortDescription: patch.shortDescription ?? form.shortDescription,
+                      description: patch.description ?? form.description,
+                      price: patch.price ?? form.price,
+                      showDiscountedPrice: patch.showDiscountedPrice ?? form.showDiscountedPrice,
+                      discountedPrice: patch.discountedPrice ?? form.discountedPrice,
+                      packetGrams: patch.grams ?? form.packetGrams,
+                    })
                   }
                 />
-                Show discounted price
-              </label>
 
-              {form.showDiscountedPrice && (
-                <label className="block text-[0.78rem]" style={{ color: MUTED }}>
-                  Discounted price (₹)
-                  <input
-                    type="number"
-                    min={1}
-                    className="mt-1 w-full rounded-xl border px-3 py-2.5 text-[0.9rem] outline-none"
-                    style={{ borderColor: LINE, color: INK }}
-                    value={form.discountedPrice}
-                    onChange={(e) =>
-                      setEditing({ ...form, discountedPrice: Number(e.target.value) })
-                    }
-                  />
-                </label>
-              )}
+                <AdminPackSection
+                  title="Bottle"
+                  subtitle="Separate pricing and description when sold as a bottle."
+                  fields={{
+                    enabled: form.bottleEnabled,
+                    shortDescription: form.bottleShortDescription,
+                    description: form.bottleDescription,
+                    price: form.bottlePrice,
+                    showDiscountedPrice: form.bottleShowDiscountedPrice,
+                    discountedPrice: form.bottleDiscountedPrice,
+                    grams: form.bottleGrams,
+                  }}
+                  onChange={(patch) =>
+                    setEditing({
+                      ...form,
+                      bottleEnabled: patch.enabled ?? form.bottleEnabled,
+                      bottleShortDescription: patch.shortDescription ?? form.bottleShortDescription,
+                      bottleDescription: patch.description ?? form.bottleDescription,
+                      bottlePrice: patch.price ?? form.bottlePrice,
+                      bottleShowDiscountedPrice: patch.showDiscountedPrice ?? form.bottleShowDiscountedPrice,
+                      bottleDiscountedPrice: patch.discountedPrice ?? form.bottleDiscountedPrice,
+                      bottleGrams: patch.grams ?? form.bottleGrams,
+                    })
+                  }
+                />
 
-              <div>
-                <p className="m-0 mb-2 text-[0.78rem] font-semibold" style={{ color: INK }}>
-                  Pack sizes (grams)
-                </p>
-                <p className="m-0 mb-2 text-[0.72rem]" style={{ color: MUTED }}>
-                  Select which weight options appear on the shop card.
-                </p>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {GRAM_OPTIONS.map((grams) => {
-                    const checked = form.gramOptions.includes(grams)
-                    return (
-                      <label
-                        key={grams}
-                        className="flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2.5 text-[0.82rem]"
-                        style={{
-                          borderColor: checked ? GOLD : LINE,
-                          backgroundColor: checked ? 'rgba(184,134,11,0.1)' : '#f7faf8',
-                          color: INK,
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={(e) => {
-                            const next = e.target.checked
-                              ? [...form.gramOptions, grams]
-                              : form.gramOptions.filter((g) => g !== grams)
-                            setEditing({ ...form, gramOptions: next.sort((a, b) => a - b) })
-                          }}
-                        />
-                        {grams} gm
-                      </label>
-                    )
-                  })}
-                </div>
-                {!form.gramOptions.length ? (
-                  <p className="mt-2 m-0 text-[0.72rem]" style={{ color: '#a32020' }}>
-                    Select at least one pack size.
+                {!packConfigValid(form) ? (
+                  <p className="m-0 text-[0.72rem]" style={{ color: '#a32020' }}>
+                    Enable at least one pack type with valid price and quantity options.
                   </p>
                 ) : null}
               </div>
@@ -589,7 +679,7 @@ export default function AdminProducts() {
               </button>
               <button
                 type="button"
-                disabled={saving || !form.gramOptions.length}
+                disabled={saving || !packConfigValid(form)}
                 onClick={() => void save(form)}
                 className="cursor-pointer rounded-xl border-0 px-4 py-2 text-[0.8rem] font-semibold disabled:opacity-60"
                 style={{ backgroundColor: INK, color: CREAM }}

@@ -17,7 +17,7 @@ import {
   isShopPath,
   isWishlistPath,
 } from '../lib/appRoutes'
-import { productsApi } from '../lib/services'
+import { productsApi, categoriesApi } from '../lib/services'
 import { prefetchProductImages, primeProductImages } from '../lib/productImageCache'
 import { getProductImages, type ShopProduct } from '../lib/shopCatalog'
 
@@ -26,9 +26,15 @@ type RefreshOptions = {
   silent?: boolean
 }
 
+export type CatalogCategory = {
+  id: string
+  name: string
+}
+
 type CatalogContextValue = {
   products: ShopProduct[]
   categories: string[]
+  categoryItems: CatalogCategory[]
   loading: boolean
   error: string | null
   refresh: (options?: RefreshOptions) => Promise<void>
@@ -37,6 +43,8 @@ type CatalogContextValue = {
   upsertProduct: (product: ShopProduct) => Promise<ShopProduct>
   removeProduct: (id: string) => Promise<void>
   getProduct: (id: string) => ShopProduct | undefined
+  addCategory: (name: string) => Promise<string>
+  removeCategory: (id: string) => Promise<void>
 }
 
 const CatalogContext = createContext<CatalogContextValue | null>(null)
@@ -116,17 +124,37 @@ function writeCache(items: ShopProduct[], categories: string[]) {
   }
 }
 
+function isPersistedProductId(id: string) {
+  return /^[a-f0-9]{24}$/i.test(id)
+}
+
+function isLocalProductId(id: string) {
+  return id.startsWith('prod-')
+}
+
+function readCacheForPath(pathname = window.location.pathname): { items: ShopProduct[]; categories: string[] } | null {
+  if (isAdminPath(pathname)) return null
+  return readCache()
+}
+
+function syncShopCache(items: ShopProduct[], categories: string[]) {
+  if (typeof window === 'undefined' || isAdminPath(window.location.pathname)) return
+  writeCache(items, categories)
+}
+
 function shouldLoadCatalog(pathname = window.location.pathname) {
   return isCatalogPath(pathname) || hasPersistedCartLines()
 }
 
 export function CatalogProvider({ children }: { children: ReactNode }) {
-  const cached = readCache()
+  const initialPath = typeof window !== 'undefined' ? window.location.pathname : '/'
+  const cached = readCacheForPath(initialPath)
   const [products, setProducts] = useState<ShopProduct[]>(() => cached?.items ?? [])
   const [categories, setCategories] = useState<string[]>(() => cached?.categories ?? [])
+  const [categoryItems, setCategoryItems] = useState<CatalogCategory[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const hasLoadedRef = useRef(Boolean(cached?.items.length))
+  const hasLoadedRef = useRef(false)
   const catalogViewRef = useRef<'summary' | 'admin'>(catalogViewForPath())
   const loadGenRef = useRef(0)
   const loadPromiseRef = useRef<Promise<void> | null>(null)
@@ -146,13 +174,23 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       if (gen !== loadGenRef.current) return
 
       try {
-        const data = await productsApi.list({ limit: 100, view })
+        const [data, dbCategories] = await Promise.all([
+          productsApi.list({ limit: 100, view }),
+          categoriesApi.list().catch(() => [] as CatalogCategory[]),
+        ])
         if (gen !== loadGenRef.current) return
 
+        const categoryNames = [
+          ...new Set([
+            ...dbCategories.map((c) => c.name),
+            ...(data.categories?.length ? data.categories : []),
+          ]),
+        ]
+        setCategoryItems(dbCategories)
         setProducts(data.items)
-        setCategories(data.categories?.length ? data.categories : [])
+        setCategories(categoryNames)
         if (view === 'summary') {
-          writeCache(data.items, data.categories?.length ? data.categories : [])
+          writeCache(data.items, categoryNames)
         }
         catalogViewRef.current = view
         hasLoadedRef.current = true
@@ -183,7 +221,8 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
 
   const ensureLoaded = useCallback(async () => {
     const view = catalogViewForPath()
-    if (hasLoadedRef.current && !error && catalogViewRef.current === view) return
+    const mustRefetch = view === 'admin' || catalogViewRef.current !== view
+    if (hasLoadedRef.current && !error && !mustRefetch) return
     if (loadPromiseRef.current) {
       await loadPromiseRef.current
       return
@@ -258,7 +297,8 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
 
   const upsertProduct = useCallback(async (product: ShopProduct) => {
     await ensureLoaded()
-    const exists = Boolean(product.id) && products.some((p) => p.id === product.id)
+    const exists =
+      isPersistedProductId(product.id) && products.some((p) => p.id === product.id)
     const submittedImages = getProductImages(product)
     const saved = exists
       ? await productsApi.update(product.id, product)
@@ -275,32 +315,70 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       primeProductImages(saved.id, { image: submittedImages[0], images: submittedImages })
     }
     setProducts((prev) => {
-      const i = prev.findIndex((p) => p.id === merged.id)
+      const next = prev.filter((p) => p.id !== product.id)
+      const i = next.findIndex((p) => p.id === merged.id)
       if (i >= 0) {
-        const next = [...prev]
         next[i] = merged
-        return next
+      } else {
+        next.unshift(merged)
       }
-      return [merged, ...prev]
+      syncShopCache(next, categories)
+      return next
     })
     hasLoadedRef.current = true
     return merged
-  }, [ensureLoaded, products])
+  }, [ensureLoaded, products, categories])
 
   const removeProduct = useCallback(async (id: string) => {
-    await productsApi.remove(id)
-    setProducts((prev) => prev.filter((p) => p.id !== id))
-  }, [])
+    if (!isLocalProductId(id)) {
+      try {
+        await productsApi.remove(id)
+      } catch (err) {
+        const gone = err instanceof ApiRequestError && err.status === 404
+        if (!gone) throw err
+      }
+    }
+
+    setProducts((prev) => {
+      const next = prev.filter((p) => p.id !== id)
+      syncShopCache(next, categories)
+      return next
+    })
+    hasLoadedRef.current = true
+    await refresh({ silent: true })
+  }, [categories, refresh])
 
   const getProduct = useCallback(
     (id: string) => products.find((p) => p.id === id),
     [products],
   )
 
+  const addCategory = useCallback(async (name: string) => {
+    const trimmed = name.trim()
+    if (trimmed.length < 2) throw new Error('Category name is required')
+    const created = await categoriesApi.create(trimmed)
+    setCategoryItems((prev) =>
+      prev.some((c) => c.id === created.id) ? prev : [...prev, created],
+    )
+    setCategories((prev) => (prev.includes(created.name) ? prev : [...prev, created.name]))
+    return created.name
+  }, [])
+
+  const removeCategory = useCallback(async (id: string) => {
+    const target = categoryItems.find((c) => c.id === id)
+    await categoriesApi.remove(id)
+    setCategoryItems((prev) => prev.filter((c) => c.id !== id))
+    if (target) {
+      setCategories((prev) => prev.filter((name) => name !== target.name))
+    }
+    await refresh({ silent: true })
+  }, [categoryItems, refresh])
+
   const value = useMemo(
     () => ({
       products,
       categories,
+      categoryItems,
       loading,
       error,
       refresh,
@@ -309,8 +387,10 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       upsertProduct,
       removeProduct,
       getProduct,
+      addCategory,
+      removeCategory,
     }),
-    [products, categories, loading, error, refresh, ensureLoaded, prefetch, upsertProduct, removeProduct, getProduct],
+    [products, categories, categoryItems, loading, error, refresh, ensureLoaded, prefetch, upsertProduct, removeProduct, getProduct, addCategory, removeCategory],
   )
 
   return <CatalogContext.Provider value={value}>{children}</CatalogContext.Provider>

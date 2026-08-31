@@ -16,6 +16,9 @@ import SectionPlaceholder from '../components/shared/SectionPlaceholder'
 import { scrollToSection, type SectionId } from '../lib/sectionNav'
 
 const AboutZoom = lazy(() => import('../components/about/AboutZoom'))
+const CategoriesSliderSection = lazy(() => import('../components/home/CategoriesSliderSection'))
+const WhatTasneemDoSection = lazy(() => import('../components/home/WhatTasneemDoSection'))
+const MukhwasBenefitsSection = lazy(() => import('../components/home/MukhwasBenefitsSection'))
 
 type HomeProps = {
   ready?: boolean
@@ -36,7 +39,7 @@ export default function Home({ ready = true }: HomeProps) {
   }, [ready, lenis])
 
   return (
-    <main className="overflow-x-clip" style={{ backgroundColor: '#F8F3E7' }}>
+    <main className="overflow-x-hidden md:overflow-x-clip" style={{ backgroundColor: '#F8F3E7' }}>
       <Navbar />
       <Hero />
       <TrustBadges />
@@ -50,7 +53,26 @@ export default function Home({ ready = true }: HomeProps) {
         </Suspense>
       </DeferredMount>
 
+      <DeferredMount fallback={<SectionPlaceholder minHeight="50vh" className="bg-[#F8F3E7]" />}>
+        <Suspense fallback={<SectionPlaceholder minHeight="50vh" className="bg-[#F8F3E7]" />}>
+          <CategoriesSliderSection />
+        </Suspense>
+      </DeferredMount>
+
+      <DeferredMount fallback={<SectionPlaceholder minHeight="32vh" className="bg-[#F8F3E7]" />}>
+        <Suspense fallback={<SectionPlaceholder minHeight="32vh" className="bg-[#F8F3E7]" />}>
+          <WhatTasneemDoSection />
+        </Suspense>
+      </DeferredMount>
+
       <QualityPromiseSection />
+
+      <DeferredMount fallback={<SectionPlaceholder minHeight="32vh" className="bg-[#FFFEF2]" />}>
+        <Suspense fallback={<SectionPlaceholder minHeight="32vh" className="bg-[#FFFEF2]" />}>
+          <MukhwasBenefitsSection />
+        </Suspense>
+      </DeferredMount>
+
       <BeOurPartner />
       <SiteFooter />
 

@@ -10,11 +10,15 @@ import {
   getComparePrice,
   getProductImages,
   getProductModalDescription,
+  getProductPackTypes,
   getProductPanelFill,
   getSellPrice,
-  normalizeProductVariants,
+  getVariantsForPackType,
+  type PackType,
   type ShopProduct,
 } from '../../lib/shopCatalog'
+import ProductDetailGallery from './ProductDetailGallery'
+import ProductPackToggle from './ProductPackToggle'
 
 const INK = '#0a2e22'
 const CREAM = '#f2f4f5'
@@ -44,21 +48,32 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
   const [galleryImages, setGalleryImages] = useState<string[]>([])
   const [resolvedProduct, setResolvedProduct] = useState<ShopProduct | null>(null)
   const activeProduct = resolvedProduct ?? product
+  const packTypes = useMemo(
+    () => (activeProduct ? getProductPackTypes(activeProduct) : ['packet' as PackType]),
+    [activeProduct],
+  )
+  const [packType, setPackType] = useState<PackType>('packet')
   const images = useMemo(() => {
     if (galleryImages.length) return galleryImages
     return activeProduct ? getProductImages(activeProduct) : []
   }, [activeProduct, galleryImages])
   const variants = useMemo(
-    () => (activeProduct ? normalizeProductVariants(activeProduct.variants) : []),
-    [activeProduct],
+    () => (activeProduct ? getVariantsForPackType(activeProduct, packType) : []),
+    [activeProduct, packType],
   )
-  const [imageIndex, setImageIndex] = useState(0)
   const { user } = useAuth()
   const { addItem, clearCart, getQty, setQty } = useCart()
   const { isWishlisted, toggle } = useWishlist()
   const [wishBusy, setWishBusy] = useState(false)
-  const [variantId, setVariantId] = useState('100g')
+  const [variantId, setVariantId] = useState('packet-100g')
   const [imagesLoading, setImagesLoading] = useState(false)
+
+  useEffect(() => {
+    if (!activeProduct) return
+    if (!packTypes.includes(packType)) {
+      setPackType(packTypes[0] ?? 'packet')
+    }
+  }, [activeProduct, packTypes, packType])
 
   useEffect(() => {
     if (!product) {
@@ -93,8 +108,8 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
 
     const initial = getProductImages(product)
     setGalleryImages(initial)
-    setImageIndex(0)
-    setVariantId(normalizeProductVariants(product.variants)[0]?.id ?? '100g')
+    setPackType(getProductPackTypes(product)[0] ?? 'packet')
+    setVariantId(getVariantsForPackType(product, getProductPackTypes(product)[0] ?? 'packet')[0]?.id ?? 'packet-100g')
     setImagesLoading(!initial.length && Boolean(product.hasStoredImage || product.image))
 
     let cancelled = false
@@ -132,19 +147,23 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
     }
   }, [product, onClose])
 
+  useEffect(() => {
+    if (!activeProduct) return
+    setVariantId(variants[0]?.id ?? 'packet-100g')
+  }, [activeProduct?.id, packType, variants])
+
   const variantIdResolved = variants.some((v) => v.id === variantId)
     ? variantId
-    : (variants[0]?.id ?? '100g')
+    : (variants[0]?.id ?? 'packet-100g')
   const cartQty = activeProduct ? getQty(activeProduct.id, variantIdResolved) : 0
-  const sellPrice = activeProduct ? getSellPrice(activeProduct) : 0
-  const comparePrice = activeProduct ? getComparePrice(activeProduct) : undefined
+  const sellPrice = activeProduct ? getSellPrice(activeProduct, packType) : 0
+  const comparePrice = activeProduct ? getComparePrice(activeProduct, packType) : undefined
   const displayQty = cartQty > 0 ? cartQty : 1
   const total = sellPrice * displayQty
   const outOfStock = Boolean(activeProduct?.outOfStock)
   const liked = activeProduct ? isWishlisted(activeProduct.id) : false
-  const activeImage = images[Math.min(imageIndex, Math.max(0, images.length - 1))] ?? ''
   const panelFill = activeProduct ? getProductPanelFill(activeProduct) : CREAM
-  const modalDescription = activeProduct ? getProductModalDescription(activeProduct) : ''
+  const modalDescription = activeProduct ? getProductModalDescription(activeProduct, packType) : ''
 
   const requireAuth = () => {
     if (user) return true
@@ -229,58 +248,32 @@ export default function ProductDetailModal({ product, promoLabel, onClose }: Pro
 
             <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto md:grid-cols-[1.05fr_0.95fr] md:overflow-hidden">
               <div
-                className="relative flex flex-col p-5 pb-4 sm:p-6 md:overflow-y-auto"
+                className="relative flex min-h-0 flex-col overflow-hidden p-5 pb-4 sm:p-6"
                 style={{ backgroundColor: panelFill }}
               >
-                <div className="relative aspect-square overflow-hidden rounded-2xl">
-                  {activeImage ? (
-                  <motion.img
-                    key={activeImage}
-                    src={activeImage}
+                <ProductPackToggle
+                  value={packType}
+                  onChange={setPackType}
+                  packetEnabled={activeProduct.packetEnabled !== false}
+                  bottleEnabled={Boolean(activeProduct.bottleEnabled)}
+                />
+                <div className="relative flex min-h-0 flex-1 flex-col">
+                  <ProductDetailGallery
+                    images={images}
                     alt={activeProduct.name}
-                    className="h-full w-full object-contain object-center"
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: outOfStock ? 0.5 : 1, scale: 1 }}
-                    transition={{ duration: 0.28 }}
+                    panelBg={panelFill}
+                    loading={imagesLoading}
+                    dimmed={outOfStock}
                   />
-                  ) : (
-                    <div
-                      className={`h-full w-full rounded-2xl ${imagesLoading ? 'animate-pulse' : ''}`}
-                      style={{ backgroundColor: 'rgba(10,46,34,0.06)' }}
-                      aria-hidden={!imagesLoading}
-                      aria-label={imagesLoading ? 'Loading product image' : undefined}
-                    />
-                  )}
                   {promoLabel && !outOfStock && (
                     <span
-                      className="absolute top-3 left-3 rounded-full px-3 py-1 text-[0.65rem] font-bold tracking-wide uppercase"
+                      className="absolute top-[3.25rem] left-3 rounded-full px-3 py-1 text-[0.65rem] font-bold tracking-wide uppercase sm:top-[3.5rem] sm:left-4"
                       style={{ backgroundColor: GOLD, color: INK }}
                     >
                       {promoLabel}
                     </span>
                   )}
                 </div>
-
-                {images.length > 1 && (
-                  <div className="mt-4 flex gap-2.5 overflow-x-auto pb-1">
-                    {images.map((src, i) => (
-                      <button
-                        key={`${src}-${i}`}
-                        type="button"
-                        onClick={() => setImageIndex(i)}
-                        className="h-16 w-16 shrink-0 cursor-pointer overflow-hidden rounded-xl border-2 p-0 transition"
-                        style={{
-                          borderColor: i === imageIndex ? GOLD : 'rgba(10,46,34,0.12)',
-                          backgroundColor: panelFill,
-                        }}
-                        aria-label={`View image ${i + 1}`}
-                        aria-pressed={i === imageIndex}
-                      >
-                        <img src={src} alt="" className="h-full w-full object-contain object-center" draggable={false} />
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
 
               <div className="flex flex-col p-5 sm:p-6 md:overflow-y-auto">

@@ -8,7 +8,7 @@ import FloatingActions from '../components/shared/FloatingActions'
 import SectionPlaceholder from '../components/shared/SectionPlaceholder'
 import { useCatalog } from '../context/CatalogContext'
 import { couponsApi } from '../lib/services'
-import { CATEGORIES, getSellPrice, type ShopProduct } from '../lib/shopCatalog'
+import { DEFAULT_CATEGORIES, getProductMaxSellPrice, type ShopProduct } from '../lib/shopCatalog'
 import { scrollAppToTop } from '../lib/scrollControl'
 import {
   BRAND_CREAM,
@@ -118,7 +118,8 @@ function SortIcon({ mode }: { mode: SortMode }) {
 }
 
 export default function ShopPage() {
-  const { products, loading, error, refresh } = useCatalog()
+  const { products, loading, error, refresh, categories: catalogCategories } = useCatalog()
+  const categoryOptions = catalogCategories.length ? catalogCategories : [...DEFAULT_CATEGORIES]
   const [query, setQuery] = useState('')
   const [categories, setCategories] = useState<string[]>([])
   const [maxPrice, setMaxPrice] = useState(1000)
@@ -153,7 +154,7 @@ export default function ShopPage() {
   }, [])
 
   const priceCeiling = useMemo(
-    () => Math.max(...products.map((p) => getSellPrice(p)), 1000),
+    () => Math.max(...products.map((p) => getProductMaxSellPrice(p)), 1000),
     [products],
   )
 
@@ -169,7 +170,7 @@ export default function ShopPage() {
         if (!hay.includes(q)) return false
       }
       if (categories.length && !categories.includes(p.category)) return false
-      if (getSellPrice(p) > maxPrice) return false
+      if (getProductMaxSellPrice(p) > maxPrice) return false
       if (p.rating < minRating) return false
       return true
     })
@@ -212,7 +213,7 @@ export default function ShopPage() {
     >
       <FilterBox title="Product categories">
         <ul className="m-0 flex list-none flex-col gap-2 p-0">
-          {CATEGORIES.map((cat) => (
+          {categoryOptions.map((cat) => (
             <li key={cat}>
               <label
                 className="flex cursor-pointer items-center gap-2.5 text-[0.82rem]"

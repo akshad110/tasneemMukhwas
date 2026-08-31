@@ -10,6 +10,8 @@ import {
   isContactPath,
   isHomeSectionScrollPath,
   isKnowMorePath,
+  isWhatTasneemDoPath,
+  isMukhwasBenefitsPath,
   isMyOrdersPath,
   isProfilePath,
   isPublicPath,
@@ -32,6 +34,8 @@ import CartPage from './pages/CartPage'
 import CheckoutPage from './pages/CheckoutPage'
 import Home from './pages/Home'
 import KnowMorePage from './pages/KnowMorePage'
+import WhatTasneemDoPage from './pages/WhatTasneemDoPage'
+import MukhwasBenefitsPage from './pages/MukhwasBenefitsPage'
 import ContactPage from './pages/ContactPage'
 import WholesalePage from './pages/WholesalePage'
 import MyOrdersPage from './pages/MyOrdersPage'
@@ -53,6 +57,8 @@ function AppRoutes({ path }: { path: string }) {
   const myOrders = isMyOrdersPath(path)
   const wishlist = isWishlistPath(path)
   const knowMore = isKnowMorePath(path)
+  const whatTasneemDo = isWhatTasneemDoPath(path)
+  const mukhwasBenefits = isMukhwasBenefitsPath(path)
   const wholesale = isWholesalePath(path)
   const contact = isContactPath(path)
   const privacy = isPrivacyPath(path)
@@ -77,6 +83,8 @@ function AppRoutes({ path }: { path: string }) {
   if (myOrders) return <MyOrdersPage />
   if (wishlist) return <WishlistPage />
   if (knowMore) return <KnowMorePage />
+  if (whatTasneemDo) return <WhatTasneemDoPage />
+  if (mukhwasBenefits) return <MukhwasBenefitsPage />
   if (wholesale) return <WholesalePage />
   if (contact) return <ContactPage />
   if (privacy) return <PrivacyPolicyPage />

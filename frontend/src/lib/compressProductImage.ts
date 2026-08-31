@@ -1,5 +1,7 @@
 const MAX_EDGE = 720
 const JPEG_QUALITY = 0.82
+/** Cream panel — transparent PNG uploads are flattened onto this (never black). */
+const PANEL_BG = '#F8F3E7'
 
 /** Resize and compress uploads so shop cards load faster. */
 export async function compressProductImage(file: File): Promise<string> {
@@ -22,6 +24,8 @@ export async function compressProductImage(file: File): Promise<string> {
       return readFileAsDataUrl(file)
     }
 
+    ctx.fillStyle = PANEL_BG
+    ctx.fillRect(0, 0, width, height)
     ctx.drawImage(bitmap, 0, 0, width, height)
     bitmap.close()
 

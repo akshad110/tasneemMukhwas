@@ -12,7 +12,7 @@ import { useCart, type CartResolvedItem } from '../context/CartContext'
 import { useCatalog } from '../context/CatalogContext'
 import { APP_ROUTES, navigateApp } from '../lib/appRoutes'
 import { scrollAppToTop } from '../lib/scrollControl'
-import { getProductPanelFill, getSellPrice, type ShopProduct } from '../lib/shopCatalog'
+import { getProductPanelFill, getSellPrice, parsePackTypeFromVariantId, type ShopProduct } from '../lib/shopCatalog'
 
 const INK = '#0a2e22'
 const CREAM = '#f2f4f5'
@@ -79,7 +79,7 @@ function CartLineRow({ item }: { item: CartResolvedItem }) {
               className="mt-3 m-0 text-[1.15rem] font-bold"
               style={{ color: GOLD, fontFamily: 'Inter, sans-serif' }}
             >
-              ₹{getSellPrice(item.product)}
+              ₹{getSellPrice(item.product, parsePackTypeFromVariantId(item.variantId))}
             </p>
           </div>
 

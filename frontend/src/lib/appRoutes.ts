@@ -13,6 +13,8 @@ export const APP_ROUTES = {
   /** Alias requested for the same page */
   myOrderPage: '/myorderpage',
   knowMore: '/know-more',
+  whatTasneemDo: '/what-tasneem-do',
+  mukhwasBenefits: '/benefits-of-mukhwas',
   wishlist: '/wishlist',
   wholesale: '/wholesale',
   dealership: '/dealership',
@@ -86,6 +88,8 @@ export function isPublicPath(pathname: string) {
     isHomeScrollPath(pathname) ||
     isShopPath(pathname) ||
     isKnowMorePath(pathname) ||
+    isWhatTasneemDoPath(pathname) ||
+    isMukhwasBenefitsPath(pathname) ||
     isWholesalePath(pathname) ||
     isContactPath(pathname) ||
     isLegalPolicyPath(pathname)
@@ -122,6 +126,14 @@ export function isMyOrdersPath(pathname: string) {
 
 export function isKnowMorePath(pathname: string) {
   return pathname === APP_ROUTES.knowMore
+}
+
+export function isWhatTasneemDoPath(pathname: string) {
+  return pathname === APP_ROUTES.whatTasneemDo
+}
+
+export function isMukhwasBenefitsPath(pathname: string) {
+  return pathname === APP_ROUTES.mukhwasBenefits
 }
 
 export function isWishlistPath(pathname: string) {
@@ -185,6 +197,8 @@ export function isAppPagePath(pathname: string) {
     isContactPath(pathname) ||
     isLegalPolicyPath(pathname) ||
     isKnowMorePath(pathname) ||
+    isWhatTasneemDoPath(pathname) ||
+    isMukhwasBenefitsPath(pathname) ||
     isAdminPath(pathname)
   )
 }
@@ -211,6 +225,8 @@ export function navigateApp(path: string) {
     isMyOrdersPath(pathname) ||
     isWishlistPath(pathname) ||
     isKnowMorePath(pathname) ||
+    isWhatTasneemDoPath(pathname) ||
+    isMukhwasBenefitsPath(pathname) ||
     isWholesalePath(pathname) ||
     isContactPath(pathname) ||
     isLegalPolicyPath(pathname) ||

@@ -150,6 +150,15 @@ export const productsApi = {
   remove: (id: string) => apiRequest<{ id: string }>(`/products/${id}`, { method: 'DELETE' }),
 }
 
+export const categoriesApi = {
+  list: () =>
+    apiRequest<{ id: string; name: string; sortOrder?: number }[]>('/categories', { auth: false }),
+  create: (name: string) =>
+    apiRequest<{ id: string; name: string }>('/categories', { method: 'POST', body: { name } }),
+  remove: (id: string) =>
+    apiRequest<{ id: string; name: string }>(`/categories/${id}`, { method: 'DELETE' }),
+}
+
 export type RazorpayCheckoutPayload = {
   keyId: string
   orderId: string

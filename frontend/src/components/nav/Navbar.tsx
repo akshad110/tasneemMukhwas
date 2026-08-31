@@ -1,6 +1,6 @@
 import { useLenis } from 'lenis/react'
 import { ChevronDown } from 'lucide-react'
-import { useEffect, useState, type MouseEvent, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type MouseEvent, type ReactNode } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
 import { useCatalog } from '../../context/CatalogContext'
@@ -20,7 +20,7 @@ import {
   isContactPath,
   navigateApp,
 } from '../../lib/appRoutes'
-import { CATEGORIES } from '../../lib/shopCatalog'
+import { DEFAULT_CATEGORIES } from '../../lib/shopCatalog'
 import MobileBottomNav from './MobileBottomNav'
 import {
   pathForSection,
@@ -54,13 +54,8 @@ const ABOUT_DROPDOWN_ITEMS: NavDropdownItem[] = [
   { label: 'Why Choose Us' },
 ]
 
-const SHOP_DROPDOWN_ITEMS: NavDropdownItem[] = CATEGORIES.map((category) => ({
-  label: category,
-}))
-
 const NAV_DROPDOWN_BY_ID: Partial<Record<SectionId, NavDropdownItem[]>> = {
   about: ABOUT_DROPDOWN_ITEMS,
-  products: SHOP_DROPDOWN_ITEMS,
 }
 
 const INK = '#0a2e22'
@@ -203,12 +198,14 @@ function NavLinks({
   stacked,
   onNavigate,
   onPrefetchShop,
+  shopDropdownItems = [],
 }: {
   links: readonly NavLinkItem[]
   activeId: SectionId | null
   stacked?: boolean
   onNavigate?: (id: SectionId) => void
   onPrefetchShop?: () => void
+  shopDropdownItems?: NavDropdownItem[]
 }) {
   const dropdownMenuClass = (align: 'left' | 'right') =>
     stacked
@@ -240,7 +237,8 @@ function NavLinks({
     >
       {links.map((link) => {
         const isActive = activeId === link.id
-        const dropdownItems = NAV_DROPDOWN_BY_ID[link.id] ?? []
+        const dropdownItems =
+          link.id === 'products' ? shopDropdownItems : (NAV_DROPDOWN_BY_ID[link.id] ?? [])
         const hasDropdown = dropdownItems.length > 0
         const href =
           link.id === 'about'
@@ -504,7 +502,11 @@ export default function Navbar() {
     })
   })
   const { user, loading: authLoading } = useAuth()
-  const { prefetch: prefetchCatalog } = useCatalog()
+  const { prefetch: prefetchCatalog, categories } = useCatalog()
+  const shopDropdownItems = useMemo(
+    () => (categories.length ? categories : [...DEFAULT_CATEGORIES]).map((label) => ({ label })),
+    [categories],
+  )
   const { count: wishlistCount } = useWishlist()
   const { itemCount } = useCart()
   const cartBadgeCount = user ? itemCount : 0
@@ -642,10 +644,14 @@ export default function Navbar() {
         <button
           type="button"
           onClick={openAuth}
-          className="inline-flex h-9 cursor-pointer items-center rounded-full px-3.5 text-[0.72rem] font-semibold tracking-wide transition-transform duration-300 hover:scale-[1.02] xl:px-4 xl:text-[0.78rem]"
+          className={
+            mobile
+              ? 'inline-flex h-8 max-w-[5.5rem] cursor-pointer items-center justify-center rounded-full px-2.5 text-[0.62rem] font-semibold tracking-wide'
+              : 'inline-flex h-9 cursor-pointer items-center rounded-full px-3.5 text-[0.72rem] font-semibold tracking-wide transition-transform duration-300 hover:scale-[1.02] xl:px-4 xl:text-[0.78rem]'
+          }
           style={{ backgroundColor: INK, color: '#f2f4f5', fontFamily: 'Inter, sans-serif' }}
         >
-          Login / Signup
+          {mobile ? 'Login' : 'Login / Signup'}
         </button>
       )}
     </>
@@ -703,23 +709,24 @@ export default function Navbar() {
               activeId={activeId}
               onNavigate={goTo}
               onPrefetchShop={prefetchCatalog}
+              shopDropdownItems={shopDropdownItems}
             />
             <div className="ml-auto flex items-center gap-1 sm:gap-1.5">{rightActions()}</div>
           </div>
         </nav>
 
         {/* Mobile */}
-        <nav className="flex w-full items-center gap-2 px-3 py-2 sm:px-4 lg:hidden" aria-label="Primary mobile">
+        <nav className="flex w-full items-center gap-1.5 px-2.5 py-2 sm:gap-2 sm:px-4 lg:hidden" aria-label="Primary mobile">
           <a
             href="/"
             onClick={goHome}
             className="relative z-10 flex shrink-0 cursor-pointer items-center no-underline"
             aria-label="Tasneem Mukhwas home"
           >
-            <BrandLogo className="h-12 w-11 object-contain object-center" />
+            <BrandLogo className="h-10 w-9 object-contain object-center sm:h-12 sm:w-11" />
           </a>
 
-          <div className="ml-auto flex items-center gap-0.5">
+          <div className="ml-auto flex min-w-0 items-center gap-0.5">
             {rightActions(true)}
             <button
               type="button"
@@ -751,6 +758,7 @@ export default function Navbar() {
               stacked
               onNavigate={goTo}
               onPrefetchShop={prefetchCatalog}
+              shopDropdownItems={shopDropdownItems}
             />
             {!authLoading && user ? (
               <div className="mt-4 border-t border-[rgba(10,46,34,0.08)] pt-4">

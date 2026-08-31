@@ -33,6 +33,15 @@ const productSchema = new mongoose.Schema(
     rating: { type: Number, default: 5, min: 0, max: 5 },
     reviews: { type: Number, default: 0, min: 0 },
     variants: { type: [variantSchema], default: [] },
+    packetEnabled: { type: Boolean, default: true },
+    bottleEnabled: { type: Boolean, default: false },
+    packetGrams: { type: [Number], default: [100] },
+    bottleGrams: { type: [Number], default: [100] },
+    bottlePrice: { type: Number, min: 0 },
+    bottleShowDiscountedPrice: { type: Boolean, default: false },
+    bottleDiscountedPrice: { type: Number, min: 0 },
+    bottleShortDescription: { type: String, default: '', maxlength: 200 },
+    bottleDescription: { type: String, default: '', maxlength: 2000 },
     sales: { type: Number, default: 0, min: 0 },
     isActive: { type: Boolean, default: true },
   },
@@ -41,6 +50,68 @@ const productSchema = new mongoose.Schema(
 
 productSchema.index({ name: 'text', category: 'text', brand: 'text' })
 productSchema.index({ category: 1, outOfStock: 1, isActive: 1 })
+
+function buildVariantsFromPackFields(raw) {
+  const fill = raw.fill || '#0a2e22'
+  const images = (raw.images?.length ? raw.images : raw.image ? [raw.image] : []).slice(0, 4)
+  const image = images[0] || raw.image || ''
+  const variants = []
+
+  const packetGrams = Array.isArray(raw.packetGrams) && raw.packetGrams.length ? raw.packetGrams : null
+  const bottleGrams = Array.isArray(raw.bottleGrams) && raw.bottleGrams.length ? raw.bottleGrams : null
+  const packetEnabled = raw.packetEnabled !== false
+  const bottleEnabled = Boolean(raw.bottleEnabled)
+
+  if (packetEnabled && packetGrams) {
+    for (const g of [...new Set(packetGrams)].sort((a, b) => a - b)) {
+      variants.push({ id: `packet-${g}g`, label: `${g} gm`, color: fill, image })
+    }
+  }
+  if (bottleEnabled && bottleGrams) {
+    for (const g of [...new Set(bottleGrams)].sort((a, b) => a - b)) {
+      variants.push({ id: `bottle-${g}g`, label: `${g} gm`, color: fill, image })
+    }
+  }
+
+  if (variants.length) return variants
+
+  if (raw.variants?.length > 0) {
+    return raw.variants.map((v) => ({
+      id: v.id,
+      label: v.label,
+      color: v.color || fill,
+      image: v.image || image,
+    }))
+  }
+
+  return [{ id: 'packet-100g', label: '100 gm', color: fill, image }]
+}
+
+function bottleFieldsForList(raw) {
+  return {
+    bottlePrice: raw.bottlePrice,
+    bottleShowDiscountedPrice: Boolean(raw.bottleShowDiscountedPrice),
+    bottleDiscountedPrice: raw.bottleDiscountedPrice,
+    bottleShortDescription: raw.bottleShortDescription || '',
+    bottleDescription: raw.bottleDescription || '',
+  }
+}
+
+function packFieldsForList(raw) {
+  return {
+    packetEnabled: raw.packetEnabled !== false,
+    bottleEnabled: Boolean(raw.bottleEnabled),
+    packetGrams:
+      Array.isArray(raw.packetGrams) && raw.packetGrams.length
+        ? [...new Set(raw.packetGrams)].sort((a, b) => a - b)
+        : [100],
+    bottleGrams:
+      Array.isArray(raw.bottleGrams) && raw.bottleGrams.length
+        ? [...new Set(raw.bottleGrams)].sort((a, b) => a - b)
+        : [100],
+    ...bottleFieldsForList(raw),
+  }
+}
 
 productSchema.methods.toPublicJSON = function toPublicJSON() {
   const images = (this.images?.length ? this.images : this.image ? [this.image] : []).slice(0, 4)
@@ -64,17 +135,8 @@ productSchema.methods.toPublicJSON = function toPublicJSON() {
     stock: this.stock,
     rating: this.rating,
     reviews: this.reviews,
-    variants:
-      this.variants?.length > 0
-        ? this.variants
-        : [
-            {
-              id: '100g',
-              label: '100 gm',
-              color: this.fill || '#0a2e22',
-              image: images[0] || this.image || '',
-            },
-          ],
+    ...packFieldsForList(this),
+    variants: buildVariantsFromPackFields(this),
     sales: this.sales,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
@@ -92,22 +154,12 @@ export function serializeProductList(doc) {
   const raw = doc?.toObject ? doc.toObject() : doc
   const images = (raw.images?.length ? raw.images : raw.image ? [raw.image] : []).slice(0, 4)
   const primaryImage = publicImageRef(images[0] || raw.image || '')
-  const variants =
-    raw.variants?.length > 0
-      ? raw.variants.map((v) => ({
-          id: v.id,
-          label: v.label,
-          color: v.color || raw.fill || '#0a2e22',
-          image: '',
-        }))
-      : [
-          {
-            id: '100g',
-            label: '100 gm',
-            color: raw.fill || '#0a2e22',
-            image: '',
-          },
-        ]
+  const variants = buildVariantsFromPackFields(raw).map((v) => ({
+    id: v.id,
+    label: v.label,
+    color: v.color || raw.fill || '#0a2e22',
+    image: '',
+  }))
 
   return {
     id: raw._id?.toString?.() ?? String(raw.id),
@@ -126,6 +178,7 @@ export function serializeProductList(doc) {
     outOfStock: raw.outOfStock || raw.stock <= 0,
     rating: raw.rating,
     reviews: raw.reviews,
+    ...packFieldsForList(raw),
     variants,
   }
 }

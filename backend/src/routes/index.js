@@ -11,6 +11,7 @@ import dashboardRoutes from './dashboardRoutes.js'
 import couponRoutes from './couponRoutes.js'
 import campaignRoutes from './campaignRoutes.js'
 import notificationRoutes from './notificationRoutes.js'
+import categoryRoutes from './categoryRoutes.js'
 
 const router = Router()
 
@@ -20,6 +21,7 @@ router.get('/health', (_req, res) => {
 
 router.use('/auth', authRoutes)
 router.use('/products', productRoutes)
+router.use('/categories', categoryRoutes)
 router.use('/orders', orderRoutes)
 router.use('/payments', paymentRoutes)
 router.use('/reviews', reviewRoutes)

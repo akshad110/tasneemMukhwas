@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { getSellPrice, type ShopProduct, type ShopVariant } from '../lib/shopCatalog'
+import { getSellPrice, parsePackTypeFromVariantId, type ShopProduct, type ShopVariant } from '../lib/shopCatalog'
 import { useCatalog } from './CatalogContext'
 
 const STORAGE_KEY = 'tm-cart-v1'
@@ -123,7 +123,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         variantId: variant.id,
         product,
         variant,
-        lineTotal: getSellPrice(product) * line.qty,
+        lineTotal: getSellPrice(product, parsePackTypeFromVariantId(variant.id)) * line.qty,
       })
     }
     return resolved

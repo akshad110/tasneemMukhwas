@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useCatalog } from '../../context/CatalogContext'
 import { ApiRequestError } from '../../lib/api'
-import { CATEGORIES } from '../../lib/shopCatalog'
+import { DEFAULT_CATEGORIES } from '../../lib/shopCatalog'
 import {
   campaignsApi,
   couponsApi,
@@ -22,7 +22,7 @@ const EMPTY_COUPON = {
   description: '',
   scope: 'global' as CouponRecord['scope'],
   productId: '',
-  category: CATEGORIES[0] || 'Classic Mukhwas',
+  category: DEFAULT_CATEGORIES[0] || 'Our Salted Mukhwas',
   discountType: 'percent' as CouponRecord['discountType'],
   value: 10,
   expiresAt: '',
@@ -45,7 +45,8 @@ function discountLabel(c: CouponRecord) {
 }
 
 export default function AdminDiscounts() {
-  const { products, ensureLoaded } = useCatalog()
+  const { products, categories, ensureLoaded } = useCatalog()
+  const categoryOptions = categories.length ? categories : [...DEFAULT_CATEGORIES]
   const [tab, setTab] = useState<Tab>('coupons')
   const [coupons, setCoupons] = useState<CouponRecord[]>([])
   const [campaigns, setCampaigns] = useState<CampaignRecord[]>([])
@@ -118,7 +119,7 @@ export default function AdminDiscounts() {
       description: c.description || '',
       scope: c.scope,
       productId: c.productId || '',
-      category: c.category || CATEGORIES[0] || '',
+      category: c.category || categoryOptions[0] || '',
       discountType: c.discountType,
       value: c.value,
       expiresAt: c.expiresAt ? c.expiresAt.slice(0, 10) : '',
@@ -557,7 +558,7 @@ export default function AdminDiscounts() {
                   value={form.category}
                   onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
                 >
-                  {CATEGORIES.map((cat) => (
+                  {categoryOptions.map((cat) => (
                     <option key={cat} value={cat}>
                       {cat}
                     </option>

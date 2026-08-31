@@ -1,6 +1,8 @@
 import { z } from 'zod'
 import { descriptionsForProduct } from '../lib/productDescriptions.js'
+import { ensureDefaultCategories } from '../models/Category.js'
 import { Product, serializeProductAdminList, serializeProductList } from '../models/Product.js'
+import { Category } from '../models/Category.js'
 import { ApiError, asyncHandler, sendSuccess } from '../utils/asyncHandler.js'
 
 export const productCreateSchema = z.object({
@@ -33,6 +35,15 @@ export const productCreateSchema = z.object({
     )
     .optional()
     .default([]),
+  packetEnabled: z.boolean().optional().default(true),
+  bottleEnabled: z.boolean().optional().default(false),
+  packetGrams: z.array(z.number().int().min(10)).optional().default([100]),
+  bottleGrams: z.array(z.number().int().min(10)).optional().default([100]),
+  bottlePrice: z.number().min(0).optional(),
+  bottleShowDiscountedPrice: z.boolean().optional().default(false),
+  bottleDiscountedPrice: z.number().min(0).optional(),
+  bottleShortDescription: z.string().trim().max(200).optional().default(''),
+  bottleDescription: z.string().trim().max(2000).optional().default(''),
   isActive: z.boolean().optional().default(true),
 })
 
@@ -92,18 +103,20 @@ export const listProducts = asyncHandler(async (req, res) => {
     view === 'full' ? 'full' : view === 'summary' ? 'summary' : isAdmin ? 'admin' : 'summary'
 
   const summarySelect =
-    'name shortDescription description category brand price showDiscountedPrice discountedPrice compareAt outOfStock stock rating reviews variants fill hasImage'
+    'name shortDescription description category brand price showDiscountedPrice discountedPrice compareAt outOfStock stock rating reviews variants fill hasImage packetEnabled bottleEnabled packetGrams bottleGrams bottlePrice bottleShowDiscountedPrice bottleDiscountedPrice bottleShortDescription bottleDescription'
   const adminSelect = `${summarySelect} showPanelBg lightText isActive sales createdAt updatedAt`
 
   const listQuery = Product.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limitNum)
   if (viewMode === 'admin') listQuery.select(adminSelect)
   else if (viewMode === 'summary') listQuery.select(summarySelect)
 
-  const [items, total, categories] = await Promise.all([
+  await ensureDefaultCategories(Product)
+  const [items, total, dbCategories] = await Promise.all([
     listQuery.lean(),
     Product.countDocuments(filter),
-    Product.distinct('category', { isActive: true }),
+    Category.find({ isActive: true }).sort({ sortOrder: 1, name: 1 }).select('name').lean(),
   ])
+  const categories = dbCategories.map((c) => c.name)
 
   const serialize =
     viewMode === 'full'
@@ -193,11 +206,9 @@ export const createProduct = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Discounted price is required when show discounted price is enabled')
   }
   if (body.outOfStock) body.stock = 0
-  if (!body.variants?.length && body.image) {
-    body.variants = [
-      { id: '100g', label: '100 gm', color: body.fill || '#0a2e22', image: body.image },
-    ]
-  }
+  if (!body.packetGrams?.length) body.packetGrams = [100]
+  if (!body.bottleGrams?.length) body.bottleGrams = [100]
+  if (!body.bottleEnabled) body.bottleEnabled = false
 
   const product = await Product.create(body)
   return sendSuccess(res, {
