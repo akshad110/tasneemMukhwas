@@ -604,6 +604,25 @@ export default function Navbar() {
   }, [])
 
   useEffect(() => {
+    const header = document.getElementById('site-header')
+    if (!header) return
+
+    const syncHeaderHeight = () => {
+      document.documentElement.style.setProperty('--site-header-height', `${header.offsetHeight}px`)
+    }
+
+    syncHeaderHeight()
+    const observer = new ResizeObserver(syncHeaderHeight)
+    observer.observe(header)
+    window.addEventListener('resize', syncHeaderHeight)
+
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', syncHeaderHeight)
+    }
+  }, [menuOpen, scrolled])
+
+  useEffect(() => {
     const applyTabBarSpacing = () => {
       const mobile = window.matchMedia('(max-width: 767px)').matches
       const show = mobile && shouldShowMobileBottomNav(window.location.pathname)
@@ -662,6 +681,7 @@ export default function Navbar() {
   return (
     <>
       <header
+        id="site-header"
         className="sticky top-0 z-50 w-full overflow-visible border-b border-[rgba(10,46,34,0.08)] bg-white"
         style={{
           paddingTop: 'env(safe-area-inset-top, 0px)',

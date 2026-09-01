@@ -96,7 +96,7 @@ function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps
   const translateX = offset * slideGap
   const translateZ = -abs * Math.min(160, slideGap * 0.55)
   const scale = isActive ? 1 : Math.max(0.78, 1 - abs * 0.1)
-  const opacity = abs > 2 ? 0 : 1 - abs * 0.22
+  const opacity = abs > 2 ? 0 : 1
   const pointerEvents = abs > 1 ? 'none' : 'auto'
 
   return (

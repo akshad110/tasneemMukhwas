@@ -158,26 +158,20 @@ export default function ProductDetailView({ product, promoLabel }: ProductDetail
   }
 
   return (
-    <article
-      className="overflow-hidden rounded-[1.75rem] border shadow-[0_24px_60px_-32px_rgba(10,46,34,0.35)]"
-      style={{ borderColor: BORDER, backgroundColor: CREAM }}
-      aria-labelledby="product-detail-title"
-    >
-      <div className="grid grid-cols-1 md:grid-cols-[1.05fr_0.95fr]">
-        <div
-          className="relative flex min-h-[280px] flex-col overflow-hidden p-5 pb-4 sm:min-h-[360px] sm:p-6 lg:min-h-[420px]"
-          style={{ backgroundColor: panelFill }}
-        >
+    <article className="product-detail" aria-labelledby="product-detail-title">
+      <div className="product-detail__split">
+        <div className="product-detail__gallery relative">
           <ProductDetailGallery
             images={images}
             alt={activeProduct.name}
             panelBg={panelFill}
             loading={imagesLoading}
             dimmed={outOfStock}
+            layout="page"
           />
           {promoLabel && !outOfStock && (
             <span
-              className="absolute top-5 left-5 rounded-full px-3 py-1 text-[0.65rem] font-bold tracking-wide uppercase sm:top-6 sm:left-6"
+              className="absolute top-2 left-2 z-10 rounded-full px-3 py-1 text-[0.65rem] font-bold tracking-wide uppercase sm:top-3 sm:left-3"
               style={{ backgroundColor: GOLD, color: INK }}
             >
               {promoLabel}
@@ -185,7 +179,7 @@ export default function ProductDetailView({ product, promoLabel }: ProductDetail
           )}
         </div>
 
-        <div className="flex flex-col p-5 sm:p-6 lg:p-8">
+        <div className="product-detail__info">
           <div className="flex flex-wrap items-center gap-2">
             <span
               className="inline-flex w-fit rounded-full px-3 py-1 text-[0.62rem] font-semibold tracking-[0.14em] uppercase"
@@ -217,16 +211,18 @@ export default function ProductDetailView({ product, promoLabel }: ProductDetail
             {activeProduct.name}
           </h1>
 
-          <div className="mt-2 flex flex-wrap items-center gap-3">
-            <Stars rating={activeProduct.rating} />
-            <span className="text-[0.82rem]" style={{ color: MUTED }}>
-              ({activeProduct.reviews} reviews)
-            </span>
+          <div className="mt-3 flex flex-col gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <Stars rating={activeProduct.rating} />
+              <span className="text-[0.82rem]" style={{ color: MUTED }}>
+                ({activeProduct.reviews} reviews)
+              </span>
+            </div>
             <button
               type="button"
               onClick={() => void toggleWishlist()}
               disabled={wishBusy}
-              className="ml-auto flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-[0.72rem] font-semibold transition hover:bg-white/60 disabled:opacity-60"
+              className="flex w-fit cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.72rem] font-semibold transition hover:bg-white/60 disabled:opacity-60"
               style={{ borderColor: BORDER, color: INK }}
             >
               <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8">
@@ -236,7 +232,7 @@ export default function ProductDetailView({ product, promoLabel }: ProductDetail
             </button>
           </div>
 
-          <div className="mt-4 flex items-baseline gap-2.5">
+          <div className="mt-5 flex items-baseline gap-2.5">
             <span className="text-[1.65rem] font-bold" style={{ color: INK }}>
               ₹{sellPrice.toFixed(2)}
             </span>
@@ -289,23 +285,23 @@ export default function ProductDetailView({ product, promoLabel }: ProductDetail
           ) : null}
 
           <div
-            className="mt-6 flex items-center justify-between rounded-xl border px-4 py-3"
+            className="product-detail__total mt-5 flex max-w-[20rem] items-center justify-between rounded-lg border px-3 py-2"
             style={{ borderColor: BORDER, backgroundColor: 'rgba(255,255,255,0.65)' }}
           >
-            <span className="text-[0.72rem] font-semibold tracking-[0.14em] uppercase" style={{ color: MUTED }}>
+            <span className="text-[0.65rem] font-semibold tracking-[0.12em] uppercase" style={{ color: MUTED }}>
               Total
             </span>
-            <span className="text-[1.25rem] font-bold" style={{ color: INK }}>
+            <span className="text-[1.05rem] font-bold" style={{ color: INK }}>
               ₹{total}
             </span>
           </div>
 
-          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="product-detail__actions mt-4 flex max-w-[20rem] flex-col gap-2">
             {outOfStock ? (
               <button
                 type="button"
                 disabled
-                className="col-span-full cursor-not-allowed rounded-xl border-0 py-3.5 text-[0.78rem] font-bold tracking-[0.1em] uppercase opacity-70 sm:col-span-2"
+                className="col-span-full cursor-not-allowed rounded-lg border-0 py-2.5 text-[0.7rem] font-bold tracking-[0.08em] uppercase opacity-70"
                 style={{ backgroundColor: 'rgba(10,46,34,0.12)', color: INK }}
               >
                 Out of stock
@@ -314,20 +310,20 @@ export default function ProductDetailView({ product, promoLabel }: ProductDetail
               <>
                 {cartQty > 0 ? (
                   <div
-                    className="flex items-center justify-between rounded-xl border px-3 py-2"
+                    className="flex items-center justify-between rounded-lg border px-2.5 py-1.5"
                     style={{ borderColor: INK, backgroundColor: 'rgba(255,255,255,0.88)' }}
                   >
                     <button
                       type="button"
                       onClick={() => changeQty(-1)}
-                      className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border-0 text-[1.15rem] leading-none transition hover:bg-[rgba(10,46,34,0.06)]"
+                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border-0 text-[1rem] leading-none transition hover:bg-[rgba(10,46,34,0.06)]"
                       style={{ color: INK }}
                       aria-label="Decrease quantity"
                     >
                       −
                     </button>
                     <span
-                      className="min-w-[2rem] text-center text-[1.05rem] font-bold tabular-nums"
+                      className="min-w-[1.75rem] text-center text-[0.95rem] font-bold tabular-nums"
                       style={{ color: INK }}
                       aria-live="polite"
                     >
@@ -336,7 +332,7 @@ export default function ProductDetailView({ product, promoLabel }: ProductDetail
                     <button
                       type="button"
                       onClick={() => changeQty(1)}
-                      className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border-0 text-[1.15rem] leading-none transition hover:bg-[rgba(10,46,34,0.06)]"
+                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border-0 text-[1rem] leading-none transition hover:bg-[rgba(10,46,34,0.06)]"
                       style={{ color: INK }}
                       aria-label="Increase quantity"
                     >
@@ -347,10 +343,10 @@ export default function ProductDetailView({ product, promoLabel }: ProductDetail
                   <button
                     type="button"
                     onClick={handleAddToCart}
-                    className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border py-3.5 text-[0.78rem] font-bold tracking-[0.1em] uppercase transition hover:bg-white"
+                    className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg border py-2.5 text-[0.7rem] font-bold tracking-[0.08em] uppercase transition hover:bg-white"
                     style={{ borderColor: INK, color: INK, backgroundColor: 'transparent' }}
                   >
-                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8">
                       <path d="M6 6h15l-1.5 9h-12z" />
                       <path d="M6 6 5 3H2" />
                     </svg>
@@ -360,7 +356,7 @@ export default function ProductDetailView({ product, promoLabel }: ProductDetail
                 <button
                   type="button"
                   onClick={handlePayNow}
-                  className="cursor-pointer rounded-xl border-0 py-3.5 text-[0.78rem] font-bold tracking-[0.1em] uppercase transition hover:brightness-110"
+                  className="w-full cursor-pointer rounded-lg border-0 py-2.5 text-[0.7rem] font-bold tracking-[0.08em] uppercase transition hover:brightness-110"
                   style={{ backgroundColor: INK, color: CREAM }}
                 >
                   Pay Now

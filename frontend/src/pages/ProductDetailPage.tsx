@@ -1,17 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import Navbar from '../components/nav/Navbar'
 import ProductDetailView from '../components/shop/ProductDetailView'
-import BackToHomeButton from '../components/shared/BackToHomeButton'
 import FloatingActions from '../components/shared/FloatingActions'
 import SiteFooter from '../components/shared/SiteFooter'
 import { useCatalog } from '../context/CatalogContext'
 import { APP_ROUTES, navigateApp } from '../lib/appRoutes'
-import { BRAND_CREAM, BRAND_INK, BRAND_MUTED, BRAND_SANS } from '../lib/brand'
+import { BRAND_CREAM_LIGHT, BRAND_INK, BRAND_MUTED, BRAND_SANS } from '../lib/brand'
 import { productsApi, couponsApi } from '../lib/services'
 import { scrollAppToTop } from '../lib/scrollControl'
 import type { ShopProduct } from '../lib/shopCatalog'
 
-const PAGE = BRAND_CREAM
+const PAGE = BRAND_CREAM_LIGHT
 const INK = BRAND_INK
 const MUTED = BRAND_MUTED
 const BORDER = 'rgba(184,134,11,0.18)'
@@ -90,42 +89,39 @@ export default function ProductDetailPage({ productId }: ProductDetailPageProps)
   const busy = (catalogLoading && !product) || fetching
 
   return (
-    <div className="relative min-h-svh w-full page-shell" style={{ backgroundColor: PAGE }}>
+    <div className="product-detail-page relative min-h-svh w-full page-shell" style={{ backgroundColor: PAGE }}>
       <Navbar />
 
-      <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8" aria-label="Product details">
-        <BackToHomeButton
-          to={APP_ROUTES.shop}
-          eyebrow="Return"
-          label="Back to shop"
-          className="mb-5 sm:mb-6"
-        />
-
+      <main className="w-full" aria-label="Product details">
         {busy && !product ? (
-          <div
-            className="rounded-[1.75rem] border px-6 py-20 text-center animate-pulse"
-            style={{ borderColor: BORDER, backgroundColor: 'rgba(255,254,242,0.92)' }}
-          >
-            <p className="m-0 text-[0.9rem]" style={{ color: MUTED, fontFamily: BRAND_SANS }}>
-              Loading product…
-            </p>
+          <div className="mx-auto max-w-lg px-4 py-16 sm:px-6">
+            <div
+              className="rounded-[1.75rem] border px-6 py-20 text-center animate-pulse"
+              style={{ borderColor: BORDER, backgroundColor: 'rgba(255,254,242,0.92)' }}
+            >
+              <p className="m-0 text-[0.9rem]" style={{ color: MUTED, fontFamily: BRAND_SANS }}>
+                Loading product…
+              </p>
+            </div>
           </div>
         ) : notFound || !product ? (
-          <div
-            className="rounded-[1.75rem] border px-6 py-16 text-center"
-            style={{ borderColor: BORDER, backgroundColor: 'rgba(255,254,242,0.92)' }}
-          >
-            <p className="m-0 text-[1rem]" style={{ color: INK, fontFamily: BRAND_SANS }}>
-              Product not found.
-            </p>
-            <button
-              type="button"
-              onClick={() => navigateApp(APP_ROUTES.shop)}
-              className="mt-5 cursor-pointer rounded-xl border-0 px-5 py-2.5 text-[0.85rem] font-semibold"
-              style={{ backgroundColor: INK, color: PAGE, fontFamily: BRAND_SANS }}
+          <div className="mx-auto max-w-lg px-4 py-16 sm:px-6">
+            <div
+              className="rounded-[1.75rem] border px-6 py-16 text-center"
+              style={{ borderColor: BORDER, backgroundColor: 'rgba(255,254,242,0.92)' }}
             >
-              Browse shop
-            </button>
+              <p className="m-0 text-[1rem]" style={{ color: INK, fontFamily: BRAND_SANS }}>
+                Product not found.
+              </p>
+              <button
+                type="button"
+                onClick={() => navigateApp(APP_ROUTES.shop)}
+                className="mt-5 cursor-pointer rounded-xl border-0 px-5 py-2.5 text-[0.85rem] font-semibold"
+                style={{ backgroundColor: INK, color: PAGE, fontFamily: BRAND_SANS }}
+              >
+                Browse shop
+              </button>
+            </div>
           </div>
         ) : (
           <ProductDetailView product={product} promoLabel={promoLabel} />

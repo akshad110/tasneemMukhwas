@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode, lazy, Suspense } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode, lazy, Suspense } from 'react'
 import Navbar from '../components/nav/Navbar'
 import ShopProductCard from '../components/shop/ShopProductCard'
 import { ProductCardSkeletonGrid } from '../components/shop/ProductCardSkeleton'
@@ -29,7 +29,7 @@ const MUTED = BRAND_MUTED
 const PANEL = 'rgba(255,254,242,0.94)'
 const BORDER = 'rgba(184,134,11,0.18)'
 const TEXTURE = '/image.png_2K_202608092240.jpeg'
-const SHOP_BANNER = encodeURI('/Mukhwas_ingredients_arranged_on_…_202608182142.jpeg')
+const SHOP_BANNER = '/Storefront_showcasing_mukhwas_packs_2K_202609020005.jpeg'
 
 function ShopBanner() {
   return (
@@ -37,33 +37,24 @@ function ShopBanner() {
       <div className="relative h-[11.5rem] w-full sm:h-[14rem] lg:h-[16rem]">
         <img
           src={SHOP_BANNER}
-          alt="Fresh mukhwas ingredients and blends"
-          className="absolute inset-0 h-full w-full object-cover object-center opacity-[0.88]"
+          alt="Tasneem Mukhwas storefront with mukhwas packs on display"
+          className="absolute inset-0 h-full w-full object-cover object-center"
           loading="eager"
           fetchPriority="high"
-        />
-        <img
-          src={TEXTURE}
-          alt=""
-          aria-hidden
-          className="absolute inset-0 h-full w-full object-cover opacity-15 mix-blend-multiply"
         />
         <div
           aria-hidden
           className="absolute inset-0"
           style={{
-            background: `
-              linear-gradient(180deg, rgba(10,46,34,0.52) 0%, rgba(10,46,34,0.18) 42%, rgba(10,46,34,0.55) 100%),
-              linear-gradient(90deg, rgba(10,46,34,0.38) 0%, transparent 18%, transparent 82%, rgba(10,46,34,0.38) 100%),
-              radial-gradient(ellipse 62% 78% at 50% 44%, rgba(10,46,34,0.22) 0%, transparent 68%)
-            `,
+            background:
+              'linear-gradient(180deg, rgba(10,46,34,0.28) 0%, rgba(10,46,34,0.08) 45%, rgba(10,46,34,0.32) 100%)',
           }}
         />
         <div className="absolute inset-0 flex items-center justify-center px-5 text-center sm:px-8 lg:px-10">
           <div>
             <p
               className="m-0 text-[0.68rem] font-semibold tracking-[0.22em] uppercase"
-              style={{ color: 'rgba(255,254,242,0.62)', fontFamily: BRAND_SANS }}
+              style={{ color: 'rgba(255,254,242,0.82)', fontFamily: BRAND_SANS }}
             >
               Tasneem Mukhwas
             </p>
@@ -82,11 +73,19 @@ function ShopBanner() {
 
 type SortMode = 'default' | 'name-asc' | 'name-desc'
 
-type ShopFilter =
-  | { type: 'category'; value: string }
-  | { type: 'packFormat'; value: PackType }
-  | { type: 'rating'; value: number }
-  | { type: 'price'; value: number }
+type ShopFilters = {
+  packFormat: PackType | null
+  category: string | null
+  rating: number | null
+  priceMax: number | null
+}
+
+const EMPTY_FILTERS: ShopFilters = {
+  packFormat: null,
+  category: null,
+  rating: null,
+  priceMax: null,
+}
 
 function FilterBox({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -127,12 +126,32 @@ export default function ShopPage() {
   const { products, loading, error, refresh, categories: catalogCategories } = useCatalog()
   const categoryOptions = catalogCategories.length ? catalogCategories : [...DEFAULT_CATEGORIES]
   const [query, setQuery] = useState('')
-  const [activeFilter, setActiveFilter] = useState<ShopFilter | null>(null)
+  const [filters, setFilters] = useState<ShopFilters>(EMPTY_FILTERS)
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [sort, setSort] = useState<SortMode>('default')
   const [promos, setPromos] = useState<
     { scope: string; productId?: string; category?: string; label: string }[]
   >([])
+  const toolbarRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const toolbar = toolbarRef.current
+    if (!toolbar) return
+
+    const syncToolbarHeight = () => {
+      document.documentElement.style.setProperty('--shop-toolbar-height', `${toolbar.offsetHeight}px`)
+    }
+
+    syncToolbarHeight()
+    const observer = new ResizeObserver(syncToolbarHeight)
+    observer.observe(toolbar)
+    window.addEventListener('resize', syncToolbarHeight)
+
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', syncToolbarHeight)
+    }
+  }, [])
 
   useEffect(() => {
     couponsApi
@@ -168,14 +187,13 @@ export default function ShopPage() {
         const hay = `${p.name} ${p.category} ${p.brand} ${p.description}`.toLowerCase()
         if (!hay.includes(q)) return false
       }
-      if (!activeFilter) return true
-      if (activeFilter.type === 'category' && p.category !== activeFilter.value) return false
-      if (activeFilter.type === 'packFormat' && getProductPackFormat(p) !== activeFilter.value) return false
-      if (activeFilter.type === 'rating' && p.rating < activeFilter.value) return false
-      if (activeFilter.type === 'price' && getSellPrice(p) > activeFilter.value) return false
+      if (filters.packFormat && getProductPackFormat(p) !== filters.packFormat) return false
+      if (filters.category && p.category !== filters.category) return false
+      if (filters.rating != null && p.rating < filters.rating) return false
+      if (filters.priceMax != null && getSellPrice(p) > filters.priceMax) return false
       return true
     })
-  }, [products, query, activeFilter])
+  }, [products, query, filters])
 
   const sorted = useMemo(() => {
     const list = [...filtered]
@@ -184,14 +202,22 @@ export default function ShopPage() {
     return list
   }, [filtered, sort])
 
-  const selectFilter = (next: ShopFilter) => {
-    setActiveFilter((prev) =>
-      prev?.type === next.type && prev.value === next.value ? null : next,
-    )
+  const toggleFilter = <K extends keyof ShopFilters>(key: K, value: NonNullable<ShopFilters[K]>) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: prev[key] === value ? null : value,
+    }))
+  }
+
+  const setPriceMax = (value: number) => {
+    setFilters((prev) => ({
+      ...prev,
+      priceMax: value >= priceCeiling ? null : value,
+    }))
   }
 
   const clearFilters = () => {
-    setActiveFilter(null)
+    setFilters(EMPTY_FILTERS)
     setQuery('')
     setSort('default')
   }
@@ -205,7 +231,7 @@ export default function ShopPage() {
 
   const sidebar = (
     <aside
-      className="shop-sidebar flex w-full flex-col lg:sticky lg:top-[calc(env(safe-area-inset-top,0px)+4rem)] lg:z-30 lg:w-[248px] lg:shrink-0 lg:self-start lg:max-h-[calc(100svh-env(safe-area-inset-top,0px)-4rem)] lg:overflow-y-auto lg:backdrop-blur-md"
+      className="shop-sidebar flex w-full flex-col lg:w-[248px] lg:shrink-0"
       style={{
         backgroundColor: PANEL,
         borderRight: `1px solid ${BORDER}`,
@@ -216,8 +242,7 @@ export default function ShopPage() {
         <ul className="m-0 flex list-none flex-col gap-2 p-0">
           {(['packet', 'bottle'] as const).map((format) => {
             const count = products.filter((p) => getProductPackFormat(p) === format).length
-            const selected =
-              activeFilter?.type === 'packFormat' && activeFilter.value === format
+            const selected = filters.packFormat === format
             return (
               <li key={format}>
                 <label
@@ -228,7 +253,7 @@ export default function ShopPage() {
                     type="radio"
                     name="shop-pack-format"
                     checked={selected}
-                    onChange={() => selectFilter({ type: 'packFormat', value: format })}
+                    onChange={() => toggleFilter('packFormat', format)}
                     className="h-3.5 w-3.5 cursor-pointer accent-[#b8860b]"
                   />
                   <span style={{ color: MUTED }}>
@@ -244,7 +269,7 @@ export default function ShopPage() {
       <FilterBox title="Product categories">
         <ul className="m-0 flex list-none flex-col gap-2 p-0">
           {categoryOptions.map((cat) => {
-            const selected = activeFilter?.type === 'category' && activeFilter.value === cat
+            const selected = filters.category === cat
             return (
             <li key={cat}>
               <label
@@ -255,7 +280,7 @@ export default function ShopPage() {
                   type="radio"
                   name="shop-category"
                   checked={selected}
-                  onChange={() => selectFilter({ type: 'category', value: cat })}
+                  onChange={() => toggleFilter('category', cat)}
                   className="h-3.5 w-3.5 cursor-pointer accent-[#b8860b]"
                 />
                 <span style={{ color: MUTED }}>{cat}</span>
@@ -272,13 +297,13 @@ export default function ShopPage() {
           min={50}
           max={priceCeiling}
           step={10}
-          value={activeFilter?.type === 'price' ? activeFilter.value : priceCeiling}
-          onChange={(e) => selectFilter({ type: 'price', value: Number(e.target.value) })}
+          value={filters.priceMax ?? priceCeiling}
+          onChange={(e) => setPriceMax(Number(e.target.value))}
           className="w-full cursor-pointer accent-[#b8860b]"
           aria-label="Maximum price"
         />
         <p className="mt-2 m-0 text-[0.8rem]" style={{ color: MUTED, fontFamily: BRAND_SANS }}>
-          ₹0 – ₹{activeFilter?.type === 'price' ? activeFilter.value : priceCeiling}
+          ₹0 – ₹{filters.priceMax ?? priceCeiling}
         </p>
       </FilterBox>
 
@@ -286,12 +311,12 @@ export default function ShopPage() {
         <ul className="m-0 flex list-none flex-col gap-2 p-0">
           {[5, 4, 3].map((r) => {
             const count = products.filter((p) => p.rating >= r).length
-            const selected = activeFilter?.type === 'rating' && activeFilter.value === r
+            const selected = filters.rating === r
             return (
               <li key={r}>
                 <button
                   type="button"
-                  onClick={() => selectFilter({ type: 'rating', value: r })}
+                  onClick={() => toggleFilter('rating', r)}
                   className="flex w-full cursor-pointer items-center gap-2 border-0 bg-transparent px-0 text-left text-[0.8rem]"
                   style={{
                     color: INK,
@@ -363,12 +388,12 @@ export default function ShopPage() {
       <div className="relative z-10 flex min-h-svh flex-col">
         <Navbar />
 
-        <main className="flex min-w-0 w-full max-w-full flex-1 flex-col overflow-x-clip pt-0 pb-0" aria-label="Shop">
+        <main className="flex min-w-0 w-full max-w-full flex-1 flex-col pt-0 pb-0" aria-label="Shop">
           <ShopBanner />
 
-          <div className="flex min-w-0 w-full max-w-full items-start overflow-x-clip">
+          <div className="shop-layout flex min-w-0 w-full max-w-full items-stretch">
             <div
-              className={`${filtersOpen ? 'fixed inset-0 z-50 lg:static lg:inset-auto lg:z-auto' : 'hidden lg:block'} lg:self-stretch`}
+              className={`shop-layout__sidebar ${filtersOpen ? 'fixed inset-0 z-50 lg:static lg:inset-auto lg:z-auto' : 'hidden lg:block'}`}
             >
               {filtersOpen && (
                 <button
@@ -406,9 +431,10 @@ export default function ShopPage() {
               </div>
             </div>
 
-            <div className="min-w-0 flex-1">
+            <div className="shop-main min-w-0 flex-1 flex flex-col">
               <div
-                className="shop-toolbar sticky z-40 border-b px-3 py-2.5 sm:px-5 sm:py-3"
+                ref={toolbarRef}
+                className="shop-toolbar shrink-0 border-b px-3 py-2.5 sm:px-5 sm:py-3"
                 style={{
                   borderColor: BORDER,
                 }}
@@ -490,7 +516,7 @@ export default function ShopPage() {
                 </div>
               </div>
 
-              <section className="px-2 py-4 sm:px-5 sm:py-6 lg:px-8">
+              <section className="shop-products-pane px-2 py-4 sm:px-5 sm:py-6 lg:px-8">
               {loading && products.length === 0 ? (
                 <ProductCardSkeletonGrid count={8} className="grid grid-cols-1 gap-2.5 min-[480px]:grid-cols-2 min-[480px]:gap-3 md:grid-cols-3 xl:grid-cols-4 items-stretch" />
               ) : error ? (
