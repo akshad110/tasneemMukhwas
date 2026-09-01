@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode, lazy, Suspense } from 'react'
 import Navbar from '../components/nav/Navbar'
-import ProductDetailModal from '../components/shop/ProductDetailModal'
 import ShopProductCard from '../components/shop/ShopProductCard'
 import { ProductCardSkeletonGrid } from '../components/shop/ProductCardSkeleton'
 import SiteFooter from '../components/shared/SiteFooter'
@@ -8,7 +7,8 @@ import FloatingActions from '../components/shared/FloatingActions'
 import SectionPlaceholder from '../components/shared/SectionPlaceholder'
 import { useCatalog } from '../context/CatalogContext'
 import { couponsApi } from '../lib/services'
-import { DEFAULT_CATEGORIES, getProductMaxSellPrice, type ShopProduct } from '../lib/shopCatalog'
+import { navigateApp, shopProductPath } from '../lib/appRoutes'
+import { DEFAULT_CATEGORIES, getProductMaxSellPrice, getProductPackFormat, getSellPrice, PACK_FORMAT_FILTER_LABELS, type PackType } from '../lib/shopCatalog'
 import { scrollAppToTop } from '../lib/scrollControl'
 import {
   BRAND_CREAM,
@@ -82,6 +82,12 @@ function ShopBanner() {
 
 type SortMode = 'default' | 'name-asc' | 'name-desc'
 
+type ShopFilter =
+  | { type: 'category'; value: string }
+  | { type: 'packFormat'; value: PackType }
+  | { type: 'rating'; value: number }
+  | { type: 'price'; value: number }
+
 function FilterBox({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div
@@ -121,12 +127,9 @@ export default function ShopPage() {
   const { products, loading, error, refresh, categories: catalogCategories } = useCatalog()
   const categoryOptions = catalogCategories.length ? catalogCategories : [...DEFAULT_CATEGORIES]
   const [query, setQuery] = useState('')
-  const [categories, setCategories] = useState<string[]>([])
-  const [maxPrice, setMaxPrice] = useState(1000)
-  const [minRating, setMinRating] = useState(0)
+  const [activeFilter, setActiveFilter] = useState<ShopFilter | null>(null)
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [sort, setSort] = useState<SortMode>('default')
-  const [detailProduct, setDetailProduct] = useState<ShopProduct | null>(null)
   const [promos, setPromos] = useState<
     { scope: string; productId?: string; category?: string; label: string }[]
   >([])
@@ -158,10 +161,6 @@ export default function ShopPage() {
     [products],
   )
 
-  useEffect(() => {
-    setMaxPrice((prev) => Math.min(prev, priceCeiling) || priceCeiling)
-  }, [priceCeiling])
-
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     return products.filter((p) => {
@@ -169,12 +168,14 @@ export default function ShopPage() {
         const hay = `${p.name} ${p.category} ${p.brand} ${p.description}`.toLowerCase()
         if (!hay.includes(q)) return false
       }
-      if (categories.length && !categories.includes(p.category)) return false
-      if (getProductMaxSellPrice(p) > maxPrice) return false
-      if (p.rating < minRating) return false
+      if (!activeFilter) return true
+      if (activeFilter.type === 'category' && p.category !== activeFilter.value) return false
+      if (activeFilter.type === 'packFormat' && getProductPackFormat(p) !== activeFilter.value) return false
+      if (activeFilter.type === 'rating' && p.rating < activeFilter.value) return false
+      if (activeFilter.type === 'price' && getSellPrice(p) > activeFilter.value) return false
       return true
     })
-  }, [products, query, categories, maxPrice, minRating])
+  }, [products, query, activeFilter])
 
   const sorted = useMemo(() => {
     const list = [...filtered]
@@ -183,14 +184,14 @@ export default function ShopPage() {
     return list
   }, [filtered, sort])
 
-  const toggle = (list: string[], value: string, set: (v: string[]) => void) => {
-    set(list.includes(value) ? list.filter((x) => x !== value) : [...list, value])
+  const selectFilter = (next: ShopFilter) => {
+    setActiveFilter((prev) =>
+      prev?.type === next.type && prev.value === next.value ? null : next,
+    )
   }
 
   const clearFilters = () => {
-    setCategories([])
-    setMaxPrice(priceCeiling)
-    setMinRating(0)
+    setActiveFilter(null)
     setQuery('')
     setSort('default')
   }
@@ -211,24 +212,57 @@ export default function ShopPage() {
         boxShadow: '8px 0 28px -24px rgba(10,46,34,0.35)',
       }}
     >
+      <FilterBox title="Pack type">
+        <ul className="m-0 flex list-none flex-col gap-2 p-0">
+          {(['packet', 'bottle'] as const).map((format) => {
+            const count = products.filter((p) => getProductPackFormat(p) === format).length
+            const selected =
+              activeFilter?.type === 'packFormat' && activeFilter.value === format
+            return (
+              <li key={format}>
+                <label
+                  className="flex cursor-pointer items-center gap-2.5 text-[0.82rem]"
+                  style={{ color: INK, fontFamily: BRAND_SANS, opacity: selected ? 1 : 0.82 }}
+                >
+                  <input
+                    type="radio"
+                    name="shop-pack-format"
+                    checked={selected}
+                    onChange={() => selectFilter({ type: 'packFormat', value: format })}
+                    className="h-3.5 w-3.5 cursor-pointer accent-[#b8860b]"
+                  />
+                  <span style={{ color: MUTED }}>
+                    {PACK_FORMAT_FILTER_LABELS[format]} ({count})
+                  </span>
+                </label>
+              </li>
+            )
+          })}
+        </ul>
+      </FilterBox>
+
       <FilterBox title="Product categories">
         <ul className="m-0 flex list-none flex-col gap-2 p-0">
-          {categoryOptions.map((cat) => (
+          {categoryOptions.map((cat) => {
+            const selected = activeFilter?.type === 'category' && activeFilter.value === cat
+            return (
             <li key={cat}>
               <label
                 className="flex cursor-pointer items-center gap-2.5 text-[0.82rem]"
-                style={{ color: INK, fontFamily: BRAND_SANS }}
+                style={{ color: INK, fontFamily: BRAND_SANS, opacity: selected ? 1 : 0.82 }}
               >
                 <input
-                  type="checkbox"
-                  checked={categories.includes(cat)}
-                  onChange={() => toggle(categories, cat, setCategories)}
+                  type="radio"
+                  name="shop-category"
+                  checked={selected}
+                  onChange={() => selectFilter({ type: 'category', value: cat })}
                   className="h-3.5 w-3.5 cursor-pointer accent-[#b8860b]"
                 />
                 <span style={{ color: MUTED }}>{cat}</span>
               </label>
             </li>
-          ))}
+            )
+          })}
         </ul>
       </FilterBox>
 
@@ -238,13 +272,13 @@ export default function ShopPage() {
           min={50}
           max={priceCeiling}
           step={10}
-          value={maxPrice}
-          onChange={(e) => setMaxPrice(Number(e.target.value))}
+          value={activeFilter?.type === 'price' ? activeFilter.value : priceCeiling}
+          onChange={(e) => selectFilter({ type: 'price', value: Number(e.target.value) })}
           className="w-full cursor-pointer accent-[#b8860b]"
           aria-label="Maximum price"
         />
         <p className="mt-2 m-0 text-[0.8rem]" style={{ color: MUTED, fontFamily: BRAND_SANS }}>
-          ₹0 – ₹{maxPrice}
+          ₹0 – ₹{activeFilter?.type === 'price' ? activeFilter.value : priceCeiling}
         </p>
       </FilterBox>
 
@@ -252,18 +286,27 @@ export default function ShopPage() {
         <ul className="m-0 flex list-none flex-col gap-2 p-0">
           {[5, 4, 3].map((r) => {
             const count = products.filter((p) => p.rating >= r).length
+            const selected = activeFilter?.type === 'rating' && activeFilter.value === r
             return (
               <li key={r}>
                 <button
                   type="button"
-                  onClick={() => setMinRating((prev) => (prev === r ? 0 : r))}
+                  onClick={() => selectFilter({ type: 'rating', value: r })}
                   className="flex w-full cursor-pointer items-center gap-2 border-0 bg-transparent px-0 text-left text-[0.8rem]"
                   style={{
                     color: INK,
                     fontFamily: BRAND_SANS,
-                    opacity: minRating === r ? 1 : 0.72,
+                    opacity: selected ? 1 : 0.72,
                   }}
                 >
+                  <input
+                    type="radio"
+                    name="shop-rating"
+                    readOnly
+                    checked={selected}
+                    className="h-3.5 w-3.5 pointer-events-none accent-[#b8860b]"
+                    aria-hidden
+                  />
                   <span style={{ color: GOLD }}>{'★'.repeat(r)}</span>
                   <span style={{ color: 'rgba(10,46,34,0.22)' }}>{'★'.repeat(5 - r)}</span>
                   <span style={{ color: MUTED }}>({count})</span>
@@ -495,7 +538,7 @@ export default function ShopPage() {
                       product={product}
                       revealIndex={index}
                       promoLabel={promoForProduct(product.id, product.category)}
-                      onOpenDetail={() => setDetailProduct(product)}
+                      onOpenDetail={() => navigateApp(shopProductPath(product.id))}
                     />
                   ))}
                 </div>
@@ -515,14 +558,6 @@ export default function ShopPage() {
         <SiteFooter />
         <FloatingActions />
       </div>
-
-      <ProductDetailModal
-        product={detailProduct}
-        promoLabel={
-          detailProduct ? promoForProduct(detailProduct.id, detailProduct.category) : undefined
-        }
-        onClose={() => setDetailProduct(null)}
-      />
     </div>
   )
 }

@@ -6,7 +6,7 @@ import {
   BRAND_SANS,
 } from '../../lib/brand'
 
-const PROMISE_IMAGE = encodeURI('/Mukhwas_pack_on_marble_countertop_202608312343.jpeg')
+const PROMISE_IMAGE = encodeURI('/Fennel_seeds_in_ceramic_dish_202609010053.jpeg')
 
 type QualityBadge = {
   id: string
@@ -140,7 +140,7 @@ export default function QualityPromiseSection() {
             <div className="quality-promise__visual-frame">
               <img
                 src={PROMISE_IMAGE}
-                alt="Tasneem mukhwas pack on a marble countertop with a bowl of seeds"
+                alt="Fennel seeds and sugar-coated mukhwas in a ceramic dish on a wooden table"
                 loading="lazy"
                 decoding="async"
                 draggable={false}

@@ -8,22 +8,22 @@ import {
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 import BrandLogo from './BrandLogo'
 import {
-  BRAND_CREAM,
-  BRAND_CREAM_DEEP,
+  BRAND_CREAM_DARK,
   BRAND_CREAM_LIGHT,
-  BRAND_GOLD,
-  BRAND_INK,
-  BRAND_MUTED,
+  BRAND_FOOTER_HEADING,
+  BRAND_FOOTER_TEXT,
+  BRAND_FOOTER_TEXT_SOFT,
   BRAND_SANS,
 } from '../../lib/brand'
 
-const INK = BRAND_INK
-const CREAM = BRAND_CREAM
-const CREAM_LIGHT = BRAND_CREAM_LIGHT
-const CREAM_DEEP = BRAND_CREAM_DEEP
-const GOLD = BRAND_GOLD
-const MUTED = BRAND_MUTED
-const LINE = 'rgba(10,46,34,0.12)'
+const FOOTER_BG = BRAND_CREAM_DARK
+const FOOTER_TEXT = BRAND_FOOTER_TEXT
+const FOOTER_TEXT_SOFT = BRAND_FOOTER_TEXT_SOFT
+const FOOTER_HEADING = BRAND_FOOTER_HEADING
+const FOOTER_ICON_BG = BRAND_CREAM_LIGHT
+const FOOTER_ICON_COLOR = FOOTER_HEADING
+const FOOTER_ICON_BORDER = 'rgba(61,52,40,0.28)'
+const LINE = 'rgba(61,52,40,0.22)'
 
 const ease = [0.22, 1, 0.36, 1] as const
 
@@ -60,14 +60,14 @@ function TickerSegment({ ariaHidden = false }: { ariaHidden?: boolean }) {
       {TICKER_ITEMS.map((item, i) => (
         <span key={`${item}-${i}`} className="flex items-center gap-10">
           <span
-            className="text-[1rem] tracking-[0.04em] opacity-70 sm:text-[1.15rem]"
-            style={{ color: INK, fontFamily: 'Anton, Impact, sans-serif' }}
+            className="text-[1rem] tracking-[0.04em] sm:text-[1.15rem]"
+            style={{ color: FOOTER_HEADING, fontFamily: 'Anton, Impact, sans-serif' }}
           >
             {item}
           </span>
           <span
-            className="inline-block h-1.5 w-1.5 rotate-45 opacity-50"
-            style={{ backgroundColor: GOLD }}
+            className="inline-block h-1.5 w-1.5 rotate-45"
+            style={{ backgroundColor: FOOTER_HEADING }}
           />
         </span>
       ))}
@@ -96,58 +96,11 @@ const SOCIALS = [
   },
 ] as const
 
-function WireMesh() {
-  const rows = 42
-  const paths = Array.from({ length: rows }, (_, i) => {
-    const y = 2 + i * (96 / (rows - 1))
-    const amp = 2.4 + (i % 7) * 0.45
-    const p1 = (i * 11) % 17
-    const p2 = (i * 7) % 13
-    return [
-      `M -8 ${y}`,
-      `Q ${8 + p1} ${y - amp} ${22} ${y + amp * 0.35}`,
-      `T ${38} ${y - amp * 0.55}`,
-      `T ${54} ${y + amp * 0.4}`,
-      `T ${70} ${y - amp * 0.3}`,
-      `T ${86 + p2 * 0.2} ${y + amp * 0.25}`,
-      `T ${108} ${y}`,
-    ].join(' ')
-  })
-
-  return (
-    <div className="footer-wire pointer-events-none absolute inset-0 z-[1] overflow-hidden" aria-hidden>
-      <svg
-        className="footer-wire-svg absolute inset-0 h-[115%] w-[115%] -translate-x-[7%] -translate-y-[6%]"
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
-      >
-        {paths.map((d, i) => (
-          <path
-            key={i}
-            d={d}
-            fill="none"
-            stroke={i % 3 === 0 ? 'rgba(184,134,11,0.14)' : 'rgba(10,46,34,0.07)'}
-            strokeWidth={0.16}
-            vectorEffect="non-scaling-stroke"
-          />
-        ))}
-      </svg>
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            'radial-gradient(ellipse 70% 55% at 30% 35%, rgba(184,134,11,0.06) 0%, transparent 55%), linear-gradient(180deg, rgba(255,254,242,0.35) 0%, transparent 42%, rgba(230,216,195,0.45) 100%)',
-        }}
-      />
-    </div>
-  )
-}
-
 function SectionTitle({ children }: { children: string }) {
   return (
     <h3
       className="m-0 text-[0.72rem] font-bold tracking-[0.14em] uppercase"
-      style={{ color: INK, fontFamily: BRAND_SANS }}
+      style={{ color: FOOTER_HEADING, fontFamily: BRAND_SANS }}
     >
       {children}
     </h3>
@@ -168,8 +121,8 @@ function FooterLinkList({
           <a
             href={link.href}
             onClick={(e) => onNav(e, link.href)}
-            className="footer-link cursor-pointer text-[0.88rem] transition-colors duration-300 hover:text-[#0a2e22]"
-            style={{ color: MUTED, fontFamily: BRAND_SANS }}
+            className="footer-link cursor-pointer text-[0.88rem] transition-colors duration-300 hover:text-[#b8860b]"
+            style={{ color: FOOTER_TEXT, fontFamily: BRAND_SANS }}
             {...(link.external || link.href.startsWith('http')
               ? { target: '_blank', rel: 'noopener noreferrer' }
               : {})}
@@ -192,13 +145,13 @@ function ContactLine({
   href?: string
 }) {
   const className =
-    'mt-3 flex items-center gap-2.5 text-[0.84rem] no-underline transition-colors duration-300 hover:text-[#0a2e22]'
-  const style = { color: MUTED, fontFamily: BRAND_SANS }
+    'mt-3 flex items-center gap-2.5 text-[0.84rem] no-underline transition-colors duration-300 hover:text-[#b8860b]'
+  const style = { color: FOOTER_TEXT, fontFamily: BRAND_SANS }
 
   const iconWrap = (
     <span
-      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border"
-      style={{ color: GOLD, backgroundColor: CREAM_LIGHT, borderColor: LINE }}
+      className="footer-contact-icon inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border"
+      style={{ color: FOOTER_ICON_COLOR, backgroundColor: FOOTER_ICON_BG, borderColor: FOOTER_ICON_BORDER }}
     >
       {icon}
     </span>
@@ -230,13 +183,11 @@ export default function SiteFooter() {
 
   return (
     <footer
-      className="relative w-full overflow-hidden border-t"
-      style={{ backgroundColor: CREAM, borderColor: LINE }}
+      className="site-footer w-full border-t"
+      style={{ backgroundColor: FOOTER_BG, borderColor: LINE }}
       aria-label="Site footer"
     >
-      <WireMesh />
-
-      <div className="relative z-10 mx-auto w-full max-w-[1320px] px-5 py-12 sm:px-8 sm:py-14 lg:px-10 lg:py-16">
+      <div className="mx-auto w-full max-w-[1320px] px-5 py-12 sm:px-8 sm:py-14 lg:px-10 lg:py-16">
         <motion.div
           className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between lg:gap-12 xl:gap-16"
           initial={{ opacity: 0, y: 24 }}
@@ -272,11 +223,11 @@ export default function SiteFooter() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={social.label}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border no-underline transition hover:border-[rgba(184,134,11,0.55)]"
+                    className="footer-social-icon inline-flex h-10 w-10 items-center justify-center rounded-full border no-underline transition"
                     style={{
-                      color: INK,
-                      backgroundColor: CREAM_LIGHT,
-                      borderColor: LINE,
+                      color: FOOTER_ICON_COLOR,
+                      backgroundColor: FOOTER_ICON_BG,
+                      borderColor: FOOTER_ICON_BORDER,
                     }}
                   >
                     {social.icon}
@@ -318,7 +269,7 @@ export default function SiteFooter() {
         >
           <p
             className="m-0 text-[0.72rem] tracking-wide"
-            style={{ color: MUTED, fontFamily: BRAND_SANS }}
+            style={{ color: FOOTER_TEXT_SOFT, fontFamily: BRAND_SANS }}
           >
             © {new Date().getFullYear()} Tasneem Mukhwas. All rights reserved.
           </p>
@@ -326,8 +277,8 @@ export default function SiteFooter() {
       </div>
 
       <div
-        className="relative z-10 overflow-x-clip overflow-y-hidden border-t"
-        style={{ backgroundColor: CREAM_DEEP, borderColor: LINE }}
+        className="overflow-x-clip overflow-y-hidden border-t"
+        style={{ backgroundColor: FOOTER_BG, borderColor: LINE }}
       >
         <div className="footer-ticker flex w-max">
           <TickerSegment />
@@ -337,41 +288,14 @@ export default function SiteFooter() {
 
       <style>{`
         .footer-ticker {
-          will-change: transform;
-          backface-visibility: hidden;
-          -webkit-backface-visibility: hidden;
-          transform: translate3d(0, 0, 0);
           animation: footer-ticker-x ${TICKER_DURATION_S}s linear infinite;
         }
         @keyframes footer-ticker-x {
           from { transform: translate3d(0, 0, 0); }
           to { transform: translate3d(-50%, 0, 0); }
         }
-        .footer-wire-svg {
-          opacity: 0.75;
-          animation: footer-wire-drift 18s ease-in-out infinite alternate;
-        }
-        .footer-wire-svg path {
-          stroke-dasharray: 4 6;
-          animation: footer-wire-dash 22s linear infinite;
-        }
-        .footer-wire-svg path:nth-child(odd) {
-          animation-duration: 28s;
-          animation-direction: reverse;
-          stroke: rgba(184,134,11,0.12);
-        }
-        @keyframes footer-wire-drift {
-          from { transform: translate3d(-1.5%, 0, 0) scaleY(1.02); }
-          to { transform: translate3d(1.5%, 0, 0) scaleY(0.98); }
-        }
-        @keyframes footer-wire-dash {
-          from { stroke-dashoffset: 0; }
-          to { stroke-dashoffset: -120; }
-        }
         @media (prefers-reduced-motion: reduce) {
-          .footer-ticker,
-          .footer-wire-svg,
-          .footer-wire-svg path { animation: none; }
+          .footer-ticker { animation: none; }
         }
       `}</style>
     </footer>

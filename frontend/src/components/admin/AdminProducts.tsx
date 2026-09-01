@@ -13,8 +13,10 @@ import {
   DEFAULT_GRAM,
   PRODUCT_CARD_PANEL_BG,
   PRODUCT_MAX_GALLERY_IMAGES,
-  buildAllPackVariants,
+  PACK_FORMAT_BADGE_LABELS,
+  buildPackVariants,
   parseGramOptionsFromVariants,
+  type PackType,
   type ShopProduct,
 } from '../../lib/shopCatalog'
 
@@ -33,6 +35,7 @@ type Editable = {
   id: string
   name: string
   category: string
+  packFormat: PackType
   price: number
   showDiscountedPrice: boolean
   discountedPrice: number
@@ -43,15 +46,7 @@ type Editable = {
   brand: string
   rating: number
   reviews: number
-  packetEnabled: boolean
-  bottleEnabled: boolean
-  packetGrams: number[]
-  bottleGrams: number[]
-  bottlePrice: number
-  bottleShowDiscountedPrice: boolean
-  bottleDiscountedPrice: number
-  bottleShortDescription: string
-  bottleDescription: string
+  grams: number[]
 }
 
 function padImageSlots(images: string[]): ProductImageSlots {
@@ -60,33 +55,44 @@ function padImageSlots(images: string[]): ProductImageSlots {
 
 function toEditable(p: ShopProduct): Editable {
   const imgs = padImageSlots(p.images?.length ? p.images : [p.image])
+  const packFormat = p.packFormat === 'bottle' ? 'bottle' : 'packet'
+  const grams =
+    packFormat === 'bottle'
+      ? p.bottleGrams?.length
+        ? [...p.bottleGrams]
+        : parseGramOptionsFromVariants(p.variants, 'bottle')
+      : p.packetGrams?.length
+        ? [...p.packetGrams]
+        : parseGramOptionsFromVariants(p.variants, 'packet')
+
   return {
     id: p.id,
     name: p.name,
     category: p.category,
-    price: p.price,
-    showDiscountedPrice: Boolean(p.showDiscountedPrice),
-    discountedPrice: p.discountedPrice ?? p.compareAt ?? Math.round(p.price * 0.85),
+    packFormat,
+    price: packFormat === 'bottle' ? (p.bottlePrice ?? p.price) : p.price,
+    showDiscountedPrice:
+      packFormat === 'bottle'
+        ? Boolean(p.bottleShowDiscountedPrice)
+        : Boolean(p.showDiscountedPrice),
+    discountedPrice:
+      packFormat === 'bottle'
+        ? (p.bottleDiscountedPrice ?? Math.round((p.bottlePrice ?? p.price) * 0.85))
+        : (p.discountedPrice ?? p.compareAt ?? Math.round(p.price * 0.85)),
     outOfStock: Boolean(p.outOfStock),
     images: imgs,
-    shortDescription: p.shortDescription ?? '',
-    description: p.description,
+    shortDescription:
+      packFormat === 'bottle'
+        ? (p.bottleShortDescription ?? p.shortDescription ?? '')
+        : (p.shortDescription ?? ''),
+    description:
+      packFormat === 'bottle'
+        ? (p.bottleDescription ?? p.description ?? '')
+        : (p.description ?? ''),
     brand: p.brand,
     rating: p.rating,
     reviews: p.reviews,
-    packetEnabled: p.packetEnabled !== false,
-    bottleEnabled: Boolean(p.bottleEnabled),
-    packetGrams: p.packetGrams?.length
-      ? [...p.packetGrams]
-      : parseGramOptionsFromVariants(p.variants, 'packet'),
-    bottleGrams: p.bottleGrams?.length
-      ? [...p.bottleGrams]
-      : parseGramOptionsFromVariants(p.variants, 'bottle'),
-    bottlePrice: p.bottlePrice ?? p.price,
-    bottleShowDiscountedPrice: Boolean(p.bottleShowDiscountedPrice),
-    bottleDiscountedPrice: p.bottleDiscountedPrice ?? Math.round((p.bottlePrice ?? p.price) * 0.85),
-    bottleShortDescription: p.bottleShortDescription ?? '',
-    bottleDescription: p.bottleDescription ?? '',
+    grams,
   }
 }
 
@@ -95,12 +101,9 @@ function toShopProduct(e: Editable, existing?: ShopProduct): ShopProduct {
   const image = images[0] ?? existing?.image ?? '/products/shahi-mukhwas.png'
   const gallery = images.length ? images : image ? [image] : []
   const fill = existing?.fill || BRAND_FILL
-  const packetGrams = e.packetGrams.length ? [...e.packetGrams].sort((a, b) => a - b) : [DEFAULT_GRAM]
-  const bottleGrams = e.bottleGrams.length ? [...e.bottleGrams].sort((a, b) => a - b) : [DEFAULT_GRAM]
-  const variants = buildAllPackVariants(packetGrams, bottleGrams, fill, gallery[0] || image, {
-    packetEnabled: e.packetEnabled,
-    bottleEnabled: e.bottleEnabled,
-  })
+  const grams = e.grams.length ? [...e.grams].sort((a, b) => a - b) : [DEFAULT_GRAM]
+  const isBottle = e.packFormat === 'bottle'
+  const variants = buildPackVariants(e.packFormat, grams, fill, gallery[0] || image)
 
   return {
     id: e.id,
@@ -112,24 +115,25 @@ function toShopProduct(e: Editable, existing?: ShopProduct): ShopProduct {
     fill,
     lightText: false,
     price: e.price,
-    showDiscountedPrice: e.showDiscountedPrice,
-    discountedPrice: e.showDiscountedPrice ? e.discountedPrice : undefined,
-    compareAt: e.showDiscountedPrice ? e.price : existing?.compareAt,
+    showDiscountedPrice: isBottle ? e.showDiscountedPrice : e.showDiscountedPrice,
+    discountedPrice: isBottle ? undefined : e.showDiscountedPrice ? e.discountedPrice : undefined,
+    compareAt: isBottle ? undefined : e.showDiscountedPrice ? e.price : existing?.compareAt,
     outOfStock: e.outOfStock,
     category: e.category,
     rating: e.rating || existing?.rating || 5,
     reviews: e.reviews || existing?.reviews || 0,
     brand: e.brand || existing?.brand || 'Tasneem',
     variants,
-    packetEnabled: e.packetEnabled,
-    bottleEnabled: e.bottleEnabled,
-    packetGrams,
-    bottleGrams,
-    bottlePrice: e.bottleEnabled ? e.bottlePrice : undefined,
-    bottleShowDiscountedPrice: e.bottleEnabled ? e.bottleShowDiscountedPrice : false,
-    bottleDiscountedPrice: e.bottleEnabled && e.bottleShowDiscountedPrice ? e.bottleDiscountedPrice : undefined,
-    bottleShortDescription: e.bottleEnabled ? e.bottleShortDescription.trim() : '',
-    bottleDescription: e.bottleEnabled ? e.bottleDescription.trim() : '',
+    packFormat: e.packFormat,
+    packetEnabled: !isBottle,
+    bottleEnabled: isBottle,
+    packetGrams: isBottle ? grams : grams,
+    bottleGrams: isBottle ? grams : [DEFAULT_GRAM],
+    bottlePrice: isBottle ? e.price : undefined,
+    bottleShowDiscountedPrice: isBottle ? e.showDiscountedPrice : false,
+    bottleDiscountedPrice: isBottle && e.showDiscountedPrice ? e.discountedPrice : undefined,
+    bottleShortDescription: isBottle ? e.shortDescription.trim() : '',
+    bottleDescription: isBottle ? e.description.trim() : '',
   }
 }
 
@@ -216,10 +220,10 @@ export default function AdminProducts() {
   }, [q, rows])
 
   const blank = (): Editable => ({
-    // Temporary client id — CatalogContext creates via API when id is not in list
     id: `prod-${Date.now()}`,
     name: '',
     category: categoryOptions[0] ?? DEFAULT_CATEGORIES[0],
+    packFormat: 'packet',
     price: 199,
     showDiscountedPrice: false,
     discountedPrice: 149,
@@ -230,25 +234,11 @@ export default function AdminProducts() {
     brand: 'Tasneem',
     rating: 5,
     reviews: 0,
-    packetEnabled: true,
-    bottleEnabled: false,
-    packetGrams: [DEFAULT_GRAM],
-    bottleGrams: [DEFAULT_GRAM],
-    bottlePrice: 199,
-    bottleShowDiscountedPrice: false,
-    bottleDiscountedPrice: 149,
-    bottleShortDescription: '',
-    bottleDescription: '',
+    grams: [DEFAULT_GRAM],
   })
 
-  const packConfigValid = (row: Editable) => {
-    if (!row.packetEnabled && !row.bottleEnabled) return false
-    if (row.packetEnabled && (!row.packetGrams.length || !(row.price > 0))) return false
-    if (row.bottleEnabled && (!row.bottleGrams.length || !(row.bottlePrice > 0))) return false
-    if (row.packetEnabled && row.showDiscountedPrice && !(row.discountedPrice > 0)) return false
-    if (row.bottleEnabled && row.bottleShowDiscountedPrice && !(row.bottleDiscountedPrice > 0)) return false
-    return true
-  }
+  const packConfigValid = (row: Editable) =>
+    row.grams.length > 0 && row.price > 0 && (!row.showDiscountedPrice || row.discountedPrice > 0)
 
   const save = async (row: Editable) => {
     if (!row.name.trim()) return
@@ -366,6 +356,7 @@ export default function AdminProducts() {
           <thead>
             <tr style={{ backgroundColor: '#f3f8f4', color: MUTED }}>
               <th className="px-4 py-3 font-semibold">Product</th>
+              <th className="px-4 py-3 font-semibold">Type</th>
               <th className="px-4 py-3 font-semibold">Category</th>
               <th className="px-4 py-3 font-semibold">Price</th>
               <th className="px-4 py-3 font-semibold">Status</th>
@@ -388,6 +379,9 @@ export default function AdminProducts() {
                         {r.name}
                       </span>
                     </div>
+                  </td>
+                  <td className="px-4 py-3" style={{ color: MUTED }}>
+                    {PACK_FORMAT_BADGE_LABELS[r.packFormat]}
                   </td>
                   <td className="px-4 py-3" style={{ color: MUTED }}>
                     {r.category}
@@ -606,61 +600,66 @@ export default function AdminProducts() {
               )}
 
               <div className="space-y-3">
+                <div>
+                  <p className="m-0 mb-2 text-[0.78rem] font-semibold" style={{ color: INK }}>
+                    Pack type
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {(['packet', 'bottle'] as const).map((format) => (
+                      <label
+                        key={format}
+                        className="flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-[0.82rem]"
+                        style={{
+                          borderColor: form.packFormat === format ? 'rgba(184,134,11,0.55)' : LINE,
+                          backgroundColor: form.packFormat === format ? 'rgba(184,134,11,0.08)' : CARD,
+                          color: INK,
+                        }}
+                      >
+                        <input
+                          type="radio"
+                          name="packFormat"
+                          checked={form.packFormat === format}
+                          onChange={() => setEditing({ ...form, packFormat: format })}
+                        />
+                        {PACK_FORMAT_BADGE_LABELS[format]}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
                 <AdminPackSection
-                  title="Packet"
-                  subtitle="Pricing, copy, and gram options for pouch / packet packs."
+                  title={form.packFormat === 'bottle' ? 'Bottle' : 'Packet'}
+                  subtitle={
+                    form.packFormat === 'bottle'
+                      ? 'Pricing, copy, and gram options for bottle packs.'
+                      : 'Pricing, copy, and gram options for standy / packet packs.'
+                  }
                   fields={{
-                    enabled: form.packetEnabled,
+                    enabled: true,
                     shortDescription: form.shortDescription,
                     description: form.description,
                     price: form.price,
                     showDiscountedPrice: form.showDiscountedPrice,
                     discountedPrice: form.discountedPrice,
-                    grams: form.packetGrams,
+                    grams: form.grams,
                   }}
+                  showEnableToggle={false}
                   onChange={(patch) =>
                     setEditing({
                       ...form,
-                      packetEnabled: patch.enabled ?? form.packetEnabled,
                       shortDescription: patch.shortDescription ?? form.shortDescription,
                       description: patch.description ?? form.description,
                       price: patch.price ?? form.price,
                       showDiscountedPrice: patch.showDiscountedPrice ?? form.showDiscountedPrice,
                       discountedPrice: patch.discountedPrice ?? form.discountedPrice,
-                      packetGrams: patch.grams ?? form.packetGrams,
-                    })
-                  }
-                />
-
-                <AdminPackSection
-                  title="Bottle"
-                  subtitle="Separate pricing and description when sold as a bottle."
-                  fields={{
-                    enabled: form.bottleEnabled,
-                    shortDescription: form.bottleShortDescription,
-                    description: form.bottleDescription,
-                    price: form.bottlePrice,
-                    showDiscountedPrice: form.bottleShowDiscountedPrice,
-                    discountedPrice: form.bottleDiscountedPrice,
-                    grams: form.bottleGrams,
-                  }}
-                  onChange={(patch) =>
-                    setEditing({
-                      ...form,
-                      bottleEnabled: patch.enabled ?? form.bottleEnabled,
-                      bottleShortDescription: patch.shortDescription ?? form.bottleShortDescription,
-                      bottleDescription: patch.description ?? form.bottleDescription,
-                      bottlePrice: patch.price ?? form.bottlePrice,
-                      bottleShowDiscountedPrice: patch.showDiscountedPrice ?? form.bottleShowDiscountedPrice,
-                      bottleDiscountedPrice: patch.discountedPrice ?? form.bottleDiscountedPrice,
-                      bottleGrams: patch.grams ?? form.bottleGrams,
+                      grams: patch.grams ?? form.grams,
                     })
                   }
                 />
 
                 {!packConfigValid(form) ? (
                   <p className="m-0 text-[0.72rem]" style={{ color: '#a32020' }}>
-                    Enable at least one pack type with valid price and quantity options.
+                    Enter a valid price and at least one gram option.
                   </p>
                 ) : null}
               </div>

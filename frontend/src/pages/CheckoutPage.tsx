@@ -6,6 +6,7 @@ import {
 } from '../components/checkout/CheckoutFlow'
 import OrderSuccessScreen from '../components/checkout/OrderSuccessScreen'
 import Navbar from '../components/nav/Navbar'
+import ProductThumbnail from '../components/shop/ProductThumbnail'
 import { useAuth } from '../context/AuthContext'
 import { useCart, type CartResolvedItem } from '../context/CartContext'
 import { ApiRequestError } from '../lib/api'
@@ -20,7 +21,6 @@ const DELIVERY_FEE = 49
 
 const LINE = 'rgba(10,46,34,0.12)'
 const MUTED = 'rgba(10,46,34,0.58)'
-const PANEL = '#f3ebe0'
 
 type PaymentMethod = 'cod' | 'razorpay'
 type PayStep = 'form' | 'pay' | 'done'
@@ -899,12 +899,12 @@ function OrderSummaryContent({
             style={{ borderColor: LINE, backgroundColor: 'rgba(248,249,250,0.6)' }}
             whileHover={{ scale: 1.01 }}
           >
-            <div
-              className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg"
-              style={{ backgroundColor: PANEL }}
-            >
-              <img src={item.variant.image} alt="" className="h-[78%] w-auto object-contain" draggable={false} />
-            </div>
+            <ProductThumbnail
+              product={item.product}
+              alt={item.product.name}
+              className="h-12 w-12 shrink-0 rounded-lg"
+              imgClassName="h-[78%] w-auto object-contain"
+            />
             <div className="min-w-0 flex-1">
               <p className="m-0 truncate text-[0.85rem] font-semibold" style={{ color: INK }}>
                 {item.product.name}

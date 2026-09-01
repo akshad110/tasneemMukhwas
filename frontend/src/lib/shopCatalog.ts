@@ -7,6 +7,16 @@ export type ShopVariant = {
 
 export type PackType = 'packet' | 'bottle'
 
+export const PACK_FORMAT_FILTER_LABELS: Record<PackType, string> = {
+  packet: 'Tasneem Standy Mukhwas',
+  bottle: 'Tasneem Bottle Mukhwas',
+}
+
+export const PACK_FORMAT_BADGE_LABELS: Record<PackType, string> = {
+  packet: 'Packet',
+  bottle: 'Bottle',
+}
+
 /** Default product categories — seeded on backend; fallback for offline UI. */
 export const DEFAULT_CATEGORIES = [
   'Our Salted Mukhwas',
@@ -36,11 +46,15 @@ export function parsePackTypeFromVariantId(variantId: string): PackType {
   return 'packet'
 }
 
+export function getProductPackFormat(product: ShopProduct): PackType {
+  if (product.packFormat === 'bottle') return 'bottle'
+  if (product.packFormat === 'packet') return 'packet'
+  if (product.bottleEnabled && product.packetEnabled === false) return 'bottle'
+  return 'packet'
+}
+
 export function getProductPackTypes(product: ShopProduct): PackType[] {
-  const types: PackType[] = []
-  if (product.packetEnabled !== false) types.push('packet')
-  if (product.bottleEnabled) types.push('bottle')
-  return types.length ? types : ['packet']
+  return [getProductPackFormat(product)]
 }
 
 export function parseGramOptionsFromVariants(
@@ -171,6 +185,8 @@ export type ShopProduct = {
   sales?: number
   /** True when product has image data stored server-side (may be lazy-loaded). */
   hasStoredImage?: boolean
+  /** Single catalog format — packet (standy) or bottle */
+  packFormat?: PackType
   packetEnabled?: boolean
   bottleEnabled?: boolean
   packetGrams?: number[]
@@ -183,7 +199,13 @@ export type ShopProduct = {
 }
 
 function resolvePackCopy(p: ShopProduct, packType: PackType) {
-  if (packType === 'bottle' && p.bottleEnabled) {
+  if (packType === 'bottle') {
+    if (p.packFormat === 'bottle') {
+      return {
+        shortDescription: p.shortDescription?.trim() || '',
+        description: p.description?.trim() || '',
+      }
+    }
     return {
       shortDescription: p.bottleShortDescription?.trim() || p.shortDescription?.trim() || '',
       description: p.bottleDescription?.trim() || p.description?.trim() || '',
@@ -196,10 +218,12 @@ function resolvePackCopy(p: ShopProduct, packType: PackType) {
 }
 
 function resolvePackPricing(p: ShopProduct, packType: PackType) {
-  if (packType === 'bottle' && p.bottleEnabled) {
-    const price = p.bottlePrice ?? p.price
-    const showDiscountedPrice = Boolean(p.bottleShowDiscountedPrice)
-    const discountedPrice = p.bottleDiscountedPrice
+  if (packType === 'bottle') {
+    const price = p.packFormat === 'bottle' ? p.price : (p.bottlePrice ?? p.price)
+    const showDiscountedPrice =
+      p.packFormat === 'bottle' ? Boolean(p.showDiscountedPrice) : Boolean(p.bottleShowDiscountedPrice)
+    const discountedPrice =
+      p.packFormat === 'bottle' ? p.discountedPrice : p.bottleDiscountedPrice
     return { price, showDiscountedPrice, discountedPrice }
   }
   return {
@@ -209,11 +233,9 @@ function resolvePackPricing(p: ShopProduct, packType: PackType) {
   }
 }
 
-/** Highest sell price across enabled pack types — for filters / sorting. */
+/** Highest sell price for filters / sorting. */
 export function getProductMaxSellPrice(p: ShopProduct): number {
-  const prices = [getSellPrice(p, 'packet')]
-  if (p.bottleEnabled) prices.push(getSellPrice(p, 'bottle'))
-  return Math.max(...prices)
+  return getSellPrice(p, getProductPackFormat(p))
 }
 
 /** Selling price used in cart / cards */

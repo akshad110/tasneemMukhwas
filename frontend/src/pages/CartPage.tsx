@@ -8,11 +8,12 @@ import Navbar from '../components/nav/Navbar'
 import BackToHomeButton from '../components/shared/BackToHomeButton'
 import ShopProductCard from '../components/shop/ShopProductCard'
 import ProductCardSkeleton from '../components/shop/ProductCardSkeleton'
+import ProductThumbnail from '../components/shop/ProductThumbnail'
 import { useCart, type CartResolvedItem } from '../context/CartContext'
 import { useCatalog } from '../context/CatalogContext'
 import { APP_ROUTES, navigateApp } from '../lib/appRoutes'
 import { scrollAppToTop } from '../lib/scrollControl'
-import { getProductPanelFill, getSellPrice, parsePackTypeFromVariantId, type ShopProduct } from '../lib/shopCatalog'
+import { getSellPrice, parsePackTypeFromVariantId, type ShopProduct } from '../lib/shopCatalog'
 
 const INK = '#0a2e22'
 const CREAM = '#f2f4f5'
@@ -49,14 +50,14 @@ function CartLineRow({ item }: { item: CartResolvedItem }) {
       transition={{ duration: 0.28 }}
     >
       <div
-        className="flex h-[100px] w-[100px] shrink-0 items-center justify-center overflow-hidden rounded-xl border sm:h-[124px] sm:w-[124px]"
-        style={{ borderColor: LINE, backgroundColor: getProductPanelFill(item.product) }}
+        className="h-[100px] w-[100px] shrink-0 overflow-hidden rounded-xl border sm:h-[124px] sm:w-[124px]"
+        style={{ borderColor: LINE }}
       >
-        <img
-          src={item.variant.image}
+        <ProductThumbnail
+          product={item.product}
           alt={item.product.name}
-          className="h-full w-full object-contain object-center p-1.5"
-          draggable={false}
+          className="h-full w-full"
+          imgClassName="h-full w-full object-contain object-center p-1.5"
         />
       </div>
 

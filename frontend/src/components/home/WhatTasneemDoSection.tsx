@@ -58,14 +58,16 @@ export default function WhatTasneemDoSection() {
               style={{ backgroundColor: BRAND_CREAM_DEEP, border: '1px solid rgba(184,134,11,0.25)' }}
               aria-hidden
             />
-            <img
-              src={image}
-              alt={imageAlt}
-              loading="lazy"
-              decoding="async"
-              draggable={false}
-              className="relative z-[1] block aspect-[16/10] max-h-[200px] w-full rounded-[1rem] object-cover object-center sm:max-h-[220px] lg:max-h-[240px]"
-            />
+            <div className="what-tasneem-do__media relative z-[1] overflow-hidden rounded-[1rem]">
+              <img
+                src={image}
+                alt={imageAlt}
+                loading="lazy"
+                decoding="async"
+                draggable={false}
+                className="what-tasneem-do__img"
+              />
+            </div>
           </div>
         </motion.div>
 

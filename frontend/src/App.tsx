@@ -17,6 +17,7 @@ import {
   isPublicPath,
   isSettingsPath,
   isShopPath,
+  isShopProductPath,
   isWholesalePath,
   isWishlistPath,
   isPrivacyPath,
@@ -25,6 +26,7 @@ import {
   APP_ROUTES,
   clearPersistRoute,
   getPersistRoute,
+  parseShopProductId,
 } from './lib/appRoutes'
 import { scrollAppToTop } from './lib/scrollControl'
 import { resetPathToHome } from './lib/sectionNav'
@@ -42,6 +44,7 @@ import MyOrdersPage from './pages/MyOrdersPage'
 import ProfilePage from './pages/ProfilePage'
 import SettingsPage from './pages/SettingsPage'
 import ShopPage from './pages/ShopPage'
+import ProductDetailPage from './pages/ProductDetailPage'
 import WishlistPage from './pages/WishlistPage'
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
 import ShippingPolicyPage from './pages/ShippingPolicyPage'
@@ -49,7 +52,8 @@ import ShippingPolicyPage from './pages/ShippingPolicyPage'
 function AppRoutes({ path }: { path: string }) {
   const { user, loading } = useAuth()
   const auth = isAuthPath(path)
-  const shop = isShopPath(path)
+  const shop = isShopPath(path) && !isShopProductPath(path)
+  const shopProductId = parseShopProductId(path)
   const cart = isCartPath(path)
   const checkout = isCheckoutPath(path)
   const profile = isProfilePath(path)
@@ -75,6 +79,7 @@ function AppRoutes({ path }: { path: string }) {
   }
 
   if (auth) return <AuthPage initialMode={authMode} />
+  if (shopProductId) return <ProductDetailPage productId={shopProductId} />
   if (shop) return <ShopPage />
   if (cart) return <CartPage />
   if (checkout) return <CheckoutPage />

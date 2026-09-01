@@ -1,4 +1,10 @@
 /** Dealership / wholesale page content. */
+
+import { getManufacturingProcessStep } from './manufacturingProcessContent'
+
+const STEP_SOURCED = getManufacturingProcessStep(1)!
+const STEP_ROASTING = getManufacturingProcessStep(5)!
+const STEP_PACKAGING = getManufacturingProcessStep(7)!
 export const DEALERSHIP_HERO = {
   eyebrow: 'B2B · Dealership · Bulk',
   title: 'Partner with Tasneem Mukhwas for Unforgettable Experiences',
@@ -63,18 +69,26 @@ export const FEATURE_GRID = [
   {
     title: 'WHO-GMP facility',
     body: 'Certified manufacturing, roasting, and packing from our Chhapi unit in Banaskantha.',
+    image: STEP_ROASTING.image,
+    alt: STEP_ROASTING.alt,
   },
   {
     title: 'Export ready',
     body: 'IEC AAEFF9922C — lawful import and export with DGFT documentation support.',
+    image: getManufacturingProcessStep(9)!.image,
+    alt: getManufacturingProcessStep(9)!.alt,
   },
   {
     title: 'Flexible MOQs',
     body: 'From 50 units for trial listings to mixed-SKU cartons for regional distributors.',
+    image: STEP_PACKAGING.image,
+    alt: STEP_PACKAGING.alt,
   },
   {
     title: 'Partner desk',
     body: 'Dedicated coordination for pricing, samples, artwork, and dispatch timelines.',
+    image: STEP_SOURCED.image,
+    alt: STEP_SOURCED.alt,
   },
 ] as const
 

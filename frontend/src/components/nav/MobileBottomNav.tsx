@@ -1,8 +1,9 @@
 import type { ReactElement } from 'react'
+import { BRAND_CREAM_DARK, BRAND_GOLD } from '../../lib/brand'
 import type { SectionId } from '../../lib/sectionNav'
 
-const GOLD = '#b8860b'
-const MUTED = 'rgba(10,46,34,0.48)'
+const GOLD = BRAND_GOLD
+const MUTED = '#5A4E42'
 
 type TabItem = {
   id: SectionId
@@ -60,8 +61,8 @@ function ContactIcon({ active }: { active: boolean }) {
 const TABS: TabItem[] = [
   { id: 'home', label: 'Home', Icon: HomeIcon },
   { id: 'products', label: 'Shop', Icon: ShopIcon },
-  { id: 'about', label: 'About', Icon: AboutIcon },
-  { id: 'wholesale', label: 'Wholesale', Icon: WholesaleIcon },
+  { id: 'about', label: 'About Us', Icon: AboutIcon },
+  { id: 'wholesale', label: 'Dealership', Icon: WholesaleIcon },
   { id: 'contact', label: 'Contact', Icon: ContactIcon },
 ]
 
@@ -75,11 +76,9 @@ export default function MobileBottomNav({ activeId, onNavigate }: MobileBottomNa
     <nav
       className="fixed inset-x-0 bottom-0 z-[55] border-t md:hidden"
       style={{
-        borderColor: 'rgba(10,46,34,0.1)',
-        backgroundColor: 'rgba(248,249,250,0.96)',
-        backdropFilter: 'blur(14px)',
+        borderColor: 'rgba(61,52,40,0.22)',
+        backgroundColor: BRAND_CREAM_DARK,
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        boxShadow: '0 -8px 28px -16px rgba(10,46,34,0.22)',
       }}
       aria-label="Mobile primary navigation"
     >

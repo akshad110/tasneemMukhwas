@@ -1,5 +1,11 @@
 /** Shared copy for home teaser + dedicated What Tasneem Do page (no duplicate bullets). */
 
+import { getManufacturingProcessStep } from './manufacturingProcessContent'
+
+const img = (filename: string) => encodeURI(`/${filename}`)
+
+const STEP_SOURCED = getManufacturingProcessStep(1)!
+
 export const WHAT_TASNEEM_DO_HOME = {
   eyebrow: 'Seeds & flavours',
   title: 'What Tasneem Do',
@@ -23,8 +29,8 @@ export const WHAT_TASNEEM_DO_HOME = {
       body: 'Familiar Indian ingredients presented with the transparency, hygiene, and consistency today’s consumers expect.',
     },
   ],
-  image: encodeURI('/Mukhwas_ingredients_arranged_on_…_202608312340.jpeg'),
-  imageAlt: 'Mukhwas seeds, spices, and ingredients arranged in bowls on a wooden table',
+  image: STEP_SOURCED.image,
+  imageAlt: STEP_SOURCED.alt,
 } as const
 
 export const INGREDIENT_TABLE = [
@@ -70,7 +76,8 @@ export const WHAT_TASNEEM_DO_PAGE = {
       body: 'Suva carries a more noticeable herbal and aromatic character than fennel or sesame. Used with care, it creates depth and individuality — because a good mukhwas does not need every ingredient to taste the same; each should have its own role.',
     },
   ],
-  ingredientImage: encodeURI('/Mukhwas_ingredients_arranged_on_…_202608312340.jpeg'),
+  ingredientImage: img('Mukhwas_pouches_on_wooden_table_202608251630.jpeg'),
+  ingredientImageAlt: 'Tasneem mukhwas pouches on wooden table',
   selectionTitle: 'Why Ingredient Selection Matters to Us',
   selectionIntro:
     'When someone enjoys a spoonful of mukhwas, they notice the flavour. From our side, there is much more behind that small serving.',
@@ -154,18 +161,19 @@ export const WHAT_TASNEEM_DO_PAGE = {
     ],
     images: [
       {
-        src: encodeURI('/Inspecting_raw_mukhwas_ingredients_2K_202609010006.jpeg'),
-        alt: 'Quality inspector selecting raw mukhwas ingredients with tweezers',
+        src: img('WhatsApp Image 2026-09-01 at 5.19.32 PM (1).jpeg'),
+        alt: 'Traditional rooftop roasting of mukhwas ingredients in a large kadai',
         caption: 'Carefully selected ingredients',
       },
       {
-        src: encodeURI('/Worker_monitoring_mukhwas_roasting_2K_202609010006.jpeg'),
-        alt: 'Quality control worker monitoring mukhwas roasting in a hygienic facility',
+        src: img('WhatsApp Image 2026-09-01 at 5.19.32 PM (2).jpeg'),
+        alt: 'Tasneem team sourcing quality seeds and ingredients with trusted farmers',
         caption: 'Sealed retail packs',
+        fit: 'infographic',
       },
       {
-        src: encodeURI('/Tasneem_Mukhwas_pouches_on_pedestal_202609010006.jpeg'),
-        alt: 'Tasneem Mukhwas pouches displayed on a marble pedestal',
+        src: img('WhatsApp Image 2026-09-01 at 5.19.32 PM.jpeg'),
+        alt: 'Worker preparing mukhwas ingredients in hygienic batch mixing equipment',
         caption: 'Modern presentation',
       },
     ],

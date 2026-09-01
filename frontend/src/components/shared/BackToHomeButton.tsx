@@ -9,16 +9,25 @@ const EASE = [0.22, 1, 0.36, 1] as const
 type BackToHomeButtonProps = {
   variant?: 'light' | 'dark'
   className?: string
+  to?: string
+  eyebrow?: string
+  label?: string
 }
 
-/** Return / Back to home — matches know-more page pattern. */
-export default function BackToHomeButton({ variant = 'light', className = 'mb-8' }: BackToHomeButtonProps) {
+/** Return / back navigation — matches know-more and wishlist page pattern. */
+export default function BackToHomeButton({
+  variant = 'light',
+  className = 'mb-8',
+  to = APP_ROUTES.home,
+  eyebrow = 'Return',
+  label = 'Back to home',
+}: BackToHomeButtonProps) {
   const isDark = variant === 'dark'
 
   return (
     <motion.button
       type="button"
-      onClick={() => navigateApp(APP_ROUTES.home)}
+      onClick={() => navigateApp(to)}
       className={`group inline-flex shrink-0 cursor-pointer items-center gap-3 border-0 bg-transparent px-0 py-0 ${className}`}
       initial={{ opacity: 0, x: -12 }}
       animate={{ opacity: 1, x: 0 }}
@@ -44,13 +53,13 @@ export default function BackToHomeButton({ variant = 'light', className = 'mb-8'
           className="text-[0.62rem] font-semibold tracking-[0.16em] uppercase"
           style={{ color: isDark ? 'rgba(242,244,245,0.55)' : GOLD, fontFamily: 'Inter, sans-serif' }}
         >
-          Return
+          {eyebrow}
         </span>
         <span
           className="text-[0.88rem] font-semibold"
           style={{ color: isDark ? CREAM : INK, fontFamily: 'Inter, sans-serif' }}
         >
-          Back to home
+          {label}
         </span>
       </span>
     </motion.button>

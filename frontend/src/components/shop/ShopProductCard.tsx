@@ -15,15 +15,14 @@ import {
   getComparePrice,
   getProductCardTeaser,
   getProductImages,
-  getProductPackTypes,
+  getProductPackFormat,
   getProductPanelFill,
   getSellPrice,
   getVariantsForPackType,
-  type PackType,
+  PACK_FORMAT_BADGE_LABELS,
   type ShopProduct,
 } from '../../lib/shopCatalog'
 import ProductImageCarousel from './ProductImageCarousel'
-import ProductPackToggle from './ProductPackToggle'
 import {
   BRAND_CREAM,
   BRAND_CREAM_DEEP,
@@ -80,8 +79,7 @@ export default function ShopProductCard({
   promoLabel,
   onOpenDetail,
 }: ShopProductCardProps) {
-  const packTypes = useMemo(() => getProductPackTypes(product), [product])
-  const [packType, setPackType] = useState<PackType>(() => packTypes[0] ?? 'packet')
+  const packType = useMemo(() => getProductPackFormat(product), [product])
   const variants = useMemo(
     () => getVariantsForPackType(product, packType),
     [product, packType],
@@ -99,16 +97,10 @@ export default function ShopProductCard({
   const [imageHovered, setImageHovered] = useState(false)
   const { addItem, clearCart, getQty, setQty } = useCart()
 
-  const [variantId, setVariantId] = useState(variants[0]?.id ?? 'packet-100g')
+  const [variantId, setVariantId] = useState(variants[0]?.id ?? `${packType}-100g`)
 
   useEffect(() => {
-    if (!packTypes.includes(packType)) {
-      setPackType(packTypes[0] ?? 'packet')
-    }
-  }, [product.id, packTypes, packType])
-
-  useEffect(() => {
-    setVariantId(variants[0]?.id ?? 'packet-100g')
+    setVariantId(variants[0]?.id ?? `${packType}-100g`)
   }, [product.id, packType, variants])
 
   useEffect(() => {
@@ -263,13 +255,6 @@ export default function ShopProductCard({
         }}
       >
         <div className="flex min-h-0 flex-1 flex-col rounded-[0.8rem] p-1.5 min-[480px]:rounded-[0.95rem] min-[480px]:p-2 sm:p-2.5">
-        <ProductPackToggle
-          value={packType}
-          onChange={setPackType}
-          packetEnabled={product.packetEnabled !== false}
-          bottleEnabled={Boolean(product.bottleEnabled)}
-          compact
-        />
         <div
           ref={imageHostRef}
           className="relative h-[108px] shrink-0 overflow-hidden rounded-md border min-[480px]:h-[118px] min-[480px]:rounded-lg sm:h-[128px]"
@@ -370,17 +355,30 @@ export default function ShopProductCard({
           data-card-action
           onClick={stop}
         >
-          <span
-            className="inline-flex max-w-full truncate rounded-full border px-1.5 py-0.5 text-[0.44rem] font-semibold tracking-[0.07em] uppercase min-[480px]:max-w-[58%] min-[480px]:px-2 min-[480px]:text-[0.48rem]"
-            style={{
-              color: INK,
-              borderColor: 'rgba(184,134,11,0.55)',
-              backgroundColor: 'rgba(230,216,195,0.45)',
-              fontFamily: BRAND_SANS,
-            }}
-          >
-            {product.category}
-          </span>
+          <div className="flex max-w-full flex-wrap items-center justify-center gap-1 min-[480px]:justify-start">
+            <span
+              className="inline-flex max-w-full truncate rounded-full border px-1.5 py-0.5 text-[0.44rem] font-semibold tracking-[0.07em] uppercase min-[480px]:px-2 min-[480px]:text-[0.48rem]"
+              style={{
+                color: INK,
+                borderColor: 'rgba(184,134,11,0.55)',
+                backgroundColor: 'rgba(230,216,195,0.45)',
+                fontFamily: BRAND_SANS,
+              }}
+            >
+              {product.category}
+            </span>
+            <span
+              className="inline-flex rounded-full border px-1.5 py-0.5 text-[0.44rem] font-semibold tracking-[0.07em] uppercase min-[480px]:px-2 min-[480px]:text-[0.48rem]"
+              style={{
+                color: packType === 'bottle' ? INK : INK,
+                borderColor: packType === 'bottle' ? 'rgba(10,46,34,0.35)' : 'rgba(184,134,11,0.55)',
+                backgroundColor: packType === 'bottle' ? 'rgba(10,46,34,0.08)' : 'rgba(184,134,11,0.12)',
+                fontFamily: BRAND_SANS,
+              }}
+            >
+              {PACK_FORMAT_BADGE_LABELS[packType]}
+            </span>
+          </div>
           <div className="flex shrink-0 items-center gap-1">
             <Stars rating={product.rating} />
             <span className="text-[0.52rem] min-[480px]:text-[0.56rem]" style={{ color: MUTED }}>

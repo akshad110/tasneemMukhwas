@@ -9,6 +9,13 @@ export const BRAND_GOLD = '#b8860b'
 export const BRAND_CREAM = '#F8F3E7'
 export const BRAND_CREAM_LIGHT = '#FFFEF2'
 export const BRAND_CREAM_DEEP = '#E6D8C3'
+/** Footer surface — flat warm cream */
+export const BRAND_CREAM_DARK = '#A79277'
+export const BRAND_CREAM_DARKER = '#A79277'
+/** Footer copy on #A79277 — warm dark browns for legibility */
+export const BRAND_FOOTER_HEADING = '#0a2e22'
+export const BRAND_FOOTER_TEXT = '#3D3428'
+export const BRAND_FOOTER_TEXT_SOFT = '#5A4E42'
 export const BRAND_SURFACE = '#FFFEF2'
 
 export const BRAND_TEXTURE = '/image.png_2K_202608092240.jpeg'

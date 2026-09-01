@@ -4,6 +4,7 @@ export const APP_ROUTES = {
   login: '/login',
   signup: '/signup',
   shop: '/shop',
+  shopProduct: '/shop/product',
   cart: '/cart',
   checkout: '/checkout',
   admin: '/admin',
@@ -100,8 +101,21 @@ export function isAuthPath(pathname: string) {
   return pathname === APP_ROUTES.login || pathname === APP_ROUTES.signup
 }
 
+export function isShopProductPath(pathname: string) {
+  return /^\/shop\/product\/[^/]+$/.test(pathname)
+}
+
+export function parseShopProductId(pathname: string): string | null {
+  const match = pathname.match(/^\/shop\/product\/([^/]+)$/)
+  return match?.[1] ? decodeURIComponent(match[1]) : null
+}
+
+export function shopProductPath(productId: string) {
+  return `${APP_ROUTES.shopProduct}/${encodeURIComponent(productId)}`
+}
+
 export function isShopPath(pathname: string) {
-  return pathname === APP_ROUTES.shop
+  return pathname === APP_ROUTES.shop || isShopProductPath(pathname)
 }
 
 export function isCartPath(pathname: string) {

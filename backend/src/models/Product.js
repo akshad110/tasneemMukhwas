@@ -35,6 +35,7 @@ const productSchema = new mongoose.Schema(
     variants: { type: [variantSchema], default: [] },
     packetEnabled: { type: Boolean, default: true },
     bottleEnabled: { type: Boolean, default: false },
+    packFormat: { type: String, enum: ['packet', 'bottle'], default: 'packet' },
     packetGrams: { type: [Number], default: [100] },
     bottleGrams: { type: [Number], default: [100] },
     bottlePrice: { type: Number, min: 0 },
@@ -57,10 +58,11 @@ function buildVariantsFromPackFields(raw) {
   const image = images[0] || raw.image || ''
   const variants = []
 
+  const packFormat = raw.packFormat === 'bottle' ? 'bottle' : 'packet'
   const packetGrams = Array.isArray(raw.packetGrams) && raw.packetGrams.length ? raw.packetGrams : null
   const bottleGrams = Array.isArray(raw.bottleGrams) && raw.bottleGrams.length ? raw.bottleGrams : null
-  const packetEnabled = raw.packetEnabled !== false
-  const bottleEnabled = Boolean(raw.bottleEnabled)
+  const packetEnabled = packFormat === 'packet' && raw.packetEnabled !== false
+  const bottleEnabled = packFormat === 'bottle' && (raw.bottleEnabled !== false || raw.packFormat === 'bottle')
 
   if (packetEnabled && packetGrams) {
     for (const g of [...new Set(packetGrams)].sort((a, b) => a - b)) {
@@ -98,9 +100,11 @@ function bottleFieldsForList(raw) {
 }
 
 function packFieldsForList(raw) {
+  const packFormat = raw.packFormat === 'bottle' ? 'bottle' : 'packet'
   return {
-    packetEnabled: raw.packetEnabled !== false,
-    bottleEnabled: Boolean(raw.bottleEnabled),
+    packFormat,
+    packetEnabled: packFormat === 'packet' && raw.packetEnabled !== false,
+    bottleEnabled: packFormat === 'bottle',
     packetGrams:
       Array.isArray(raw.packetGrams) && raw.packetGrams.length
         ? [...new Set(raw.packetGrams)].sort((a, b) => a - b)

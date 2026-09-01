@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Award, Factory, Globe, Package, ShieldCheck, Truck } from 'lucide-react'
+import ManufacturingProcessSection from '../components/home/ManufacturingProcessSection'
 import Navbar from '../components/nav/Navbar'
 import BackToHomeButton from '../components/shared/BackToHomeButton'
 import SiteFooter from '../components/shared/SiteFooter'
@@ -430,6 +431,8 @@ export default function KnowMorePage() {
             </div>
           </div>
         </section>
+
+        <ManufacturingProcessSection background="cream-deep" />
 
         {/* Why Choose Us */}
         <section style={{ backgroundColor: CREAM_LIGHT }}>

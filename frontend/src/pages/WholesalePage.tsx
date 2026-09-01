@@ -222,16 +222,25 @@ export default function WholesalePage() {
             <div className="grid gap-px sm:grid-cols-2" style={{ backgroundColor: 'rgba(10,46,34,0.1)' }}>
               {FEATURE_GRID.map((item, i) => (
                 <Reveal key={item.title} delay={i * 0.05}>
-                  <article className="h-full p-7 sm:p-8" style={{ backgroundColor: CREAM_LIGHT }}>
-                    <span className="text-lg" style={{ color: GOLD }} aria-hidden>
-                      ◆
-                    </span>
-                    <h3 className="mt-3 m-0 text-[1.15rem]" style={{ fontFamily: BRAND_SERIF, color: INK }}>
-                      {item.title}
-                    </h3>
-                    <p className="mt-2 m-0 text-[0.9rem] leading-[1.75]" style={{ color: MUTED }}>
-                      {item.body}
-                    </p>
+                  <article className="h-full overflow-hidden" style={{ backgroundColor: CREAM_LIGHT }}>
+                    <img
+                      src={item.image}
+                      alt={item.alt}
+                      className="block aspect-[16/10] w-full object-contain"
+                      style={{ backgroundColor: CREAM }}
+                      loading="lazy"
+                    />
+                    <div className="p-7 sm:p-8">
+                      <span className="text-lg" style={{ color: GOLD }} aria-hidden>
+                        ◆
+                      </span>
+                      <h3 className="mt-3 m-0 text-[1.15rem]" style={{ fontFamily: BRAND_SERIF, color: INK }}>
+                        {item.title}
+                      </h3>
+                      <p className="mt-2 m-0 text-[0.9rem] leading-[1.75]" style={{ color: MUTED }}>
+                        {item.body}
+                      </p>
+                    </div>
                   </article>
                 </Reveal>
               ))}

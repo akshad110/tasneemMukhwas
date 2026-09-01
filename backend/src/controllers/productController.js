@@ -44,6 +44,7 @@ export const productCreateSchema = z.object({
   bottleDiscountedPrice: z.number().min(0).optional(),
   bottleShortDescription: z.string().trim().max(200).optional().default(''),
   bottleDescription: z.string().trim().max(2000).optional().default(''),
+  packFormat: z.enum(['packet', 'bottle']).optional().default('packet'),
   isActive: z.boolean().optional().default(true),
 })
 
@@ -103,7 +104,7 @@ export const listProducts = asyncHandler(async (req, res) => {
     view === 'full' ? 'full' : view === 'summary' ? 'summary' : isAdmin ? 'admin' : 'summary'
 
   const summarySelect =
-    'name shortDescription description category brand price showDiscountedPrice discountedPrice compareAt outOfStock stock rating reviews variants fill hasImage packetEnabled bottleEnabled packetGrams bottleGrams bottlePrice bottleShowDiscountedPrice bottleDiscountedPrice bottleShortDescription bottleDescription'
+    'name shortDescription description category brand price showDiscountedPrice discountedPrice compareAt outOfStock stock rating reviews variants fill hasImage packFormat packetEnabled bottleEnabled packetGrams bottleGrams bottlePrice bottleShowDiscountedPrice bottleDiscountedPrice bottleShortDescription bottleDescription'
   const adminSelect = `${summarySelect} showPanelBg lightText isActive sales createdAt updatedAt`
 
   const listQuery = Product.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limitNum)
@@ -208,7 +209,15 @@ export const createProduct = asyncHandler(async (req, res) => {
   if (body.outOfStock) body.stock = 0
   if (!body.packetGrams?.length) body.packetGrams = [100]
   if (!body.bottleGrams?.length) body.bottleGrams = [100]
-  if (!body.bottleEnabled) body.bottleEnabled = false
+  if (body.packFormat === 'bottle') {
+    body.bottleEnabled = true
+    body.packetEnabled = false
+    if (!body.bottleGrams?.length && body.packetGrams?.length) body.bottleGrams = body.packetGrams
+  } else {
+    body.packFormat = 'packet'
+    body.packetEnabled = true
+    body.bottleEnabled = false
+  }
 
   const product = await Product.create(body)
   return sendSuccess(res, {
@@ -230,6 +239,16 @@ export const updateProduct = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Discounted price must be greater than 0')
   }
   if (body.outOfStock === true) body.stock = 0
+  if (body.packFormat === 'bottle') {
+    body.bottleEnabled = true
+    body.packetEnabled = false
+    if (body.shortDescription) body.bottleShortDescription = body.shortDescription
+    if (body.description) body.bottleDescription = body.description
+    if (!body.bottleGrams?.length && body.packetGrams?.length) body.bottleGrams = body.packetGrams
+  } else if (body.packFormat === 'packet') {
+    body.packetEnabled = true
+    body.bottleEnabled = false
+  }
 
   Object.assign(product, body)
   await product.save()

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import ManufacturingProcessSection from '../components/home/ManufacturingProcessSection'
 import Navbar from '../components/nav/Navbar'
 import BackToHomeButton from '../components/shared/BackToHomeButton'
 import SiteFooter from '../components/shared/SiteFooter'
@@ -27,6 +28,7 @@ export default function WhatTasneemDoPage() {
     ingredientsIntro,
     ingredients,
     ingredientImage,
+    ingredientImageAlt,
     selectionTitle,
     selectionIntro,
     selectionPoints,
@@ -134,7 +136,7 @@ export default function WhatTasneemDoPage() {
             >
               <img
                 src={ingredientImage}
-                alt="Mukhwas seeds, spices, and ingredients arranged in bowls on a wooden table"
+                alt={ingredientImageAlt}
                 className="block aspect-[16/10] max-h-[200px] w-full object-cover object-center sm:max-h-[220px] lg:max-h-[240px]"
                 loading="lazy"
               />
@@ -263,6 +265,8 @@ export default function WhatTasneemDoPage() {
           </div>
         </section>
 
+        <ManufacturingProcessSection background="cream" />
+
         <section style={{ backgroundColor: BRAND_CREAM }}>
           <div className="mx-auto max-w-[1180px] px-5 py-14 sm:px-8 lg:px-10 lg:py-20">
             <p
@@ -282,18 +286,26 @@ export default function WhatTasneemDoPage() {
             </p>
 
             <div className="mt-10 grid gap-4 sm:grid-cols-3">
-              {hygiene.images.map((img) => (
+              {hygiene.images.map((item) => (
                 <figure
-                  key={img.caption}
+                  key={item.caption}
                   className="overflow-hidden rounded-xl border"
                   style={{ borderColor: 'rgba(184,134,11,0.22)', backgroundColor: BRAND_CREAM_LIGHT }}
                 >
-                  <img src={img.src} alt={img.alt} className="block aspect-[4/3] w-full object-cover" loading="lazy" />
+                  <div
+                    className={
+                      'fit' in item && item.fit === 'infographic'
+                        ? 'hygiene-card__media hygiene-card__media--infographic'
+                        : 'hygiene-card__media'
+                    }
+                  >
+                    <img src={item.src} alt={item.alt} className="hygiene-card__img" loading="lazy" />
+                  </div>
                   <figcaption
                     className="px-3 py-2.5 text-[0.72rem] font-semibold tracking-[0.06em] uppercase"
                     style={{ color: BRAND_INK, fontFamily: BRAND_SANS }}
                   >
-                    {img.caption}
+                    {item.caption}
                   </figcaption>
                 </figure>
               ))}
