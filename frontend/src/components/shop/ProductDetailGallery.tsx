@@ -18,14 +18,12 @@ function ThumbnailButton({
   src,
   index,
   selected,
-  panelBg,
   onSelect,
   className,
 }: {
   src: string
   index: number
   selected: boolean
-  panelBg: string
   onSelect: () => void
   className: string
 }) {
@@ -136,7 +134,6 @@ export default function ProductDetailGallery({
                 src={src}
                 index={i}
                 selected={i === index}
-                panelBg={panelBg}
                 onSelect={() => setIndex(i)}
                 className="h-[4.25rem] w-[4.25rem] shrink-0 sm:h-[4.75rem] sm:w-[4.75rem]"
               />
@@ -159,7 +156,6 @@ export default function ProductDetailGallery({
           src={src}
           index={i}
           selected={i === index}
-          panelBg={panelBg}
           onSelect={() => setIndex(i)}
           className="h-10 w-10 shrink-0 sm:h-11 sm:w-11"
         />
