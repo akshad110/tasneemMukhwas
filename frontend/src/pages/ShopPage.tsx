@@ -8,7 +8,7 @@ import SectionPlaceholder from '../components/shared/SectionPlaceholder'
 import { useCatalog } from '../context/CatalogContext'
 import { couponsApi } from '../lib/services'
 import { navigateApp, shopProductPath } from '../lib/appRoutes'
-import { DEFAULT_CATEGORIES, getProductMaxSellPrice, getProductPackFormat, getSellPrice, PACK_FORMAT_FILTER_LABELS, type PackType } from '../lib/shopCatalog'
+import { DEFAULT_CATEGORIES, getProductMaxSellPrice, getProductPackFormat, PACK_FORMAT_FILTER_LABELS, productMatchesShopCatalogFilters, type PackType } from '../lib/shopCatalog'
 import { scrollAppToTop } from '../lib/scrollControl'
 import {
   BRAND_CREAM,
@@ -181,18 +181,7 @@ export default function ShopPage() {
   )
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return products.filter((p) => {
-      if (q) {
-        const hay = `${p.name} ${p.category} ${p.brand} ${p.description}`.toLowerCase()
-        if (!hay.includes(q)) return false
-      }
-      if (filters.packFormat && getProductPackFormat(p) !== filters.packFormat) return false
-      if (filters.category && p.category !== filters.category) return false
-      if (filters.rating != null && p.rating < filters.rating) return false
-      if (filters.priceMax != null && getSellPrice(p) > filters.priceMax) return false
-      return true
-    })
+    return products.filter((p) => productMatchesShopCatalogFilters(p, filters, query))
   }, [products, query, filters])
 
   const sorted = useMemo(() => {

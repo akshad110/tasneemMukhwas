@@ -19,7 +19,6 @@ import {
   getProductPanelFill,
   getSellPrice,
   getVariantsForPackType,
-  PACK_FORMAT_BADGE_LABELS,
   type ShopProduct,
 } from '../../lib/shopCatalog'
 import ProductImageCarousel from './ProductImageCarousel'
@@ -238,6 +237,9 @@ export default function ShopProductCard({
         border: OUTER_BORDER,
         boxShadow: '0 18px 40px -28px rgba(10,46,34,0.18)',
       }}
+      data-product-id={product.id}
+      data-product-category={product.category}
+      data-product-pack-format={packType}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{
@@ -351,34 +353,10 @@ export default function ShopProductCard({
         )}
 
         <div
-          className="mt-1 flex flex-col items-center gap-1 min-[480px]:flex-row min-[480px]:items-center min-[480px]:justify-between min-[480px]:gap-2"
+          className="mt-1 flex items-center justify-center min-[480px]:justify-end"
           data-card-action
           onClick={stop}
         >
-          <div className="flex max-w-full flex-wrap items-center justify-center gap-1 min-[480px]:justify-start">
-            <span
-              className="inline-flex max-w-full truncate rounded-full border px-1.5 py-0.5 text-[0.44rem] font-semibold tracking-[0.07em] uppercase min-[480px]:px-2 min-[480px]:text-[0.48rem]"
-              style={{
-                color: INK,
-                borderColor: 'rgba(184,134,11,0.55)',
-                backgroundColor: 'rgba(230,216,195,0.45)',
-                fontFamily: BRAND_SANS,
-              }}
-            >
-              {product.category}
-            </span>
-            <span
-              className="inline-flex rounded-full border px-1.5 py-0.5 text-[0.44rem] font-semibold tracking-[0.07em] uppercase min-[480px]:px-2 min-[480px]:text-[0.48rem]"
-              style={{
-                color: packType === 'bottle' ? INK : INK,
-                borderColor: packType === 'bottle' ? 'rgba(10,46,34,0.35)' : 'rgba(184,134,11,0.55)',
-                backgroundColor: packType === 'bottle' ? 'rgba(10,46,34,0.08)' : 'rgba(184,134,11,0.12)',
-                fontFamily: BRAND_SANS,
-              }}
-            >
-              {PACK_FORMAT_BADGE_LABELS[packType]}
-            </span>
-          </div>
           <div className="flex shrink-0 items-center gap-1">
             <Stars rating={product.rating} />
             <span className="text-[0.52rem] min-[480px]:text-[0.56rem]" style={{ color: MUTED }}>

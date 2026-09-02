@@ -53,6 +53,58 @@ export function getProductPackFormat(product: ShopProduct): PackType {
   return 'packet'
 }
 
+/** Filterable tag shown on shop cards — category + pack format. */
+export type ProductFilterTagKind = 'category' | 'packFormat'
+
+export type ProductFilterTag = {
+  kind: ProductFilterTagKind
+  /** Stable value used by shop filters (category name or pack type id). */
+  value: string
+  /** Visible label on the card. */
+  label: string
+}
+
+export function getProductFilterTags(product: ShopProduct): ProductFilterTag[] {
+  const packType = getProductPackFormat(product)
+  return [
+    {
+      kind: 'category',
+      value: product.category,
+      label: product.category,
+    },
+    {
+      kind: 'packFormat',
+      value: packType,
+      label: PACK_FORMAT_BADGE_LABELS[packType],
+    },
+  ]
+}
+
+export type ShopCatalogFilters = {
+  packFormat: PackType | null
+  category: string | null
+  rating?: number | null
+  priceMax?: number | null
+}
+
+export function productMatchesShopCatalogFilters(
+  product: ShopProduct,
+  filters: ShopCatalogFilters,
+  query = '',
+): boolean {
+  const q = query.trim().toLowerCase()
+  if (q) {
+    const packLabel = PACK_FORMAT_BADGE_LABELS[getProductPackFormat(product)]
+    const hay = `${product.name} ${product.category} ${product.brand} ${product.description} ${packLabel}`.toLowerCase()
+    if (!hay.includes(q)) return false
+  }
+  if (filters.packFormat && getProductPackFormat(product) !== filters.packFormat) return false
+  if (filters.category && product.category !== filters.category) return false
+  if (filters.rating != null && product.rating < filters.rating) return false
+  if (filters.priceMax != null && getSellPrice(product) > filters.priceMax) return false
+  return true
+}
+
 export function getProductPackTypes(product: ShopProduct): PackType[] {
   return [getProductPackFormat(product)]
 }
