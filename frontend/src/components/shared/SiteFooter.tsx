@@ -211,7 +211,7 @@ export default function SiteFooter() {
               </p>
               <a
                 href={`tel:${CONTACT_PHONE_TEL}`}
-                className="footer-link inline-flex items-center gap-2.5 text-[0.84rem] no-underline transition-colors duration-300 sm:text-[0.88rem]"
+                className="footer-contact-link inline-flex items-center gap-2.5 text-[0.84rem] no-underline transition-colors duration-300 sm:text-[0.88rem]"
                 style={{ color: FOOTER_TEXT, fontFamily: BRAND_SANS }}
               >
                 <span
@@ -230,7 +230,7 @@ export default function SiteFooter() {
               </a>
               <a
                 href={`mailto:${CONTACT_EMAIL}`}
-                className="footer-link inline-flex items-center gap-2.5 text-[0.84rem] no-underline transition-colors duration-300 sm:text-[0.88rem]"
+                className="footer-contact-link inline-flex items-center gap-2.5 text-[0.84rem] no-underline transition-colors duration-300 sm:text-[0.88rem]"
                 style={{ color: FOOTER_TEXT, fontFamily: BRAND_SANS }}
               >
                 <span

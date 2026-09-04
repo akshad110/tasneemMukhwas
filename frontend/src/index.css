@@ -1590,6 +1590,17 @@ a:focus-visible .footer-link::after {
   outline-offset: 3px;
 }
 
+.footer-contact-link {
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-contact-link:focus-visible {
+  outline: 2px solid rgba(184, 134, 11, 0.45);
+  outline-offset: 3px;
+  border-radius: 0.35rem;
+}
+
 .site-footer a:hover,
 .site-footer a:focus-visible {
   color: #b8860b;
