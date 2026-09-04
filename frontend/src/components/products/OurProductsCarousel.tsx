@@ -22,7 +22,7 @@ import {
 } from '../../lib/brand'
 
 const TOTAL = CAROUSEL_PRODUCTS.length
-const AUTO_MS = 4500
+const AUTO_MS = 2500
 
 function wrapIndex(index: number) {
   return ((index % TOTAL) + TOTAL) % TOTAL
@@ -41,9 +41,9 @@ function useSlideGap() {
   useEffect(() => {
     const update = () => {
       const w = window.innerWidth
-      if (w < 400) setGap(168)
-      else if (w < 640) setGap(200)
-      else if (w < 768) setGap(240)
+      if (w < 400) setGap(132)
+      else if (w < 640) setGap(152)
+      else if (w < 768) setGap(180)
       else if (w < 1024) setGap(270)
       else setGap(300)
     }
@@ -175,6 +175,7 @@ function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps
 export default function OurProductsCarousel() {
   const [activeIndex, setActiveIndex] = useState(0)
   const [paused, setPaused] = useState(false)
+  const [reduceMotion, setReduceMotion] = useState(false)
   const didDragRef = useRef(false)
   const slideGap = useSlideGap()
 
@@ -187,10 +188,18 @@ export default function OurProductsCarousel() {
   }, [])
 
   useEffect(() => {
-    if (paused) return
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const sync = () => setReduceMotion(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
+
+  useEffect(() => {
+    if (paused || reduceMotion) return
     const timer = window.setInterval(goNext, AUTO_MS)
     return () => window.clearInterval(timer)
-  }, [paused, goNext])
+  }, [paused, reduceMotion, goNext])
 
   const onDragStart = () => {
     didDragRef.current = false
@@ -214,14 +223,12 @@ export default function OurProductsCarousel() {
   return (
     <section
       id="products"
-      className="relative w-full overflow-hidden px-5 py-10 sm:px-8 sm:py-14 lg:px-10 lg:py-20"
+      className="relative w-full overflow-hidden px-4 py-7 sm:px-8 sm:py-14 lg:px-10 lg:py-20"
       style={{ backgroundColor: BRAND_CREAM }}
       aria-label="Our products"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
     >
       <div className="mx-auto max-w-[1320px]">
-        <header className="mb-6 text-center sm:mb-8 md:mb-10">
+        <header className="mb-4 text-center sm:mb-8 md:mb-10">
           <h2
             className="m-0 uppercase"
             style={{
@@ -243,7 +250,17 @@ export default function OurProductsCarousel() {
           </p>
         </header>
 
-        <div className="our-products-carousel relative mx-auto">
+        <div
+          className="our-products-carousel-shell relative w-full"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+          onFocusCapture={() => setPaused(true)}
+          onBlurCapture={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+              setPaused(false)
+            }
+          }}
+        >
           <button
             type="button"
             onClick={(e) => {
@@ -268,38 +285,32 @@ export default function OurProductsCarousel() {
             <ChevronRight size={22} strokeWidth={2.2} />
           </button>
 
-          <motion.div
-            role="button"
-            tabIndex={0}
-            className="our-products-stage cursor-pointer"
-            onClick={openShop}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault()
-                openShop()
-              }
-            }}
-            drag="x"
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.08}
-            onDragStart={onDragStart}
-            onDrag={onDrag}
-            onDragEnd={onDragEnd}
-            aria-label="Browse products in shop"
-          >
-            {CAROUSEL_PRODUCTS.map((product, index) => (
-              <CarouselCard
-                key={product.id}
-                product={product}
-                offset={shortestOffset(index, activeIndex)}
-                isActive={index === activeIndex}
-                slideGap={slideGap}
-              />
-            ))}
-          </motion.div>
+          <div className="our-products-carousel relative mx-auto">
+            <motion.div
+              className="our-products-stage cursor-pointer select-none"
+              onClick={openShop}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.08}
+              onDragStart={onDragStart}
+              onDrag={onDrag}
+              onDragEnd={onDragEnd}
+              aria-label="Browse products in shop"
+            >
+              {CAROUSEL_PRODUCTS.map((product, index) => (
+                <CarouselCard
+                  key={product.id}
+                  product={product}
+                  offset={shortestOffset(index, activeIndex)}
+                  isActive={index === activeIndex}
+                  slideGap={slideGap}
+                />
+              ))}
+            </motion.div>
+          </div>
         </div>
 
-        <div className="mt-6 flex justify-center sm:mt-8 md:mt-10">
+        <div className="mt-4 flex justify-center sm:mt-8 md:mt-10">
           <a
             href="/shop"
             onClick={(e) => {

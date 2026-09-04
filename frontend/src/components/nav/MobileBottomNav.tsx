@@ -1,9 +1,9 @@
 import type { ReactElement } from 'react'
-import { BRAND_CREAM_DARK, BRAND_GOLD } from '../../lib/brand'
+import { BRAND_GOLD } from '../../lib/brand'
 import type { SectionId } from '../../lib/sectionNav'
 
 const GOLD = BRAND_GOLD
-const MUTED = '#5A4E42'
+const MUTED = 'rgba(10,46,34,0.52)'
 
 type TabItem = {
   id: SectionId
@@ -76,8 +76,9 @@ export default function MobileBottomNav({ activeId, onNavigate }: MobileBottomNa
     <nav
       className="fixed inset-x-0 bottom-0 z-[55] border-t md:hidden"
       style={{
-        borderColor: 'rgba(61,52,40,0.22)',
-        backgroundColor: BRAND_CREAM_DARK,
+        borderColor: 'rgba(10,46,34,0.08)',
+        backgroundColor: '#ffffff',
+        boxShadow: '0 -4px 20px rgba(10,46,34,0.06)',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
       aria-label="Mobile primary navigation"

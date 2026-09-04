@@ -22,6 +22,8 @@ export const APP_ROUTES = {
   contact: '/contact',
   privacy: '/privacy',
   shippingPolicy: '/shipping-policy',
+  terms: '/terms',
+  ourCompany: '/our-company',
 } as const
 
 export type AppRoute = (typeof APP_ROUTES)[keyof typeof APP_ROUTES]
@@ -93,7 +95,8 @@ export function isPublicPath(pathname: string) {
     isMukhwasBenefitsPath(pathname) ||
     isWholesalePath(pathname) ||
     isContactPath(pathname) ||
-    isLegalPolicyPath(pathname)
+    isLegalPolicyPath(pathname) ||
+    isOurCompanyPath(pathname)
   )
 }
 
@@ -170,8 +173,16 @@ export function isShippingPolicyPath(pathname: string) {
   return pathname === APP_ROUTES.shippingPolicy
 }
 
+export function isTermsPath(pathname: string) {
+  return pathname === APP_ROUTES.terms
+}
+
+export function isOurCompanyPath(pathname: string) {
+  return pathname === APP_ROUTES.ourCompany
+}
+
 export function isLegalPolicyPath(pathname: string) {
-  return isPrivacyPath(pathname) || isShippingPolicyPath(pathname)
+  return isPrivacyPath(pathname) || isShippingPolicyPath(pathname) || isTermsPath(pathname)
 }
 
 export function isAdminPath(pathname: string) {
@@ -210,6 +221,7 @@ export function isAppPagePath(pathname: string) {
     isWholesalePath(pathname) ||
     isContactPath(pathname) ||
     isLegalPolicyPath(pathname) ||
+    isOurCompanyPath(pathname) ||
     isKnowMorePath(pathname) ||
     isWhatTasneemDoPath(pathname) ||
     isMukhwasBenefitsPath(pathname) ||
@@ -244,6 +256,7 @@ export function navigateApp(path: string) {
     isWholesalePath(pathname) ||
     isContactPath(pathname) ||
     isLegalPolicyPath(pathname) ||
+    isOurCompanyPath(pathname) ||
     isAdminPath(pathname) ||
     isAuthPath(pathname)
   ) {

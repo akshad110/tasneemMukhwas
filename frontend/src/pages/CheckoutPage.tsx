@@ -726,9 +726,17 @@ export default function CheckoutPage() {
                 </span>
                 <span className="text-[0.82rem] leading-snug" style={{ color: MUTED }}>
                   I have read and agree to the{' '}
-                  <span className="font-semibold" style={{ color: INK }}>
+                  <a
+                    href={APP_ROUTES.terms}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      navigateApp(APP_ROUTES.terms)
+                    }}
+                    className="font-semibold no-underline transition-colors hover:text-[#b8860b]"
+                    style={{ color: INK }}
+                  >
                     Terms and Conditions
-                  </span>
+                  </a>
                   .
                 </span>
               </button>

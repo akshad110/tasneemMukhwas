@@ -227,7 +227,7 @@ export default function ShopProductCard({
             }
           : undefined
       }
-      className={`shop-product-card group relative flex h-full min-w-0 flex-col overflow-hidden rounded-[1.05rem] p-[4px] min-[480px]:rounded-[1.35rem] min-[480px]:p-[5px] transition max-sm:hover:translate-y-0 max-sm:hover:shadow-[0_20px_44px_-28px_rgba(10,46,34,0.22)] ${
+      className={`shop-product-card group relative flex h-full min-w-0 select-none flex-col overflow-hidden rounded-[1.05rem] p-[4px] min-[480px]:rounded-[1.35rem] min-[480px]:p-[5px] transition max-sm:hover:translate-y-0 max-sm:hover:shadow-[0_20px_44px_-28px_rgba(10,46,34,0.22)] ${
         onOpenDetail
           ? 'cursor-pointer hover:-translate-y-1 hover:shadow-[0_28px_48px_-24px_rgba(10,46,34,0.35)]'
           : ''

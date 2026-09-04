@@ -1,11 +1,9 @@
-import { AnimatePresence, motion } from 'framer-motion'
 import { useCallback, useEffect, useState } from 'react'
 import {
   BRAND_CREAM,
   BRAND_DISPLAY,
   BRAND_GOLD,
   BRAND_SANS,
-  BRAND_SERIF,
 } from '../../lib/brand'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 
@@ -85,8 +83,6 @@ function MobileHero({
   activeIndex: number
   onSelect: (index: number) => void
 }) {
-  const slide = HERO_SLIDE_ITEMS[activeIndex]
-
   const openShop = () => {
     navigateApp(APP_ROUTES.shop)
   }
@@ -124,41 +120,14 @@ function MobileHero({
 
           <div className="hero-mobile-banner__overlay" aria-hidden />
 
-          <div className="hero-mobile-banner__content">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={slide.title}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <h1
-                  className="m-0 text-[clamp(1.35rem,6.2vw,1.85rem)] leading-[1.08] tracking-[-0.02em]"
-                  style={{ color: BRAND_CREAM, fontFamily: BRAND_SERIF }}
-                >
-                  {slide.title}
-                </h1>
-                <p
-                  className="mt-2.5 m-0 max-w-[22rem] text-[0.72rem] leading-relaxed sm:text-[0.78rem]"
-                  style={{
-                    color: 'rgba(248,243,231,0.88)',
-                    fontFamily: BRAND_SANS,
-                  }}
-                >
-                  {slide.body}
-                </p>
-                <button
-                  type="button"
-                  onClick={openShop}
-                  className="hero-mobile-banner__cta mt-3 cursor-pointer border-0 sm:mt-4"
-                  style={{ fontFamily: BRAND_SANS }}
-                >
-                  Shop Now
-                </button>
-              </motion.div>
-            </AnimatePresence>
-          </div>
+          <button
+            type="button"
+            onClick={openShop}
+            className="hero-mobile-banner__cta"
+            style={{ fontFamily: BRAND_SANS }}
+          >
+            Shop Now
+          </button>
         </div>
 
         <MobileHeroDots

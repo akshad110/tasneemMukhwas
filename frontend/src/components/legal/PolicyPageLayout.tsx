@@ -23,6 +23,7 @@ export type PolicyBlock = {
   heading: string
   paragraphs?: string[]
   bullets?: string[]
+  footer?: ReactNode
 }
 
 type PolicyPageLayoutProps = {
@@ -68,6 +69,7 @@ function PolicySection({ block, index }: { block: PolicyBlock; index: number }) 
           ))}
         </ul>
       ) : null}
+      {block.footer ? <div className="mt-3">{block.footer}</div> : null}
     </motion.section>
   )
 }

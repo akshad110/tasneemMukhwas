@@ -22,6 +22,8 @@ import {
   isWishlistPath,
   isPrivacyPath,
   isShippingPolicyPath,
+  isTermsPath,
+  isOurCompanyPath,
   navigateApp,
   APP_ROUTES,
   clearPersistRoute,
@@ -48,6 +50,8 @@ import ProductDetailPage from './pages/ProductDetailPage'
 import WishlistPage from './pages/WishlistPage'
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
 import ShippingPolicyPage from './pages/ShippingPolicyPage'
+import TermsConditionsPage from './pages/TermsConditionsPage'
+import OurCompanyPage from './pages/OurCompanyPage'
 
 function AppRoutes({ path }: { path: string }) {
   const { user, loading } = useAuth()
@@ -67,6 +71,8 @@ function AppRoutes({ path }: { path: string }) {
   const contact = isContactPath(path)
   const privacy = isPrivacyPath(path)
   const shippingPolicy = isShippingPolicyPath(path)
+  const terms = isTermsPath(path)
+  const ourCompany = isOurCompanyPath(path)
   const admin = isAdminPath(path)
   const authMode = path === '/signup' ? 'signup' : 'login'
 
@@ -94,6 +100,8 @@ function AppRoutes({ path }: { path: string }) {
   if (contact) return <ContactPage />
   if (privacy) return <PrivacyPolicyPage />
   if (shippingPolicy) return <ShippingPolicyPage />
+  if (terms) return <TermsConditionsPage />
+  if (ourCompany) return <OurCompanyPage />
   if (admin) return <AdminPage />
 
   return <Home ready />

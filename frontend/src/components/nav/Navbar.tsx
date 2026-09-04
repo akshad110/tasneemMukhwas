@@ -1,6 +1,6 @@
 import { useLenis } from 'lenis/react'
 import { ChevronDown } from 'lucide-react'
-import { useEffect, useMemo, useState, type MouseEvent, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
 import { useCatalog } from '../../context/CatalogContext'
@@ -194,6 +194,8 @@ function NavCountBadge({
   )
 }
 
+const NAV_DROPDOWN_CLOSE_MS = 320
+
 function NavLinks({
   links,
   activeId,
@@ -209,10 +211,30 @@ function NavLinks({
   onPrefetchShop?: () => void
   shopDropdownItems?: NavDropdownItem[]
 }) {
-  const dropdownMenuClass = (align: 'left' | 'right') =>
-    stacked
-      ? 'mt-1 flex w-full flex-col gap-0.5 pl-3'
-      : `invisible absolute ${align === 'right' ? 'right-0' : 'left-0'} top-[calc(100%+8px)] z-50 min-w-[196px] translate-y-1 rounded-xl border bg-[#FFFEF2] py-1.5 opacity-0 shadow-lg transition duration-150 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100`
+  const [openDropdownId, setOpenDropdownId] = useState<SectionId | null>(null)
+  const closeTimerRef = useRef<number | null>(null)
+
+  const clearCloseTimer = () => {
+    if (closeTimerRef.current != null) {
+      window.clearTimeout(closeTimerRef.current)
+      closeTimerRef.current = null
+    }
+  }
+
+  const openDropdown = (id: SectionId) => {
+    clearCloseTimer()
+    setOpenDropdownId(id)
+  }
+
+  const scheduleCloseDropdown = () => {
+    clearCloseTimer()
+    closeTimerRef.current = window.setTimeout(() => {
+      setOpenDropdownId(null)
+      closeTimerRef.current = null
+    }, NAV_DROPDOWN_CLOSE_MS)
+  }
+
+  useEffect(() => () => clearCloseTimer(), [])
 
   const dropdownItemClass = stacked
     ? 'flex w-full cursor-pointer items-center border-0 bg-transparent px-2 py-2 text-left text-[0.82rem] font-medium transition hover:text-[#b8860b]'
@@ -254,9 +276,25 @@ function NavLinks({
                   : pathForSection(link.id)
 
         const dropdownAlignClass = link.id === 'products' ? 'right' : 'left'
+        const isDropdownOpen = openDropdownId === link.id
 
         return (
-          <li key={link.label} className={hasDropdown && !stacked ? 'group relative' : undefined}>
+          <li
+            key={link.label}
+            className={hasDropdown && !stacked ? 'group relative' : undefined}
+            onMouseLeave={() => {
+              if (hasDropdown && !stacked) scheduleCloseDropdown()
+            }}
+            onFocusCapture={() => {
+              if (hasDropdown && !stacked) openDropdown(link.id)
+            }}
+            onBlurCapture={(e) => {
+              if (!hasDropdown || stacked) return
+              if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+                scheduleCloseDropdown()
+              }
+            }}
+          >
             <a
               href={href}
               onClick={(e: MouseEvent<HTMLAnchorElement>) => {
@@ -265,14 +303,16 @@ function NavLinks({
               }}
               onMouseEnter={() => {
                 if (link.id === 'products') onPrefetchShop?.()
+                if (hasDropdown && !stacked) openDropdown(link.id)
               }}
               onFocus={() => {
                 if (link.id === 'products') onPrefetchShop?.()
+                if (hasDropdown && !stacked) openDropdown(link.id)
               }}
               onTouchStart={() => {
                 if (link.id === 'products') onPrefetchShop?.()
               }}
-              className="nav-link group/link inline-flex cursor-pointer items-center gap-1 text-[0.72rem] font-semibold tracking-[0.08em] uppercase no-underline transition-[color,font-weight] duration-200 xl:text-[0.78rem]"
+              className={`nav-link group/link inline-flex cursor-pointer items-center gap-1 text-[0.72rem] font-semibold tracking-[0.08em] uppercase no-underline transition-[color,font-weight] duration-200 xl:text-[0.78rem]${isDropdownOpen ? ' nav-link--menu-open' : ''}`}
               style={{
                 color: isActive ? INK : NAV_LINK,
                 fontFamily: 'Inter, sans-serif',
@@ -282,6 +322,7 @@ function NavLinks({
               }}
               aria-current={isActive ? 'page' : undefined}
               aria-haspopup={hasDropdown ? 'menu' : undefined}
+              aria-expanded={hasDropdown ? isDropdownOpen : undefined}
             >
               <span
                 className="nav-link__label border-b-2 pb-0.5 transition-[border-color,color] duration-200"
@@ -294,7 +335,7 @@ function NavLinks({
               {hasDropdown ? (
                 <ChevronDown
                   className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${
-                    stacked ? '' : 'group-hover:rotate-180 group-focus-within:rotate-180'
+                    stacked ? '' : isDropdownOpen ? 'rotate-180' : ''
                   }`}
                   strokeWidth={2.4}
                   aria-hidden
@@ -303,31 +344,48 @@ function NavLinks({
             </a>
 
             {hasDropdown ? (
-              <div
-                className={dropdownMenuClass(stacked ? 'left' : dropdownAlignClass)}
-                style={
-                  stacked
-                    ? undefined
-                    : {
-                        borderColor: '#E6D8C3',
-                        boxShadow: '0 16px 36px -18px rgba(10,46,34,0.35)',
-                      }
-                }
-                role="menu"
-              >
-                {dropdownItems.map((item) => (
-                  <button
-                    key={item.label}
-                    type="button"
-                    role="menuitem"
-                    onClick={() => openDropdownTarget(link.id)}
-                    className={dropdownItemClass}
-                    style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
+              stacked ? (
+                <div className="mt-1 flex w-full flex-col gap-0.5 pl-3" role="menu">
+                  {dropdownItems.map((item) => (
+                    <button
+                      key={item.label}
+                      type="button"
+                      role="menuitem"
+                      onClick={() => openDropdownTarget(link.id)}
+                      className={dropdownItemClass}
+                      style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div
+                  className={`nav-dropdown-shell nav-dropdown-shell--${dropdownAlignClass}${isDropdownOpen ? ' nav-dropdown-shell--open' : ''}`}
+                  onMouseEnter={() => {
+                    if (isDropdownOpen) clearCloseTimer()
+                  }}
+                  onMouseLeave={scheduleCloseDropdown}
+                >
+                  <div
+                    className={`nav-dropdown-menu${isDropdownOpen ? ' nav-dropdown-menu--open' : ''}`}
+                    role="menu"
                   >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
+                    {dropdownItems.map((item) => (
+                      <button
+                        key={item.label}
+                        type="button"
+                        role="menuitem"
+                        onClick={() => openDropdownTarget(link.id)}
+                        className={dropdownItemClass}
+                        style={{ color: INK, fontFamily: 'Inter, sans-serif' }}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )
             ) : null}
           </li>
         )
@@ -396,19 +454,6 @@ function ProfileAvatarMenu({
           }}
         >
           My Orders
-        </button>
-        <button
-          type="button"
-          onClick={goSettings}
-          className="flex h-11 w-full cursor-pointer items-center justify-center rounded-full border text-[0.9rem] font-semibold"
-          style={{
-            borderColor: 'rgba(10,46,34,0.2)',
-            backgroundColor: 'transparent',
-            color: INK,
-            fontFamily: 'Inter, sans-serif',
-          }}
-        >
-          Settings
         </button>
         <button
           type="button"
@@ -774,19 +819,18 @@ export default function Navbar() {
             id="mobile-nav"
             className="border-t border-[rgba(10,46,34,0.08)] bg-white px-3 pb-4 pt-3 sm:px-4 lg:hidden"
           >
-            <NavLinks
-              links={NAV_LINKS}
-              activeId={activeId}
-              stacked
-              onNavigate={goTo}
-              onPrefetchShop={prefetchCatalog}
-              shopDropdownItems={shopDropdownItems}
-            />
             {!authLoading && user ? (
-              <div className="mt-4 border-t border-[rgba(10,46,34,0.08)] pt-4">
-                <ProfileAvatarMenu stacked onAction={() => setMenuOpen(false)} />
-              </div>
-            ) : null}
+              <ProfileAvatarMenu stacked onAction={() => setMenuOpen(false)} />
+            ) : (
+              <button
+                type="button"
+                onClick={openAuth}
+                className="flex h-11 w-full cursor-pointer items-center justify-center rounded-full text-[0.9rem] font-semibold"
+                style={{ backgroundColor: INK, color: '#f2f4f5', fontFamily: 'Inter, sans-serif' }}
+              >
+                Login / Signup
+              </button>
+            )}
           </div>
         )}
       </header>
