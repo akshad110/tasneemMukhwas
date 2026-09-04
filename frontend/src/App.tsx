@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
 import { useAuth } from './context/AuthContext'
 import SmoothScroll, { RouteScrollReset } from './components/scroll/SmoothScroll'
+import PageFallback from './components/shared/PageFallback'
 import {
   isAdminPath,
   isAppPagePath,
@@ -32,26 +33,31 @@ import {
 } from './lib/appRoutes'
 import { scrollAppToTop } from './lib/scrollControl'
 import { resetPathToHome } from './lib/sectionNav'
-import AdminPage from './pages/AdminPage'
-import AuthPage from './pages/AuthPage'
-import CartPage from './pages/CartPage'
-import CheckoutPage from './pages/CheckoutPage'
 import Home from './pages/Home'
-import KnowMorePage from './pages/KnowMorePage'
-import WhatTasneemDoPage from './pages/WhatTasneemDoPage'
-import MukhwasBenefitsPage from './pages/MukhwasBenefitsPage'
-import ContactPage from './pages/ContactPage'
-import WholesalePage from './pages/WholesalePage'
-import MyOrdersPage from './pages/MyOrdersPage'
-import ProfilePage from './pages/ProfilePage'
-import SettingsPage from './pages/SettingsPage'
-import ShopPage from './pages/ShopPage'
-import ProductDetailPage from './pages/ProductDetailPage'
-import WishlistPage from './pages/WishlistPage'
-import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
-import ShippingPolicyPage from './pages/ShippingPolicyPage'
-import TermsConditionsPage from './pages/TermsConditionsPage'
-import OurCompanyPage from './pages/OurCompanyPage'
+
+const AdminPage = lazy(() => import('./pages/AdminPage'))
+const AuthPage = lazy(() => import('./pages/AuthPage'))
+const CartPage = lazy(() => import('./pages/CartPage'))
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage'))
+const KnowMorePage = lazy(() => import('./pages/KnowMorePage'))
+const WhatTasneemDoPage = lazy(() => import('./pages/WhatTasneemDoPage'))
+const MukhwasBenefitsPage = lazy(() => import('./pages/MukhwasBenefitsPage'))
+const ContactPage = lazy(() => import('./pages/ContactPage'))
+const WholesalePage = lazy(() => import('./pages/WholesalePage'))
+const MyOrdersPage = lazy(() => import('./pages/MyOrdersPage'))
+const ProfilePage = lazy(() => import('./pages/ProfilePage'))
+const SettingsPage = lazy(() => import('./pages/SettingsPage'))
+const ShopPage = lazy(() => import('./pages/ShopPage'))
+const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage'))
+const WishlistPage = lazy(() => import('./pages/WishlistPage'))
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'))
+const ShippingPolicyPage = lazy(() => import('./pages/ShippingPolicyPage'))
+const TermsConditionsPage = lazy(() => import('./pages/TermsConditionsPage'))
+const OurCompanyPage = lazy(() => import('./pages/OurCompanyPage'))
+
+function LazyPage({ children, label }: { children: ReactNode; label?: string }) {
+  return <Suspense fallback={<PageFallback label={label} />}>{children}</Suspense>
+}
 
 function AppRoutes({ path }: { path: string }) {
   const { user, loading } = useAuth()
@@ -81,28 +87,146 @@ function AppRoutes({ path }: { path: string }) {
   }
 
   if (!user && !isPublicPath(path)) {
-    return <AuthPage initialMode="login" />
+    return (
+      <LazyPage label="Loading sign in">
+        <AuthPage initialMode="login" />
+      </LazyPage>
+    )
   }
 
-  if (auth) return <AuthPage initialMode={authMode} />
-  if (shopProductId) return <ProductDetailPage productId={shopProductId} />
-  if (shop) return <ShopPage />
-  if (cart) return <CartPage />
-  if (checkout) return <CheckoutPage />
-  if (profile) return <ProfilePage />
-  if (settings) return <SettingsPage />
-  if (myOrders) return <MyOrdersPage />
-  if (wishlist) return <WishlistPage />
-  if (knowMore) return <KnowMorePage />
-  if (whatTasneemDo) return <WhatTasneemDoPage />
-  if (mukhwasBenefits) return <MukhwasBenefitsPage />
-  if (wholesale) return <WholesalePage />
-  if (contact) return <ContactPage />
-  if (privacy) return <PrivacyPolicyPage />
-  if (shippingPolicy) return <ShippingPolicyPage />
-  if (terms) return <TermsConditionsPage />
-  if (ourCompany) return <OurCompanyPage />
-  if (admin) return <AdminPage />
+  if (auth) {
+    return (
+      <LazyPage label="Loading sign in">
+        <AuthPage initialMode={authMode} />
+      </LazyPage>
+    )
+  }
+  if (shopProductId) {
+    return (
+      <LazyPage>
+        <ProductDetailPage productId={shopProductId} />
+      </LazyPage>
+    )
+  }
+  if (shop) {
+    return (
+      <LazyPage>
+        <ShopPage />
+      </LazyPage>
+    )
+  }
+  if (cart) {
+    return (
+      <LazyPage>
+        <CartPage />
+      </LazyPage>
+    )
+  }
+  if (checkout) {
+    return (
+      <LazyPage>
+        <CheckoutPage />
+      </LazyPage>
+    )
+  }
+  if (profile) {
+    return (
+      <LazyPage>
+        <ProfilePage />
+      </LazyPage>
+    )
+  }
+  if (settings) {
+    return (
+      <LazyPage>
+        <SettingsPage />
+      </LazyPage>
+    )
+  }
+  if (myOrders) {
+    return (
+      <LazyPage>
+        <MyOrdersPage />
+      </LazyPage>
+    )
+  }
+  if (wishlist) {
+    return (
+      <LazyPage>
+        <WishlistPage />
+      </LazyPage>
+    )
+  }
+  if (knowMore) {
+    return (
+      <LazyPage>
+        <KnowMorePage />
+      </LazyPage>
+    )
+  }
+  if (whatTasneemDo) {
+    return (
+      <LazyPage>
+        <WhatTasneemDoPage />
+      </LazyPage>
+    )
+  }
+  if (mukhwasBenefits) {
+    return (
+      <LazyPage>
+        <MukhwasBenefitsPage />
+      </LazyPage>
+    )
+  }
+  if (wholesale) {
+    return (
+      <LazyPage>
+        <WholesalePage />
+      </LazyPage>
+    )
+  }
+  if (contact) {
+    return (
+      <LazyPage>
+        <ContactPage />
+      </LazyPage>
+    )
+  }
+  if (privacy) {
+    return (
+      <LazyPage>
+        <PrivacyPolicyPage />
+      </LazyPage>
+    )
+  }
+  if (shippingPolicy) {
+    return (
+      <LazyPage>
+        <ShippingPolicyPage />
+      </LazyPage>
+    )
+  }
+  if (terms) {
+    return (
+      <LazyPage>
+        <TermsConditionsPage />
+      </LazyPage>
+    )
+  }
+  if (ourCompany) {
+    return (
+      <LazyPage>
+        <OurCompanyPage />
+      </LazyPage>
+    )
+  }
+  if (admin) {
+    return (
+      <LazyPage>
+        <AdminPage />
+      </LazyPage>
+    )
+  }
 
   return <Home ready />
 }

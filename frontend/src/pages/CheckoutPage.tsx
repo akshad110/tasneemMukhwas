@@ -13,7 +13,7 @@ import { ApiRequestError } from '../lib/api'
 import { APP_ROUTES, navigateApp } from '../lib/appRoutes'
 import { scrollAppToTop } from '../lib/scrollControl'
 import { ordersApi, paymentsApi, couponsApi } from '../lib/services'
-import { openRazorpayCheckout } from '../lib/razorpay'
+import { loadRazorpayScript, openRazorpayCheckout } from '../lib/razorpay'
 
 const INK = '#0a2e22'
 const GOLD = '#b8860b'
@@ -226,7 +226,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     document.title = 'Checkout · Tasneem Mukhwas'
     scrollAppToTop(true)
-    void import('../lib/razorpay').then((m) => m.loadRazorpayScript()).catch(() => {})
+    loadRazorpayScript().catch(() => {})
     return () => {
       document.title = 'Tasneem Mukhwas'
     }

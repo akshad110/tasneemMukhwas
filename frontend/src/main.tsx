@@ -8,18 +8,14 @@ import { CartProvider } from './context/CartContext.tsx'
 import { CatalogProvider } from './context/CatalogContext.tsx'
 import { WishlistProvider } from './context/WishlistContext.tsx'
 import { scrollAppToTop } from './lib/scrollControl'
-import { HERO_SLIDES } from './components/hero/Hero'
+import { preloadHeroSlideImages } from './lib/heroSlides'
 
 if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual'
 }
 scrollAppToTop(true)
 
-HERO_SLIDES.forEach((src) => {
-  const img = new Image()
-  img.decoding = 'async'
-  img.src = src
-})
+preloadHeroSlideImages()
 
 createRoot(document.getElementById('root')!).render(
   <AuthProvider>

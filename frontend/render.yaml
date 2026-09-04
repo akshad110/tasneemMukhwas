@@ -4,7 +4,7 @@ services:
     name: tasneem-mukhwas
     runtime: static
     rootDir: .
-    buildCommand: npm install && npm run build
+    buildCommand: npm ci && npm run build
     staticPublishPath: dist
     routes:
       - type: rewrite

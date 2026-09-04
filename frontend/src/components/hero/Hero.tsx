@@ -6,37 +6,34 @@ import {
   BRAND_SANS,
 } from '../../lib/brand'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
+import { HERO_SLIDE_IMAGES, preloadHeroSlideImages } from '../../lib/heroSlides'
 
 const HERO_SLIDE_ITEMS = [
   {
-    image: '/Mukhwas_pouches_on_wooden_table_202608251659.jpeg',
+    image: HERO_SLIDE_IMAGES[0],
     title: 'A Touch of Bliss',
     body: 'Premium mukhwas blends crafted for freshness, tradition, and everyday delight.',
   },
   {
-    image: '/Mukhwas_pouches_on_wooden_table_202608251630.jpeg',
+    image: HERO_SLIDE_IMAGES[1],
     title: 'Crafted with Care',
     body: 'Time-honoured recipes, hygienically packed — from our Chhapi kitchen to your home.',
   },
   {
-    image: '/Red_pouch_and_mukhwas_bowl_202608251659.jpeg',
+    image: HERO_SLIDE_IMAGES[2],
     title: 'Find Your Favorite',
     body: 'Explore Shahi, Paan, Mango Slice, and more — pick the blend that suits your mood.',
   },
 ] as const
 
-const HERO_SLIDES = HERO_SLIDE_ITEMS.map((slide) => slide.image)
+const HERO_SLIDES = HERO_SLIDE_IMAGES
 
 const SLIDE_MS = 6200
 const FADE_MS = 2200
 const EASE = 'cubic-bezier(0.45, 0.05, 0.25, 1)'
 
 function preloadHeroSlides() {
-  HERO_SLIDES.forEach((src) => {
-    const img = new Image()
-    img.decoding = 'async'
-    img.src = src
-  })
+  preloadHeroSlideImages()
 }
 
 function MobileHeroDots({
