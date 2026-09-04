@@ -62,22 +62,23 @@ type CarouselCardProps = {
   slideGap: number
 }
 
+const ACTIVE_MEDIA_BG = '#f5f1e1'
+const INACTIVE_MEDIA_BG = '#c5b396'
+
 function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps) {
-  const [imageHovered, setImageHovered] = useState(false)
-  const [titleHovered, setTitleHovered] = useState(false)
-  const hoverActive = imageHovered || titleHovered
+  const [hovered, setHovered] = useState(false)
   const rotateX = useSpring(0, { stiffness: 180, damping: 26 })
   const rotateY = useSpring(0, { stiffness: 180, damping: 26 })
   const abs = Math.abs(offset)
 
   const hoverTransition = {
     type: 'tween' as const,
-    duration: 0.75,
+    duration: 0.65,
     ease: [0.22, 1, 0.36, 1] as const,
   }
 
   const onMove = (e: ReactMouseEvent<HTMLElement>) => {
-    if (!isActive || hoverActive) return
+    if (!isActive || hovered) return
     const rect = e.currentTarget.getBoundingClientRect()
     const px = (e.clientX - rect.left) / rect.width - 0.5
     const py = (e.clientY - rect.top) / rect.height - 0.5
@@ -88,9 +89,16 @@ function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps
   const onLeave = () => {
     rotateX.set(0)
     rotateY.set(0)
-    setImageHovered(false)
-    setTitleHovered(false)
+    setHovered(false)
   }
+
+  const mediaBg = isActive
+    ? hovered
+      ? product.mediaHoverColor
+      : ACTIVE_MEDIA_BG
+    : INACTIVE_MEDIA_BG
+
+  const showHoverFx = isActive && hovered
 
   const baseRotateY = offset * -32
   const translateX = offset * slideGap
@@ -120,44 +128,46 @@ function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps
       }}
     >
       <motion.div
-        className={`our-products-card__inner${isActive ? ' our-products-card__inner--active' : ''}${hoverActive ? ' our-products-card__inner--content-hover' : ''}`}
+        className={`our-products-card__inner${isActive ? ' our-products-card__inner--active' : ''}${showHoverFx ? ' our-products-card__inner--content-hover' : ''}`}
         style={{
-          rotateX: isActive && !hoverActive ? rotateX : 0,
-          rotateY: isActive && !hoverActive ? rotateY : 0,
+          rotateX: isActive && !hovered ? rotateX : 0,
+          rotateY: isActive && !hovered ? rotateY : 0,
           transformStyle: 'preserve-3d',
         }}
         onMouseMove={onMove}
+        onMouseEnter={() => isActive && setHovered(true)}
         onMouseLeave={onLeave}
       >
         {isActive ? <span className="our-products-card__ring" aria-hidden /> : null}
         <div className="our-products-card__content">
-          <div
+          <motion.div
             className="our-products-card__media"
-            onMouseEnter={() => isActive && setImageHovered(true)}
-            onMouseLeave={() => setImageHovered(false)}
+            animate={{ backgroundColor: mediaBg }}
+            transition={hoverTransition}
           >
-            <motion.img
-              src={product.image}
-              alt={product.name}
-              loading="lazy"
-              decoding="async"
-              draggable={false}
-              className="our-products-card__image"
+            <motion.div
+              className="our-products-card__image-wrap"
               animate={{
-                scale: isActive && imageHovered ? 1.26 : 1,
-                y: isActive && imageHovered ? -6 : 0,
+                scale: showHoverFx ? 1.16 : 1,
               }}
               transition={hoverTransition}
-            />
-          </div>
+            >
+              <img
+                src={product.image}
+                alt={product.name}
+                loading="lazy"
+                decoding="async"
+                draggable={false}
+                className="our-products-card__image"
+              />
+            </motion.div>
+          </motion.div>
           <div className="our-products-card__body">
             <p className="our-products-card__label">Ingredients</p>
             <motion.h3
               className="our-products-card__name"
-              onMouseEnter={() => isActive && setTitleHovered(true)}
-              onMouseLeave={() => setTitleHovered(false)}
               animate={{
-                scale: isActive && titleHovered ? 1.045 : 1,
+                scale: showHoverFx ? 1.03 : 1,
               }}
               transition={hoverTransition}
               style={{ transformOrigin: 'left center' }}
