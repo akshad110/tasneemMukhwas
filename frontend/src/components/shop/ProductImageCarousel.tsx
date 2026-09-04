@@ -56,14 +56,14 @@ export default function ProductImageCarousel({
 
   return (
     <div
-      className={`absolute inset-0 flex flex-col overflow-hidden ${className}`}
+      className={`absolute inset-0 z-[1] flex flex-col overflow-hidden ${className}`}
       style={{ backgroundColor: panelBg }}
     >
       <div
         className="relative min-h-0 flex-1 overflow-hidden"
         style={{
-          transform: hovered && !dimmed ? 'scale(1.05)' : 'scale(1)',
-          transition: 'transform 0.55s cubic-bezier(0.22, 1, 0.36, 1)',
+          transform: hovered && !dimmed ? 'scale(1.08)' : 'scale(1)',
+          transition: 'transform 0.65s cubic-bezier(0.22, 1, 0.36, 1)',
         }}
       >
         <AnimatePresence initial={false}>

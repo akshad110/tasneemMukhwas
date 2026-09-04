@@ -92,12 +92,6 @@ function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps
     setHovered(false)
   }
 
-  const mediaBg = isActive
-    ? hovered
-      ? product.mediaHoverColor
-      : ACTIVE_MEDIA_BG
-    : INACTIVE_MEDIA_BG
-
   const showHoverFx = isActive && hovered
 
   const baseRotateY = offset * -32
@@ -140,11 +134,19 @@ function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps
       >
         {isActive ? <span className="our-products-card__ring" aria-hidden /> : null}
         <div className="our-products-card__content">
-          <motion.div
+          <div
             className="our-products-card__media"
-            animate={{ backgroundColor: mediaBg }}
-            transition={hoverTransition}
+            style={{
+              backgroundColor: isActive ? ACTIVE_MEDIA_BG : INACTIVE_MEDIA_BG,
+            }}
           >
+            <motion.span
+              className="our-products-card__media-pattern"
+              aria-hidden
+              animate={{ opacity: showHoverFx ? 1 : 0 }}
+              transition={hoverTransition}
+              style={{ backgroundImage: `url(${product.mediaHoverBg})` }}
+            />
             <motion.div
               className="our-products-card__image-wrap"
               animate={{
@@ -161,7 +163,7 @@ function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps
                 className="our-products-card__image"
               />
             </motion.div>
-          </motion.div>
+          </div>
           <div className="our-products-card__body">
             <p className="our-products-card__label">Ingredients</p>
             <motion.h3

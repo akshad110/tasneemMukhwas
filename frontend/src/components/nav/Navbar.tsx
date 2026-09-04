@@ -25,7 +25,6 @@ import MobileBottomNav from './MobileBottomNav'
 import {
   pathForSection,
   scrollToSection,
-  syncActiveSectionFromScroll,
   ensureHomePath,
   type SectionId,
 } from '../../lib/sectionNav'
@@ -139,7 +138,7 @@ function useActiveSection() {
 
       if (pathname === '/' || isHomeScrollPath(pathname)) {
         if (pathname !== '/') ensureHomePath()
-        setActiveId(syncActiveSectionFromScroll())
+        setActiveId('home')
       } else {
         setActiveId(resolveActive(pathname))
       }

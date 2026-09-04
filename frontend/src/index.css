@@ -3099,7 +3099,17 @@ a:focus-visible .footer-link::after {
   background: var(--op-inactive-media);
   overflow: hidden;
   isolation: isolate;
-  will-change: background-color;
+}
+
+.our-products-card__media-pattern {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  will-change: opacity;
 }
 
 .our-products-card__inner--active .our-products-card__media {
@@ -3107,6 +3117,8 @@ a:focus-visible .footer-link::after {
 }
 
 .our-products-card__image-wrap {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4900,6 +4912,14 @@ a:focus-visible .footer-link::after {
   body.tm-mobile-tab-active .tm-floating-actions {
     bottom: calc(4.35rem + env(safe-area-inset-bottom, 0px));
   }
+}
+
+/* Shop product card — per-product decorative hover background */
+.shop-product-card__hover-pattern {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  will-change: opacity;
 }
 
 /* Shop product card — gold + dark green action buttons */

@@ -21,6 +21,7 @@ import {
   getVariantsForPackType,
   type ShopProduct,
 } from '../../lib/shopCatalog'
+import { getProductPacketHoverPattern } from '../../lib/productHoverTheme'
 import ProductImageCarousel from './ProductImageCarousel'
 import {
   BRAND_CREAM,
@@ -44,6 +45,8 @@ const BTN_TEXT = '#ffffff'
 const OUTER_BORDER = '2px solid rgba(184,134,11,0.42)'
 const INNER_BORDER = '1px solid rgba(184,134,11,0.26)'
 const REVEAL_EASE = [0.22, 1, 0.36, 1] as const
+const HOVER_EASE = [0.22, 1, 0.36, 1] as const
+const HOVER_MS = 0.65
 
 function Stars({ rating }: { rating: number }) {
   return (
@@ -147,6 +150,7 @@ export default function ShopProductCard({
   }, [product])
 
   const panelFill = getProductPanelFill(product)
+  const packetHoverPattern = getProductPacketHoverPattern(product)
   const cartQty = getQty(product.id, variantId)
   const sellPrice = getSellPrice(product, packType)
   const comparePrice = getComparePrice(product, packType)
@@ -267,10 +271,18 @@ export default function ShopProductCard({
           onMouseEnter={() => setImageHovered(true)}
           onMouseLeave={() => setImageHovered(false)}
         >
+          <motion.span
+            className="shop-product-card__hover-pattern pointer-events-none absolute inset-0 z-[0]"
+            aria-hidden
+            animate={{ opacity: imageHovered && !outOfStock ? 1 : 0 }}
+            transition={{ duration: HOVER_MS, ease: HOVER_EASE }}
+            style={{ backgroundImage: `url(${packetHoverPattern})` }}
+          />
+
           <ProductImageCarousel
             images={lazyImages}
             alt={product.name}
-            panelBg={panelFill || IMAGE_BG}
+            panelBg="transparent"
             dimmed={outOfStock}
             hovered={imageHovered}
           />

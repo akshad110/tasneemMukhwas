@@ -29,7 +29,7 @@ const MUTED = BRAND_MUTED
 const GOLD = BRAND_GOLD
 const EASE = [0.22, 1, 0.36, 1] as const
 
-const HERO_IMG = encodeURI('/Tasneem_Mukhwas_pouch_on_surface_202609010124.jpeg')
+const HERO_IMG = encodeURI('/WhatsApp Image 2026-09-04 at 11.17.34 PM.jpeg')
 const FOUNDER_PORTRAIT = encodeURI('/ChatGPT Image Aug 21, 2026 at 02_51_39 PM.png')
 
 const OUR_SERVICES = [
@@ -302,8 +302,15 @@ export default function KnowMorePage() {
               </Reveal>
 
               <Reveal delay={0.1}>
-                <div className="overflow-hidden rounded-xl lg:rounded-2xl" style={{ backgroundColor: CREAM_LIGHT }}>
-                  <img src={HERO_IMG} alt="Tasneem Mukhwas pouches" className="block aspect-[5/4] w-full object-cover" />
+                <div
+                  className="overflow-hidden rounded-xl lg:rounded-2xl"
+                  style={{ backgroundColor: CREAM_LIGHT }}
+                >
+                  <img
+                    src={HERO_IMG}
+                    alt="Tasneem Mukhwas — The True Taste of Tradition"
+                    className="block h-auto w-full object-contain"
+                  />
                 </div>
               </Reveal>
             </div>

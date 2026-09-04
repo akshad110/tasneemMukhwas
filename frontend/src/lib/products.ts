@@ -54,8 +54,8 @@ export const ORBIT_ITEMS: OrbitItem[] = [
     label: 'Mouth Freshener',
   },
   {
-    image: '/WhatsApp_Image_2026-08-09_at_8.07.23_PM-removebg-preview.png',
-    label: 'Classic Blend',
+    image: '/products/jamun-shots-mukhwas.png',
+    label: 'Jamun Shots',
   },
   {
     image: '/WhatsApp_Image_2026-08-09_at_8.07.24_PM-removebg-preview.png',
