@@ -59,15 +59,17 @@ export default function GlobalReachSection() {
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.55, delay: 0.06, ease: EASE }}
         >
-          <img
-            src={WORLD_MAP_SRC}
-            alt="World map showing Tasneem Mukhwas retail partners and export reach from India"
-            loading="lazy"
-            decoding="async"
-            className="mx-auto block h-auto w-full max-w-full select-none rounded-sm sm:rounded-none"
-            style={{ backgroundColor: MAP_SECTION_BG }}
-            draggable={false}
-          />
+          <div className="section-image-hover overflow-hidden rounded-sm sm:rounded-md">
+            <img
+              src={WORLD_MAP_SRC}
+              alt="World map showing Tasneem Mukhwas retail partners and export reach from India"
+              loading="lazy"
+              decoding="async"
+              className="section-image-hover__img mx-auto block h-auto w-full max-w-full select-none"
+              style={{ backgroundColor: MAP_SECTION_BG }}
+              draggable={false}
+            />
+          </div>
         </motion.div>
       </div>
     </section>

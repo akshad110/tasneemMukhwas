@@ -303,13 +303,13 @@ export default function KnowMorePage() {
 
               <Reveal delay={0.1}>
                 <div
-                  className="overflow-hidden rounded-xl lg:rounded-2xl"
+                  className="section-image-hover overflow-hidden rounded-xl lg:rounded-2xl"
                   style={{ backgroundColor: CREAM_LIGHT }}
                 >
                   <img
                     src={HERO_IMG}
                     alt="Tasneem Mukhwas — The True Taste of Tradition"
-                    className="block h-auto w-full object-contain"
+                    className="section-image-hover__img block h-auto w-full object-contain"
                   />
                 </div>
               </Reveal>
@@ -321,13 +321,14 @@ export default function KnowMorePage() {
         <section style={{ backgroundColor: CREAM }}>
           <div className="mx-auto grid max-w-[1320px] items-center gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[minmax(240px,300px)_1fr] lg:px-10 lg:py-20">
             <Reveal className="mx-auto w-full max-w-[300px] lg:mx-0">
-              <img
-                src={FOUNDER_PORTRAIT}
-                alt="A Y Patel"
-                className="block aspect-[4/5] w-full object-cover object-top"
-                style={{ backgroundColor: CREAM_LIGHT }}
-                loading="lazy"
-              />
+              <div className="section-image-hover overflow-hidden" style={{ backgroundColor: CREAM_LIGHT }}>
+                <img
+                  src={FOUNDER_PORTRAIT}
+                  alt="A Y Patel"
+                  className="section-image-hover__img block aspect-[4/5] w-full object-cover object-top"
+                  loading="lazy"
+                />
+              </div>
             </Reveal>
             <Reveal delay={0.08}>
               <p className="m-0 text-[0.62rem] font-bold tracking-[0.2em] uppercase" style={{ color: 'rgba(10,46,34,0.45)' }}>
@@ -401,14 +402,14 @@ export default function KnowMorePage() {
                   <button
                     type="button"
                     onClick={() => navigateApp(item.href)}
-                    className="group w-full cursor-pointer overflow-hidden border-0 p-0 text-left"
+                    className="section-image-hover group w-full cursor-pointer overflow-hidden border-0 p-0 text-left"
                     style={{ backgroundColor: CREAM_LIGHT }}
                   >
                     <div className="overflow-hidden">
                       <img
                         src={item.image}
                         alt={item.title}
-                        className="block aspect-[16/10] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                        className="section-image-hover__img block aspect-[16/10] w-full object-cover"
                         loading="lazy"
                       />
                     </div>
@@ -442,15 +443,21 @@ export default function KnowMorePage() {
         <ManufacturingProcessSection background="cream-deep" />
 
         {/* Why Choose Us */}
-        <section style={{ backgroundColor: CREAM_LIGHT }}>
-          <div className="mx-auto max-w-[1320px] px-5 py-14 sm:px-8 lg:px-10 lg:py-20">
-            <Reveal>
+        <section id="why-choose-us" className="why-choose-us" aria-labelledby="why-choose-us-title">
+          <div className="why-choose-us__glow" aria-hidden />
+          <div className="relative mx-auto max-w-[1320px] px-5 py-14 sm:px-8 lg:px-10 lg:py-20">
+            <Reveal className="mx-auto max-w-2xl text-center">
+              <p className="why-choose-us__eyebrow m-0">Trusted partner</p>
               <h2
-                className="m-0 text-center text-[clamp(2rem,5vw,3.4rem)] leading-[1.05] tracking-[-0.02em]"
-                style={{ color: INK, fontFamily: BRAND_SERIF }}
+                id="why-choose-us-title"
+                className="why-choose-us__title m-0 text-[clamp(2rem,5vw,3.4rem)] leading-[1.05] tracking-[-0.02em]"
               >
                 Why Choose Us
               </h2>
+              <p className="why-choose-us__lead mx-auto mt-4 max-w-xl text-[0.92rem] leading-relaxed sm:text-[0.98rem]">
+                Quality manufacturing, flexible supply, and export-ready fulfilment — built for retailers,
+                distributors, and hospitality partners.
+              </p>
             </Reveal>
 
             <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:mt-12 lg:grid-cols-3 lg:gap-5">
@@ -458,27 +465,14 @@ export default function KnowMorePage() {
                 const Icon = item.icon
                 return (
                   <Reveal key={item.title} delay={i * 0.05}>
-                    <article
-                      className="flex h-full flex-col items-center rounded-2xl border px-5 py-7 text-center sm:px-6 sm:py-8"
-                      style={{
-                        borderColor: 'rgba(10,46,34,0.1)',
-                        backgroundColor: 'rgba(255,255,255,0.72)',
-                      }}
-                    >
-                      <span
-                        className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl"
-                        style={{ backgroundColor: 'rgba(10,46,34,0.06)', color: INK }}
-                        aria-hidden
-                      >
+                    <article className="why-choose-us__card flex h-full flex-col items-center px-5 py-7 text-center sm:px-6 sm:py-8">
+                      <span className="why-choose-us__icon mb-4 flex h-12 w-12 items-center justify-center rounded-xl" aria-hidden>
                         <Icon className="h-6 w-6" strokeWidth={1.75} />
                       </span>
-                      <h3
-                        className="m-0 text-[1.05rem] font-bold leading-snug sm:text-[1.12rem]"
-                        style={{ color: INK, fontFamily: BRAND_SANS }}
-                      >
+                      <h3 className="why-choose-us__card-title m-0 text-[1.05rem] font-bold leading-snug sm:text-[1.12rem]">
                         {item.title}
                       </h3>
-                      <p className="mt-2.5 m-0 max-w-[18rem] text-[0.88rem] leading-[1.65]" style={{ color: MUTED }}>
+                      <p className="why-choose-us__card-copy mt-2.5 m-0 max-w-[18rem] text-[0.88rem] leading-[1.65]">
                         {item.body}
                       </p>
                     </article>
@@ -504,13 +498,13 @@ export default function KnowMorePage() {
                 <Reveal key={cert.title} delay={i * 0.08} className="h-full">
                   <article className="flex h-full flex-col" style={{ backgroundColor: CREAM_LIGHT }}>
                     <div
-                      className="flex h-[280px] shrink-0 items-center justify-center px-5 py-8"
+                      className="section-image-hover flex h-[280px] shrink-0 items-center justify-center overflow-hidden px-5 py-8"
                       style={{ backgroundColor: CREAM_DEEP }}
                     >
                       <img
                         src={cert.src}
                         alt={cert.title}
-                        className="max-h-[220px] w-auto max-w-full object-contain"
+                        className="section-image-hover__img max-h-[220px] w-auto max-w-full object-contain"
                         loading="lazy"
                       />
                     </div>
@@ -545,14 +539,19 @@ export default function KnowMorePage() {
             <div className="know-licence-scroll flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4">
               {LICENCES.map((item) => (
                 <figure key={item.title} className="shrink-0 snap-center">
-                  <div className="flex aspect-[3/4] w-[210px] items-center justify-center overflow-hidden sm:w-[230px]">
-                    <img
-                      src={item.src}
-                      alt={item.title}
-                      className="max-h-full max-w-full object-contain"
-                      style={'rotate' in item && item.rotate ? { transform: `rotate(${item.rotate}deg)` } : undefined}
-                      loading="lazy"
-                    />
+                  <div className="section-image-hover flex aspect-[3/4] w-[210px] items-center justify-center overflow-hidden sm:w-[230px]">
+                    <div
+                      style={
+                        'rotate' in item && item.rotate ? { transform: `rotate(${item.rotate}deg)` } : undefined
+                      }
+                    >
+                      <img
+                        src={item.src}
+                        alt={item.title}
+                        className="section-image-hover__img max-h-full max-w-full object-contain"
+                        loading="lazy"
+                      />
+                    </div>
                   </div>
                   <figcaption className="mt-3 max-w-[230px]">
                     <h3 className="m-0 text-[1rem]" style={{ fontFamily: BRAND_SERIF, color: INK }}>

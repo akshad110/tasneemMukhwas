@@ -131,13 +131,13 @@ export default function WhatTasneemDoPage() {
               </ul>
             </div>
             <div
-              className="overflow-hidden rounded-2xl border shadow-[0_24px_50px_-30px_rgba(10,46,34,0.35)] lg:sticky lg:top-28 lg:max-w-md lg:justify-self-end"
+              className="section-image-hover overflow-hidden rounded-2xl border shadow-[0_24px_50px_-30px_rgba(10,46,34,0.35)] lg:sticky lg:top-28 lg:max-w-md lg:justify-self-end"
               style={{ borderColor: 'rgba(184,134,11,0.28)' }}
             >
               <img
                 src={ingredientImage}
                 alt={ingredientImageAlt}
-                className="block aspect-[16/10] max-h-[200px] w-full object-cover object-center sm:max-h-[220px] lg:max-h-[240px]"
+                className="section-image-hover__img block aspect-[16/10] max-h-[200px] w-full object-cover object-center sm:max-h-[220px] lg:max-h-[240px]"
                 loading="lazy"
               />
             </div>
@@ -295,11 +295,16 @@ export default function WhatTasneemDoPage() {
                   <div
                     className={
                       'fit' in item && item.fit === 'infographic'
-                        ? 'hygiene-card__media hygiene-card__media--infographic'
-                        : 'hygiene-card__media'
+                        ? 'hygiene-card__media hygiene-card__media--infographic section-image-hover'
+                        : 'hygiene-card__media section-image-hover'
                     }
                   >
-                    <img src={item.src} alt={item.alt} className="hygiene-card__img" loading="lazy" />
+                    <img
+                      src={item.src}
+                      alt={item.alt}
+                      className="hygiene-card__img section-image-hover__img"
+                      loading="lazy"
+                    />
                   </div>
                   <figcaption
                     className="px-3 py-2.5 text-[0.72rem] font-semibold tracking-[0.06em] uppercase"

@@ -76,14 +76,14 @@ export default function ManufacturingProcessSection({
                 backgroundColor: BRAND_CREAM,
               }}
             >
-              <div className="manufacturing-process__media">
+              <div className="manufacturing-process__media section-image-hover">
                 <img
                   src={step.image}
                   alt={step.alt}
                   loading="lazy"
                   decoding="async"
                   draggable={false}
-                  className="manufacturing-process__img"
+                  className="manufacturing-process__img section-image-hover__img"
                 />
               </div>
               <figcaption className="sr-only">

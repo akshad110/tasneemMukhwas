@@ -16,12 +16,10 @@ import {
   getProductCardTeaser,
   getProductImages,
   getProductPackFormat,
-  getProductPanelFill,
   getSellPrice,
   getVariantsForPackType,
   type ShopProduct,
 } from '../../lib/shopCatalog'
-import { getProductPacketHoverPattern } from '../../lib/productHoverTheme'
 import ProductImageCarousel from './ProductImageCarousel'
 import {
   BRAND_CREAM,
@@ -45,9 +43,6 @@ const BTN_TEXT = '#ffffff'
 const OUTER_BORDER = '2px solid rgba(184,134,11,0.42)'
 const INNER_BORDER = '1px solid rgba(184,134,11,0.26)'
 const REVEAL_EASE = [0.22, 1, 0.36, 1] as const
-const HOVER_EASE = [0.22, 1, 0.36, 1] as const
-const HOVER_MS = 0.65
-
 function Stars({ rating }: { rating: number }) {
   return (
     <span className="inline-flex gap-0.5 text-[0.62rem] min-[480px]:text-[0.72rem]" aria-label={`${rating} out of 5 stars`}>
@@ -149,14 +144,13 @@ export default function ShopProductCard({
     }
   }, [product])
 
-  const panelFill = getProductPanelFill(product)
-  const packetHoverPattern = getProductPacketHoverPattern(product)
   const cartQty = getQty(product.id, variantId)
   const sellPrice = getSellPrice(product, packType)
   const comparePrice = getComparePrice(product, packType)
   const outOfStock = Boolean(product.outOfStock)
   const cardTeaser = getProductCardTeaser(product, packType)
   const showSeeMore = Boolean(onOpenDetail)
+  const hasGallery = lazyImages.length > 1
 
   const requireAuth = () => {
     if (user) return true
@@ -263,28 +257,25 @@ export default function ShopProductCard({
         <div className="flex min-h-0 flex-1 flex-col rounded-[0.8rem] p-1.5 min-[480px]:rounded-[0.95rem] min-[480px]:p-2 sm:p-2.5">
         <div
           ref={imageHostRef}
-          className="relative h-[108px] shrink-0 overflow-hidden rounded-md border min-[480px]:h-[118px] min-[480px]:rounded-lg sm:h-[128px]"
+          className={`relative shrink-0 overflow-hidden rounded-md border min-[480px]:rounded-lg ${
+            hasGallery
+              ? 'shop-product-card__media--gallery h-[180px] min-[480px]:h-[200px] sm:h-[220px]'
+              : 'h-[108px] min-[480px]:h-[118px] sm:h-[128px]'
+          }`}
           style={{
-            backgroundColor: panelFill || IMAGE_BG,
+            backgroundColor: IMAGE_BG,
             borderColor: 'rgba(184,134,11,0.2)',
           }}
           onMouseEnter={() => setImageHovered(true)}
           onMouseLeave={() => setImageHovered(false)}
         >
-          <motion.span
-            className="shop-product-card__hover-pattern pointer-events-none absolute inset-0 z-[0]"
-            aria-hidden
-            animate={{ opacity: imageHovered && !outOfStock ? 1 : 0 }}
-            transition={{ duration: HOVER_MS, ease: HOVER_EASE }}
-            style={{ backgroundImage: `url(${packetHoverPattern})` }}
-          />
-
           <ProductImageCarousel
             images={lazyImages}
             alt={product.name}
-            panelBg="transparent"
+            panelBg={IMAGE_BG}
             dimmed={outOfStock}
             hovered={imageHovered}
+            variant="shop-card"
           />
 
           {outOfStock && (

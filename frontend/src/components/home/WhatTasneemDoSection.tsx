@@ -58,14 +58,14 @@ export default function WhatTasneemDoSection() {
               style={{ backgroundColor: BRAND_CREAM_DEEP, border: '1px solid rgba(184,134,11,0.25)' }}
               aria-hidden
             />
-            <div className="what-tasneem-do__media relative z-[1] overflow-hidden rounded-[1rem]">
+            <div className="what-tasneem-do__media section-image-hover relative z-[1] overflow-hidden rounded-[1rem]">
               <img
                 src={image}
                 alt={imageAlt}
                 loading="lazy"
                 decoding="async"
                 draggable={false}
-                className="what-tasneem-do__img"
+                className="what-tasneem-do__img section-image-hover__img"
               />
             </div>
           </div>

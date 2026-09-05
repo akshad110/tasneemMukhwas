@@ -131,7 +131,7 @@ function ProductDetailBody({
       }`}
     >
       <div
-        className={`relative flex min-w-0 items-center justify-center self-stretch overflow-hidden rounded-lg border ${
+        className={`section-image-hover relative flex min-w-0 items-center justify-center self-stretch overflow-hidden rounded-lg border ${
           stacked ? 'min-h-[200px] md:min-h-[240px]' : 'min-h-[200px] md:min-h-[240px] lg:min-h-[260px]'
         }`}
         style={{
@@ -140,16 +140,18 @@ function ProductDetailBody({
         }}
       >
         <PanelBackground product={product} />
-        <motion.img
-          layoutId={`product-image-${product.id}`}
-          src={product.image}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          className="relative z-[1] h-full max-h-[220px] w-auto max-w-[min(100%,220px)] object-contain object-center drop-shadow-md md:max-h-[260px] md:max-w-[min(100%,240px)] lg:max-h-[290px] lg:max-w-[min(100%,250px)]"
-          draggable={false}
-          transition={PANEL_SPRING}
-        />
+        <div className="section-image-hover__img relative z-[1] flex h-full w-full items-center justify-center">
+          <motion.img
+            layoutId={`product-image-${product.id}`}
+            src={product.image}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="h-full max-h-[220px] w-auto max-w-[min(100%,220px)] object-contain object-center drop-shadow-md md:max-h-[260px] md:max-w-[min(100%,240px)] lg:max-h-[290px] lg:max-w-[min(100%,250px)]"
+            draggable={false}
+            transition={PANEL_SPRING}
+          />
+        </div>
       </div>
 
       <div className="flex min-w-0 flex-col justify-center gap-2 px-1 text-left md:gap-2.5 md:px-2 lg:gap-2 lg:pr-1">

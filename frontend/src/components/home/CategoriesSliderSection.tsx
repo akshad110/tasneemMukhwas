@@ -216,14 +216,16 @@ export default function CategoriesSliderSection() {
 
                       <div className="categories-slider__visual">
                         <div className="categories-slider__blob">
-                          <img
-                            src={item.promoImage}
-                            alt={item.sampleProductName}
-                            loading="lazy"
-                            decoding="async"
-                            draggable={false}
-                            className="categories-slider__promo-image"
-                          />
+                          <div className="section-image-hover flex h-full w-full items-center justify-center">
+                            <img
+                              src={item.promoImage}
+                              alt={item.sampleProductName}
+                              loading="lazy"
+                              decoding="async"
+                              draggable={false}
+                              className="categories-slider__promo-image section-image-hover__img"
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>

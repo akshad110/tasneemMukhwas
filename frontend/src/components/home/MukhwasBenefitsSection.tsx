@@ -143,14 +143,16 @@ export default function MukhwasBenefitsSection() {
                 style={{ backgroundColor: BRAND_CREAM_DEEP, border: '1px solid rgba(184,134,11,0.25)' }}
                 aria-hidden
               />
-              <img
-                src={image}
-                alt={imageAlt}
-                loading="lazy"
-                decoding="async"
-                draggable={false}
-                className="relative z-[1] block aspect-[16/10] max-h-[200px] w-full rounded-[1rem] object-cover object-center sm:max-h-[220px] lg:max-h-[240px]"
-              />
+              <div className="section-image-hover relative z-[1] overflow-hidden rounded-[1rem]">
+                <img
+                  src={image}
+                  alt={imageAlt}
+                  loading="lazy"
+                  decoding="async"
+                  draggable={false}
+                  className="section-image-hover__img relative z-[1] block aspect-[16/10] max-h-[200px] w-full rounded-[1rem] object-cover object-center sm:max-h-[220px] lg:max-h-[240px]"
+                />
+              </div>
             </div>
           </motion.div>
         </div>

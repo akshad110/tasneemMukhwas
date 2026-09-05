@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useLenis } from 'lenis/react'
 import { useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
 import { useWishlist } from '../../context/WishlistContext'
@@ -60,6 +61,76 @@ export default function ProductDetailView({ product, promoLabel }: ProductDetail
   const [wishBusy, setWishBusy] = useState(false)
   const [variantId, setVariantId] = useState('packet-100g')
   const [imagesLoading, setImagesLoading] = useState(false)
+  const splitRef = useRef<HTMLDivElement>(null)
+  const gallerySlotRef = useRef<HTMLDivElement>(null)
+  const galleryRef = useRef<HTMLDivElement>(null)
+  const [galleryPinned, setGalleryPinned] = useState(false)
+  const [galleryPinStyle, setGalleryPinStyle] = useState<CSSProperties>({})
+  const [gallerySlotSize, setGallerySlotSize] = useState({ width: 0, height: 0 })
+  const lenis = useLenis()
+
+  useEffect(() => {
+    const split = splitRef.current
+    const slot = gallerySlotRef.current
+    const gallery = galleryRef.current
+    if (!split || !slot || !gallery) return
+
+    const mq = window.matchMedia('(min-width: 1024px)')
+
+    const syncGalleryPin = () => {
+      if (!mq.matches) {
+        setGalleryPinned(false)
+        setGalleryPinStyle({})
+        setGallerySlotSize({ width: 0, height: 0 })
+        return
+      }
+
+      const headerH =
+        Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--site-header-height')) || 72
+      const splitRect = split.getBoundingClientRect()
+      const slotRect = slot.getBoundingClientRect()
+      const galleryHeight = gallery.offsetHeight
+      const galleryWidth = slotRect.width || gallery.offsetWidth
+      const pinTop = headerH + 8
+      const shouldPin =
+        splitRect.top <= pinTop && splitRect.bottom > pinTop + galleryHeight + 24
+
+      if (!shouldPin) {
+        setGalleryPinned(false)
+        setGalleryPinStyle({})
+        setGallerySlotSize({ width: 0, height: 0 })
+        return
+      }
+
+      setGalleryPinned(true)
+      setGallerySlotSize({ width: galleryWidth, height: galleryHeight })
+      setGalleryPinStyle({
+        position: 'fixed',
+        top: pinTop,
+        left: slotRect.left,
+        width: galleryWidth,
+        zIndex: 20,
+      })
+    }
+
+    syncGalleryPin()
+    lenis?.on('scroll', syncGalleryPin)
+    window.addEventListener('scroll', syncGalleryPin, { passive: true })
+    window.addEventListener('resize', syncGalleryPin)
+    mq.addEventListener('change', syncGalleryPin)
+
+    const ro = new ResizeObserver(() => syncGalleryPin())
+    ro.observe(gallery)
+    ro.observe(split)
+
+    return () => {
+      lenis?.off('scroll', syncGalleryPin)
+      window.removeEventListener('scroll', syncGalleryPin)
+      window.removeEventListener('resize', syncGalleryPin)
+      mq.removeEventListener('change', syncGalleryPin)
+      ro.disconnect()
+    }
+  }, [lenis, images.length, imagesLoading])
 
   useEffect(() => {
     setResolvedProduct(product)
@@ -159,8 +230,21 @@ export default function ProductDetailView({ product, promoLabel }: ProductDetail
 
   return (
     <article className="product-detail" aria-labelledby="product-detail-title">
-      <div className="product-detail__split">
-        <div className="product-detail__gallery relative">
+      <div ref={splitRef} className="product-detail__split">
+        <div
+          ref={gallerySlotRef}
+          className="product-detail__gallery-slot"
+          style={
+            galleryPinned
+              ? { width: gallerySlotSize.width, height: gallerySlotSize.height }
+              : undefined
+          }
+        >
+          <div
+            ref={galleryRef}
+            className={`product-detail__gallery relative${galleryPinned ? ' product-detail__gallery--pinned' : ''}`}
+            style={galleryPinStyle}
+          >
           <ProductDetailGallery
             images={images}
             alt={activeProduct.name}
@@ -177,6 +261,7 @@ export default function ProductDetailView({ product, promoLabel }: ProductDetail
               {promoLabel}
             </span>
           )}
+          </div>
         </div>
 
         <div className="product-detail__info">

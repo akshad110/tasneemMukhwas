@@ -318,22 +318,26 @@ function JourneyStep({
   const media = (
     <motion.div style={{ opacity: reveal, y: rise }}>
       <div
-        className="relative overflow-hidden rounded-2xl bg-[rgba(242,244,245,0.94)] p-2.5 shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
+        className="section-image-hover relative overflow-hidden rounded-2xl bg-[rgba(242,244,245,0.94)] p-2.5 shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
         style={{
           width: 'clamp(118px, 28vw, 168px)',
           aspectRatio: rotateLeft ? '3/4' : '4/3',
         }}
       >
-        <img
-          src={step.image}
-          alt={step.alt}
-          loading="lazy"
-          className="h-full w-full object-contain"
+        <div
+          className="flex h-full w-full items-center justify-center"
           style={{
             transform: rotateLeft ? 'rotate(-90deg)' : undefined,
             transformOrigin: 'center center',
           }}
-        />
+        >
+          <img
+            src={step.image}
+            alt={step.alt}
+            loading="lazy"
+            className="section-image-hover__img h-full w-full object-contain"
+          />
+        </div>
       </div>
     </motion.div>
   )

@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { useLenis } from 'lenis/react'
 import Hero from '../components/hero/Hero'
+import HomeIntroSection from '../components/home/HomeIntroSection'
 import Navbar from '../components/nav/Navbar'
 import OurProductsCarousel from '../components/products/OurProductsCarousel'
 import OurPartnersMarquee from '../components/partners/OurPartnersMarquee'
@@ -11,6 +12,7 @@ import FloatingActions from '../components/shared/FloatingActions'
 import DiscountPromoPopup from '../components/shared/DiscountPromoPopup'
 import SiteFooter from '../components/shared/SiteFooter'
 import TrustBadges from '../components/shared/TrustBadges'
+import WellnessBenefitsSection from '../components/home/WellnessBenefitsSection'
 import DeferredMount from '../components/shared/DeferredMount'
 import SectionPlaceholder from '../components/shared/SectionPlaceholder'
 import { scrollToSection, type SectionId } from '../lib/sectionNav'
@@ -42,7 +44,9 @@ export default function Home({ ready = true }: HomeProps) {
     <main className="page-shell overflow-x-clip" style={{ backgroundColor: '#F8F3E7' }}>
       <Navbar />
       <Hero />
+      <HomeIntroSection />
       <TrustBadges />
+      <WellnessBenefitsSection />
       <OurProductsCarousel />
       <OurPartnersMarquee />
       <GlobalReachSection />

@@ -159,13 +159,13 @@ export default function BeOurPartner() {
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.55, delay: 0.12, ease: EASE }}
           >
-            <div className="be-partner__enquiry-image-wrap">
+            <div className="be-partner__enquiry-image-wrap section-image-hover">
               <img
                 src={PARTNER_IMAGE}
                 alt="Business partners shaking hands at a Tasneem Mukhwas retail store"
                 loading="lazy"
                 decoding="async"
-                className="be-partner__enquiry-image"
+                className="be-partner__enquiry-image section-image-hover__img"
               />
               <div className="be-partner__enquiry-image-overlay" aria-hidden />
             </div>

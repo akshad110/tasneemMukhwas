@@ -138,11 +138,13 @@ function CertificateCard() {
           WHO-GMP Certified
         </p>
       </div>
-      <img
-        src={WHO_GMP_IMG}
-        alt="Tasneem Mukhwas WHO-GMP certificate"
-        className="h-full min-h-[320px] w-full object-cover object-top sm:min-h-[380px]"
-      />
+      <div className="section-image-hover absolute inset-0">
+        <img
+          src={WHO_GMP_IMG}
+          alt="Tasneem Mukhwas WHO-GMP certificate"
+          className="section-image-hover__img h-full min-h-[320px] w-full object-cover object-top sm:min-h-[380px]"
+        />
+      </div>
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0a2e22]/92 via-[#0a2e22]/25 to-transparent" />
       <p
         className="pointer-events-none absolute bottom-4 left-4 right-4 z-10 m-0 text-[0.76rem] leading-relaxed text-[#f2f4f5] sm:text-[0.8rem]"

@@ -223,13 +223,14 @@ export default function WholesalePage() {
               {FEATURE_GRID.map((item, i) => (
                 <Reveal key={item.title} delay={i * 0.05}>
                   <article className="h-full overflow-hidden" style={{ backgroundColor: CREAM_LIGHT }}>
-                    <img
-                      src={item.image}
-                      alt={item.alt}
-                      className="block aspect-[16/10] w-full object-contain"
-                      style={{ backgroundColor: CREAM }}
-                      loading="lazy"
-                    />
+                    <div className="section-image-hover overflow-hidden" style={{ backgroundColor: CREAM }}>
+                      <img
+                        src={item.image}
+                        alt={item.alt}
+                        className="section-image-hover__img block aspect-[16/10] w-full object-contain"
+                        loading="lazy"
+                      />
+                    </div>
                     <div className="p-7 sm:p-8">
                       <span className="text-lg" style={{ color: GOLD }} aria-hidden>
                         ◆
@@ -256,12 +257,14 @@ export default function WholesalePage() {
               style={{ backgroundColor: CREAM_DEEP }}
             >
               <Reveal>
-                <img
-                  src={COLLAB_IMG}
-                  alt="Corporate gift hamper with Tasneem Mukhwas"
-                  className="block min-h-[280px] h-full w-full object-cover lg:min-h-[420px]"
-                  loading="lazy"
-                />
+                <div className="section-image-hover h-full min-h-[280px] overflow-hidden lg:min-h-[420px]">
+                  <img
+                    src={COLLAB_IMG}
+                    alt="Corporate gift hamper with Tasneem Mukhwas"
+                    className="section-image-hover__img block h-full min-h-[280px] w-full object-cover lg:min-h-[420px]"
+                    loading="lazy"
+                  />
+                </div>
               </Reveal>
               <Reveal delay={0.08} className="flex flex-col justify-center p-8 sm:p-10 lg:p-14">
                 <p className="m-0 text-[0.62rem] font-bold tracking-[0.2em] uppercase" style={{ color: 'rgba(10,46,34,0.45)' }}>
@@ -308,7 +311,14 @@ export default function WholesalePage() {
               </ul>
             </Reveal>
             <Reveal delay={0.08} className="order-1 lg:order-2">
-              <img src={GROW_IMG} alt="Tasneem Mukhwas products" className="block aspect-[4/3] w-full object-cover" loading="lazy" />
+              <div className="section-image-hover overflow-hidden">
+                <img
+                  src={GROW_IMG}
+                  alt="Tasneem Mukhwas products"
+                  className="section-image-hover__img block aspect-[4/3] w-full object-cover"
+                  loading="lazy"
+                />
+              </div>
             </Reveal>
           </div>
         </section>
@@ -326,8 +336,13 @@ export default function WholesalePage() {
               {SOLUTION_CARDS.map((card, i) => (
                 <Reveal key={card.title} delay={i * 0.08}>
                   <article className="flex h-full flex-col" style={{ backgroundColor: CREAM_LIGHT }}>
-                    <div className="overflow-hidden">
-                      <img src={card.image} alt={card.title} className="block aspect-[4/3] w-full object-cover" loading="lazy" />
+                    <div className="section-image-hover overflow-hidden">
+                      <img
+                        src={card.image}
+                        alt={card.title}
+                        className="section-image-hover__img block aspect-[4/3] w-full object-cover"
+                        loading="lazy"
+                      />
                     </div>
                     <div className="flex flex-1 flex-col p-6">
                       <p className="m-0 text-[0.62rem] font-bold tracking-[0.18em] uppercase" style={{ color: 'rgba(10,46,34,0.45)' }}>

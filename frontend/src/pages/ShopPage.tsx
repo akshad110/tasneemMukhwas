@@ -350,7 +350,7 @@ export default function ShopPage() {
   )
 
   return (
-    <div className="relative min-h-svh w-full max-w-full overflow-x-clip page-shell" style={{ backgroundColor: PAGE }}>
+    <div className="shop-page relative min-h-svh w-full max-w-full page-shell" style={{ backgroundColor: PAGE }}>
       <div className="pointer-events-none absolute inset-0 z-0">
         <img
           src={TEXTURE}
@@ -380,45 +380,47 @@ export default function ShopPage() {
         <main className="flex min-w-0 w-full max-w-full flex-1 flex-col pt-0 pb-0" aria-label="Shop">
           <ShopBanner />
 
-          <div className="shop-layout flex min-w-0 w-full max-w-full items-stretch">
-            <div
-              className={`shop-layout__sidebar ${filtersOpen ? 'fixed inset-0 z-50 lg:static lg:inset-auto lg:z-auto' : 'hidden lg:block'}`}
-            >
-              {filtersOpen && (
+          <div className="shop-layout flex min-w-0 w-full max-w-full items-start">
+            {/* Mobile filter drawer */}
+            {filtersOpen ? (
+              <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Filters">
                 <button
                   type="button"
-                  className="absolute inset-0 cursor-pointer border-0 bg-[rgba(6,14,11,0.4)] lg:hidden"
+                  className="absolute inset-0 cursor-pointer border-0 bg-[rgba(6,14,11,0.4)]"
                   aria-label="Close filters"
                   onClick={() => setFiltersOpen(false)}
                 />
-              )}
-              <div
-                className="fixed inset-x-0 bottom-0 top-[calc(env(safe-area-inset-top,0px)+7.25rem)] z-[1] flex max-h-[min(78svh,640px)] w-full flex-col overflow-hidden rounded-t-[1.25rem] shadow-[0_-12px_40px_-16px_rgba(10,46,34,0.35)] lg:static lg:max-h-none lg:w-auto lg:rounded-none lg:shadow-none"
-                style={{ backgroundColor: PANEL }}
-              >
                 <div
-                  className="flex shrink-0 items-center justify-between border-b px-4 py-3 lg:hidden"
-                  style={{ borderColor: BORDER }}
+                  className="fixed inset-x-0 bottom-0 top-[calc(env(safe-area-inset-top,0px)+7.25rem)] z-[1] flex max-h-[min(78svh,640px)] w-full flex-col overflow-hidden rounded-t-[1.25rem] shadow-[0_-12px_40px_-16px_rgba(10,46,34,0.35)]"
+                  style={{ backgroundColor: PANEL }}
                 >
-                  <p
-                    className="m-0 text-[0.78rem] font-semibold tracking-[0.12em] uppercase"
-                    style={{ color: INK, fontFamily: BRAND_SANS }}
+                  <div
+                    className="flex shrink-0 items-center justify-between border-b px-4 py-3"
+                    style={{ borderColor: BORDER }}
                   >
-                    Filters
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setFiltersOpen(false)}
-                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border-0 text-[1.1rem] leading-none"
-                    style={{ backgroundColor: 'rgba(10,46,34,0.08)', color: INK }}
-                    aria-label="Close filters"
-                  >
-                    ×
-                  </button>
+                    <p
+                      className="m-0 text-[0.78rem] font-semibold tracking-[0.12em] uppercase"
+                      style={{ color: INK, fontFamily: BRAND_SANS }}
+                    >
+                      Filters
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setFiltersOpen(false)}
+                      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border-0 text-[1.1rem] leading-none"
+                      style={{ backgroundColor: 'rgba(10,46,34,0.08)', color: INK }}
+                      aria-label="Close filters"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{sidebar}</div>
                 </div>
-                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{sidebar}</div>
               </div>
-            </div>
+            ) : null}
+
+            {/* Desktop sticky filter sidebar */}
+            <div className="shop-layout__sidebar hidden lg:block">{sidebar}</div>
 
             <div className="shop-main min-w-0 flex-1 flex flex-col">
               <div

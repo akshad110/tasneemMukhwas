@@ -112,21 +112,23 @@ export default function MukhwasBenefitsPage() {
             <div className="benefits-page-content mx-auto max-w-[1180px] px-5 py-12 sm:px-8 lg:px-10 lg:py-16">
               <div className="grid items-start gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:gap-14">
                 <div className="benefits-page-visual lg:sticky lg:self-start">
-                  <div className="benefits-page-visual__frame">
+                  <div className="benefits-page-visual__frame section-image-hover">
                     <AnimatePresence mode="wait">
-                      <motion.img
-                        key={active.id}
-                        src={active.heroImage}
-                        alt={active.heroImageAlt}
-                        loading="lazy"
-                        decoding="async"
-                        draggable={false}
-                        className="benefits-page-visual__image"
-                        initial={{ opacity: 0, scale: 0.96 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.98 }}
-                        transition={{ duration: 0.45, ease: EASE }}
-                      />
+                      <div className="section-image-hover__img h-full w-full">
+                        <motion.img
+                          key={active.id}
+                          src={active.heroImage}
+                          alt={active.heroImageAlt}
+                          loading="lazy"
+                          decoding="async"
+                          draggable={false}
+                          className="benefits-page-visual__image"
+                          initial={{ opacity: 0, scale: 0.96 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.98 }}
+                          transition={{ duration: 0.45, ease: EASE }}
+                        />
+                      </div>
                     </AnimatePresence>
                   </div>
                 </div>

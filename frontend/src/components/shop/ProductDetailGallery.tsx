@@ -4,6 +4,7 @@ import { PRODUCT_CARD_PANEL_BG, PRODUCT_MAX_GALLERY_IMAGES } from '../../lib/sho
 
 const REVEAL_EASE = [0.22, 1, 0.36, 1] as const
 const GOLD = '#b8860b'
+const AUTO_SLIDE_MS = 4200
 
 type ProductDetailGalleryProps = {
   images: string[]
@@ -20,12 +21,14 @@ function ThumbnailButton({
   selected,
   onSelect,
   className,
+  imageClassName = 'h-full w-full object-contain object-center p-1',
 }: {
   src: string
   index: number
   selected: boolean
   onSelect: () => void
   className: string
+  imageClassName?: string
 }) {
   return (
     <button
@@ -34,19 +37,15 @@ function ThumbnailButton({
       aria-selected={selected}
       aria-label={`View image ${index + 1}`}
       onClick={onSelect}
-      className={`cursor-pointer overflow-hidden rounded-lg border p-0 transition hover:opacity-95 touch-manipulation ${className}`}
+      className={`cursor-pointer overflow-hidden rounded-lg border p-0 transition-all duration-300 hover:opacity-95 touch-manipulation ${className}`}
       style={{
         borderColor: selected ? GOLD : 'rgba(184,134,11,0.22)',
         backgroundColor: '#fffef2',
         boxShadow: selected ? '0 2px 8px -4px rgba(184,134,11,0.45)' : 'none',
+        opacity: selected ? 1 : 0.88,
       }}
     >
-      <img
-        src={src}
-        alt=""
-        className="h-full w-full object-contain object-center p-1"
-        draggable={false}
-      />
+      <img src={src} alt="" className={imageClassName} draggable={false} />
     </button>
   )
 }
@@ -62,6 +61,7 @@ export default function ProductDetailGallery({
   const isPage = layout === 'page'
   const slides = images.filter(Boolean).slice(0, PRODUCT_MAX_GALLERY_IMAGES)
   const [index, setIndex] = useState(0)
+  const [paused, setPaused] = useState(false)
 
   useEffect(() => {
     setIndex(0)
@@ -73,20 +73,36 @@ export default function ProductDetailGallery({
     }
   }, [index, slides.length])
 
+  useEffect(() => {
+    if (!isPage || slides.length <= 1 || paused) return
+
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    if (mq.matches) return
+
+    const timer = window.setInterval(() => {
+      setIndex((i) => (i + 1) % slides.length)
+    }, AUTO_SLIDE_MS)
+
+    return () => window.clearInterval(timer)
+  }, [isPage, slides.length, paused, slides.join('|')])
+
   const active = slides[Math.min(index, Math.max(0, slides.length - 1))]
+  const isPrimarySlide = index === 0
 
   const mainImage = (
     <div
       className={`product-detail-gallery__main relative w-full overflow-hidden ${
         isPage
-          ? 'aspect-[4/5] max-h-[min(68vh,560px)] min-h-[280px] w-full'
+          ? 'aspect-[4/5] max-h-[min(62vh,520px)] min-h-[260px] w-full'
           : 'min-h-[180px] flex-1 rounded-2xl border sm:min-h-[220px]'
       }`}
       style={{
-        backgroundColor: isPage ? 'transparent' : panelBg,
+        backgroundColor: isPage ? '#f8f3e7' : panelBg,
         borderColor: isPage ? undefined : 'rgba(184,134,11,0.22)',
         maxHeight: isPage ? undefined : 'min(42vh, 340px)',
       }}
+      onMouseEnter={() => isPage && setPaused(true)}
+      onMouseLeave={() => isPage && setPaused(false)}
     >
       {loading && !slides.length ? (
         <div
@@ -102,8 +118,10 @@ export default function ProductDetailGallery({
             alt={alt}
             loading="lazy"
             decoding="async"
-            className={`absolute inset-0 h-full w-full object-contain object-center ${
-              isPage ? 'p-1 sm:p-2' : 'p-2.5 sm:p-3'
+            className={`absolute inset-0 h-full w-full object-center ${
+              isPage && !isPrimarySlide
+                ? 'object-cover'
+                : `object-contain ${isPage ? 'p-1 sm:p-2' : 'p-2.5 sm:p-3'}`
             }`}
             draggable={false}
             initial={{ opacity: 0, scale: 0.98 }}
@@ -120,24 +138,38 @@ export default function ProductDetailGallery({
 
   if (isPage) {
     return (
-      <div className="product-detail-gallery product-detail-gallery--page flex w-full flex-col items-stretch gap-4 lg:gap-5">
+      <div className="product-detail-gallery product-detail-gallery--page flex w-full flex-col items-stretch gap-3 lg:gap-4">
         {mainImage}
         {slides.length > 1 ? (
           <div
-            className="product-detail-gallery__thumbs flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 lg:justify-start"
+            className="product-detail-gallery__thumbs flex flex-wrap items-end justify-center gap-2 sm:gap-2.5 lg:justify-start"
             role="tablist"
             aria-label="Product image thumbnails"
+            onMouseEnter={() => setPaused(true)}
+            onMouseLeave={() => setPaused(false)}
           >
-            {slides.map((src, i) => (
-              <ThumbnailButton
-                key={`${src}-${i}`}
-                src={src}
-                index={i}
-                selected={i === index}
-                onSelect={() => setIndex(i)}
-                className="h-[4.25rem] w-[4.25rem] shrink-0 sm:h-[4.75rem] sm:w-[4.75rem]"
-              />
-            ))}
+            {slides.map((src, i) => {
+              const selected = i === index
+              return (
+                <ThumbnailButton
+                  key={`${src}-${i}`}
+                  src={src}
+                  index={i}
+                  selected={selected}
+                  onSelect={() => setIndex(i)}
+                  className={
+                    selected
+                      ? 'h-[4.25rem] w-[4.25rem] shrink-0 sm:h-[4.75rem] sm:w-[4.75rem]'
+                      : 'h-[2.65rem] w-[2.65rem] shrink-0 sm:h-[2.85rem] sm:w-[2.85rem]'
+                  }
+                  imageClassName={
+                    selected
+                      ? 'h-full w-full object-contain object-center p-1'
+                      : 'h-full w-full object-cover object-center'
+                  }
+                />
+              )
+            })}
           </div>
         ) : null}
       </div>

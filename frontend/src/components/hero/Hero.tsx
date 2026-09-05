@@ -29,7 +29,7 @@ const HERO_SLIDE_ITEMS = [
 const HERO_SLIDES = HERO_SLIDE_IMAGES
 
 const SLIDE_MS = 6200
-const FADE_MS = 2200
+const FADE_MS = 1600
 const EASE = 'cubic-bezier(0.45, 0.05, 0.25, 1)'
 
 function preloadHeroSlides() {
@@ -108,7 +108,7 @@ function MobileHero({
                     opacity: isActive ? 1 : 0,
                     zIndex: isActive ? 2 : 1,
                     transform: isActive ? 'scale(1)' : 'scale(1.05)',
-                    transition: `opacity ${FADE_MS}ms ${EASE}, transform ${FADE_MS + 600}ms ${EASE}`,
+                    transition: `opacity ${FADE_MS}ms ${EASE}, transform ${FADE_MS + 400}ms ${EASE}`,
                   }}
                 />
               )
@@ -164,7 +164,7 @@ function DesktopHero({ activeIndex }: { activeIndex: number }) {
                 opacity: isActive ? 1 : 0,
                 zIndex: isActive ? 2 : 1,
                 transform: isActive ? 'scale(1)' : 'scale(1.04)',
-                transition: `opacity ${FADE_MS}ms ${EASE}, transform ${FADE_MS + 600}ms ${EASE}`,
+                transition: `opacity ${FADE_MS}ms ${EASE}, transform ${FADE_MS + 400}ms ${EASE}`,
               }}
             />
           )

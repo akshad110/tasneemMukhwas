@@ -9,10 +9,11 @@ import {
   useEffect,
   useRef,
   useState,
+  type CSSProperties,
   type MouseEvent as ReactMouseEvent,
 } from 'react'
 import { CAROUSEL_PRODUCTS } from '../../lib/carouselProducts'
-import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
+import { APP_ROUTES, navigateApp, shopProductPath } from '../../lib/appRoutes'
 import {
   BRAND_CREAM,
   BRAND_DISPLAY,
@@ -63,19 +64,32 @@ type CarouselCardProps = {
 }
 
 const ACTIVE_MEDIA_BG = '#f5f1e1'
-const INACTIVE_MEDIA_BG = '#c5b396'
+
+const HOVER_EASE = [0.16, 1, 0.3, 1] as const
+
+function hoverProductTransition(active: boolean) {
+  return {
+    type: 'tween' as const,
+    duration: active ? 1.32 : 0.9,
+    delay: active ? 0.22 : 0,
+    ease: HOVER_EASE,
+  }
+}
+
+function hoverContentTransition(active: boolean) {
+  return {
+    type: 'tween' as const,
+    duration: active ? 1.05 : 0.78,
+    delay: active ? 0.3 : 0,
+    ease: HOVER_EASE,
+  }
+}
 
 function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps) {
   const [hovered, setHovered] = useState(false)
   const rotateX = useSpring(0, { stiffness: 180, damping: 26 })
   const rotateY = useSpring(0, { stiffness: 180, damping: 26 })
   const abs = Math.abs(offset)
-
-  const hoverTransition = {
-    type: 'tween' as const,
-    duration: 0.65,
-    ease: [0.22, 1, 0.36, 1] as const,
-  }
 
   const onMove = (e: ReactMouseEvent<HTMLElement>) => {
     if (!isActive || hovered) return
@@ -93,6 +107,13 @@ function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps
   }
 
   const showHoverFx = isActive && hovered
+  const hoverTransition = hoverContentTransition(showHoverFx)
+  const productTransition = hoverProductTransition(showHoverFx)
+
+  const openProduct = (e: ReactMouseEvent) => {
+    e.stopPropagation()
+    navigateApp(shopProductPath(product.id))
+  }
 
   const baseRotateY = offset * -32
   const translateX = offset * slideGap
@@ -136,23 +157,25 @@ function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps
         <div className="our-products-card__content">
           <div
             className="our-products-card__media"
-            style={{
-              backgroundColor: isActive ? ACTIVE_MEDIA_BG : INACTIVE_MEDIA_BG,
-            }}
+            style={
+              isActive
+                ? ({
+                    backgroundColor: ACTIVE_MEDIA_BG,
+                    '--op-glow-light': product.glowColors.light,
+                    '--op-glow-mid': product.glowColors.mid,
+                    '--op-glow-dark': product.glowColors.dark,
+                  } as CSSProperties)
+                : undefined
+            }
           >
-            <motion.span
-              className="our-products-card__media-pattern"
-              aria-hidden
-              animate={{ opacity: showHoverFx ? 1 : 0 }}
-              transition={hoverTransition}
-              style={{ backgroundImage: `url(${product.mediaHoverBg})` }}
-            />
+            <span className="our-products-card__media-glow" aria-hidden />
             <motion.div
               className="our-products-card__image-wrap"
               animate={{
-                scale: showHoverFx ? 1.16 : 1,
+                scale: showHoverFx ? 1.14 : 1,
+                y: showHoverFx ? -16 : 0,
               }}
-              transition={hoverTransition}
+              transition={productTransition}
             >
               <img
                 src={product.image}
@@ -160,7 +183,7 @@ function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps
                 loading="lazy"
                 decoding="async"
                 draggable={false}
-                className="our-products-card__image"
+                className={`our-products-card__image${showHoverFx ? ' our-products-card__image--lifted' : ''}`}
               />
             </motion.div>
           </div>
@@ -169,14 +192,41 @@ function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps
             <motion.h3
               className="our-products-card__name"
               animate={{
-                scale: showHoverFx ? 1.03 : 1,
+                scale: showHoverFx ? 1.02 : 1,
               }}
               transition={hoverTransition}
               style={{ transformOrigin: 'left center' }}
             >
               {product.name}
             </motion.h3>
-            <p className="our-products-card__ingredients">{product.ingredients}</p>
+            <motion.p
+              className="our-products-card__ingredients"
+              animate={{
+                opacity: showHoverFx ? 0.72 : 1,
+              }}
+              transition={hoverTransition}
+            >
+              {product.ingredients}
+            </motion.p>
+            <motion.div
+              className="our-products-card__explore-wrap"
+              initial={false}
+              animate={{
+                opacity: showHoverFx ? 1 : 0,
+                maxHeight: showHoverFx ? 52 : 0,
+                marginTop: showHoverFx ? 8 : 0,
+                pointerEvents: showHoverFx ? 'auto' : 'none',
+              }}
+              transition={hoverTransition}
+            >
+              <button
+                type="button"
+                className="our-products-card__explore-btn"
+                onClick={openProduct}
+              >
+                Explore More
+              </button>
+            </motion.div>
           </div>
         </div>
       </motion.div>
