@@ -9,7 +9,6 @@ import {
   useEffect,
   useRef,
   useState,
-  type CSSProperties,
   type MouseEvent as ReactMouseEvent,
 } from 'react'
 import { CAROUSEL_PRODUCTS } from '../../lib/carouselProducts'
@@ -62,8 +61,6 @@ type CarouselCardProps = {
   isActive: boolean
   slideGap: number
 }
-
-const ACTIVE_MEDIA_BG = '#f5f1e1'
 
 const HOVER_EASE = [0.16, 1, 0.3, 1] as const
 
@@ -155,19 +152,7 @@ function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps
       >
         {isActive ? <span className="our-products-card__ring" aria-hidden /> : null}
         <div className="our-products-card__content">
-          <div
-            className="our-products-card__media"
-            style={
-              isActive
-                ? ({
-                    backgroundColor: ACTIVE_MEDIA_BG,
-                    '--op-glow-light': product.glowColors.light,
-                    '--op-glow-mid': product.glowColors.mid,
-                    '--op-glow-dark': product.glowColors.dark,
-                  } as CSSProperties)
-                : undefined
-            }
-          >
+          <div className="our-products-card__media">
             <span className="our-products-card__media-glow" aria-hidden />
             <motion.div
               className="our-products-card__image-wrap"

@@ -92,6 +92,7 @@ export default function ShopProductCard({
   const liked = isWishlisted(product.id)
   const [wishBusy, setWishBusy] = useState(false)
   const [imageHovered, setImageHovered] = useState(false)
+  const [carouselIndex, setCarouselIndex] = useState(0)
   const { addItem, clearCart, getQty, setQty } = useCart()
 
   const [variantId, setVariantId] = useState(variants[0]?.id ?? `${packType}-100g`)
@@ -99,6 +100,10 @@ export default function ShopProductCard({
   useEffect(() => {
     setVariantId(variants[0]?.id ?? `${packType}-100g`)
   }, [product.id, packType, variants])
+
+  useEffect(() => {
+    setCarouselIndex(0)
+  }, [product.id, lazyImages.join('|')])
 
   useEffect(() => {
     const applyImages = () => {
@@ -276,6 +281,8 @@ export default function ShopProductCard({
             dimmed={outOfStock}
             hovered={imageHovered}
             variant="shop-card"
+            index={carouselIndex}
+            onIndexChange={setCarouselIndex}
           />
 
           {outOfStock && (
@@ -317,12 +324,42 @@ export default function ShopProductCard({
         </div>
 
         <div className="mt-1 flex flex-col min-[480px]:mt-1.5">
-        <p
-          className="mb-0 text-center text-[0.58rem] tracking-[0.05em] min-[480px]:text-[0.62rem]"
-          style={{ color: MUTED, fontFamily: BRAND_SERIF }}
-        >
-          {product.brand || 'Tasneem Mukhwas'}
-        </p>
+        {hasGallery ? (
+          <div
+            className="shop-product-card__dots mb-0 flex items-center justify-center gap-1.5 py-0.5"
+            role="tablist"
+            aria-label="Product image slides"
+            data-card-action
+            onClick={stop}
+          >
+            {lazyImages.map((_, i) => (
+              <button
+                key={`${product.id}-dot-${i}`}
+                type="button"
+                role="tab"
+                aria-selected={i === carouselIndex}
+                aria-label={`Show image ${i + 1}`}
+                onClick={(e) => {
+                  stop(e)
+                  setCarouselIndex(i)
+                }}
+                className="h-1.5 cursor-pointer rounded-full border-0 p-0 transition-all duration-300 touch-manipulation"
+                style={{
+                  width: i === carouselIndex ? '1.15rem' : '0.38rem',
+                  backgroundColor:
+                    i === carouselIndex ? 'rgba(184,134,11,0.95)' : 'rgba(10,46,34,0.2)',
+                }}
+              />
+            ))}
+          </div>
+        ) : (
+          <p
+            className="mb-0 text-center text-[0.58rem] tracking-[0.05em] min-[480px]:text-[0.62rem]"
+            style={{ color: MUTED, fontFamily: BRAND_SERIF }}
+          >
+            {product.brand || 'Tasneem Mukhwas'}
+          </p>
+        )}
 
         <h3
           className="mt-0.5 m-0 line-clamp-2 text-center text-[0.74rem] font-semibold leading-snug tracking-[0.01em] min-[480px]:min-h-[2em] min-[480px]:text-[0.82rem] sm:text-[0.88rem]"

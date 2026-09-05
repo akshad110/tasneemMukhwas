@@ -118,10 +118,10 @@ export default function ProductDetailGallery({
             alt={alt}
             loading="lazy"
             decoding="async"
-            className={`absolute inset-0 h-full w-full object-center ${
+            className={`absolute inset-0 h-full w-full ${
               isPage && !isPrimarySlide
-                ? 'object-cover'
-                : `object-contain ${isPage ? 'p-1 sm:p-2' : 'p-2.5 sm:p-3'}`
+                ? 'object-cover object-top'
+                : `object-contain object-center ${isPage ? 'p-1 sm:p-2' : 'p-2.5 sm:p-3'}`
             }`}
             draggable={false}
             initial={{ opacity: 0, scale: 0.98 }}
@@ -165,7 +165,7 @@ export default function ProductDetailGallery({
                   imageClassName={
                     selected
                       ? 'h-full w-full object-contain object-center p-1'
-                      : 'h-full w-full object-cover object-center'
+                      : 'h-full w-full object-cover object-top'
                   }
                 />
               )
