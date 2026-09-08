@@ -67,8 +67,8 @@ const HOVER_EASE = [0.16, 1, 0.3, 1] as const
 function hoverProductTransition(active: boolean) {
   return {
     type: 'tween' as const,
-    duration: active ? 1.32 : 0.9,
-    delay: active ? 0.22 : 0,
+    duration: active ? 1.28 : 0.88,
+    delay: active ? 0.32 : 0,
     ease: HOVER_EASE,
   }
 }
@@ -157,8 +157,7 @@ function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps
             <motion.div
               className="our-products-card__image-wrap"
               animate={{
-                scale: showHoverFx ? 1.14 : 1,
-                y: showHoverFx ? -16 : 0,
+                scale: showHoverFx ? 1.24 : 1,
               }}
               transition={productTransition}
             >
@@ -173,6 +172,7 @@ function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps
             </motion.div>
           </div>
           <div className="our-products-card__body">
+            <span className="our-products-card__body-rule" aria-hidden />
             <p className="our-products-card__label">Ingredients</p>
             <motion.h3
               className="our-products-card__name"
