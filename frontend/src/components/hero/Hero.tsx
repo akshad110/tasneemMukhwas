@@ -107,8 +107,7 @@ function MobileHero({
                   style={{
                     opacity: isActive ? 1 : 0,
                     zIndex: isActive ? 2 : 1,
-                    transform: isActive ? 'scale(1)' : 'scale(1.05)',
-                    transition: `opacity ${FADE_MS}ms ${EASE}, transform ${FADE_MS + 400}ms ${EASE}`,
+                    transition: `opacity ${FADE_MS}ms ${EASE}`,
                   }}
                 />
               )
@@ -144,10 +143,10 @@ function DesktopHero({ activeIndex }: { activeIndex: number }) {
 
   return (
     <section
-      className="relative m-0 hidden h-[calc(100svh-3.25rem-env(safe-area-inset-top,0px))] w-full overflow-hidden p-0 md:block md:h-[calc(100svh-4rem-env(safe-area-inset-top,0px))] lg:h-[calc(100svh-5.25rem-env(safe-area-inset-top,0px))]"
+      className="hero-desktop relative m-0 hidden w-full overflow-hidden p-0 md:block"
       aria-label="Hero"
     >
-      <div className="absolute inset-0 w-full bg-[#0a2e22]">
+      <div className="hero-desktop__stage">
         {HERO_SLIDES.map((src, index) => {
           const isActive = index === activeIndex
           return (
@@ -159,26 +158,16 @@ function DesktopHero({ activeIndex }: { activeIndex: number }) {
               decoding={index === 0 ? 'sync' : 'async'}
               fetchPriority={index === 0 ? 'high' : 'auto'}
               loading="eager"
-              className="absolute inset-0 h-full w-full object-cover object-center will-change-[opacity,transform]"
+              className="hero-desktop__slide"
               style={{
                 opacity: isActive ? 1 : 0,
                 zIndex: isActive ? 2 : 1,
-                transform: isActive ? 'scale(1)' : 'scale(1.04)',
-                transition: `opacity ${FADE_MS}ms ${EASE}, transform ${FADE_MS + 400}ms ${EASE}`,
+                transition: `opacity ${FADE_MS}ms ${EASE}`,
               }}
             />
           )
         })}
       </div>
-
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 z-[3]"
-        style={{
-          background:
-            'linear-gradient(90deg, rgba(6,14,11,0.28) 0%, rgba(6,14,11,0.08) 32%, transparent 58%), linear-gradient(180deg, transparent 70%, rgba(6,14,11,0.14) 100%)',
-        }}
-      />
 
       <button
         type="button"

@@ -13,7 +13,7 @@ import SectionImageFrame from '../shared/SectionImageFrame'
 
 const EASE = [0.22, 1, 0.36, 1] as const
 
-const INTRO_IMAGE = encodeURI('/Tasneem_Mukhwas_pouches_on_pedestal_202609010006.jpeg')
+const INTRO_IMAGE = encodeURI('/WhatsApp Image 2026-09-04 at 11.17.34 PM.jpeg')
 
 export default function HomeIntroSection() {
   return (
@@ -43,8 +43,9 @@ export default function HomeIntroSection() {
           >
             <SectionImageFrame
               src={INTRO_IMAGE}
-              alt="Tasneem Mukhwas product pouches displayed on a pedestal"
-              objectFit="cover"
+              alt="Tasneem Mukhwas — The True Taste of Tradition, with premium mukhwas pouches on a wooden table"
+              objectFit="contain"
+              aspectClass="aspect-[1600/667]"
             />
           </motion.div>
 

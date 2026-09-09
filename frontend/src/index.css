@@ -3128,6 +3128,42 @@ a:focus-visible .footer-link::after {
   }
 }
 
+/* Hero — full viewport width & height below header */
+.hero-desktop {
+  --hero-banner-height: calc(100svh - var(--site-header-height));
+  background: #1a120e;
+}
+
+.hero-desktop__stage {
+  position: relative;
+  width: 100%;
+  height: var(--hero-banner-height);
+  min-height: clamp(22rem, 52vw, 42rem);
+  margin: 0 auto;
+  overflow: hidden;
+  background: #1a120e;
+}
+
+.hero-desktop__slide {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.hero-desktop .hero-mukhwas-hotspot {
+  top: 48%;
+  right: 8%;
+  width: min(32%, 18rem);
+  height: min(58%, 18rem);
+  transform: translateY(-50%);
+}
+
 /* Hero — mobile full-bleed slide banner */
 .hero-mobile-shell {
   width: 100%;
@@ -3136,8 +3172,11 @@ a:focus-visible .footer-link::after {
 .hero-mobile-banner {
   position: relative;
   overflow: hidden;
-  min-height: clamp(14.5rem, 46vw, 18.5rem);
-  background: #0a2e22;
+  width: 100%;
+  height: calc(100svh - var(--site-header-height));
+  min-height: clamp(16rem, 62vw, 28rem);
+  margin: 0 auto;
+  background: #1a120e;
 }
 
 .hero-mobile-banner__media {
@@ -3145,6 +3184,7 @@ a:focus-visible .footer-link::after {
   inset: 0;
   z-index: 0;
   overflow: hidden;
+  background: #1a120e;
 }
 
 .hero-mobile-banner__slide {
@@ -3155,7 +3195,8 @@ a:focus-visible .footer-link::after {
   height: 100%;
   object-fit: cover;
   object-position: center center;
-  will-change: opacity, transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .hero-mobile-banner__overlay {
@@ -3163,7 +3204,7 @@ a:focus-visible .footer-link::after {
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: linear-gradient(180deg, transparent 55%, rgba(6, 14, 11, 0.32) 100%);
+  background: linear-gradient(180deg, transparent 72%, rgba(6, 14, 11, 0.12) 100%);
 }
 
 .hero-mobile-banner__cta {
@@ -3201,10 +3242,6 @@ a:focus-visible .footer-link::after {
 }
 
 @media (max-width: 359px) {
-  .hero-mobile-banner {
-    min-height: clamp(13.5rem, 50vw, 16.5rem);
-  }
-
   .hero-mobile-banner__cta {
     left: 0.85rem;
     bottom: 0.85rem;
