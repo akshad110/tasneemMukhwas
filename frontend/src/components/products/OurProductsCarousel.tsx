@@ -22,7 +22,13 @@ import {
 } from '../../lib/brand'
 
 const TOTAL = CAROUSEL_PRODUCTS.length
-const AUTO_MS = 2500
+const AUTO_MS = 4500
+
+const SLIDE_TRANSITION = {
+  type: 'tween' as const,
+  duration: 0.72,
+  ease: [0.22, 1, 0.36, 1] as const,
+}
 
 function wrapIndex(index: number) {
   return ((index % TOTAL) + TOTAL) % TOTAL
@@ -88,6 +94,14 @@ function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps
   const rotateY = useSpring(0, { stiffness: 180, damping: 26 })
   const abs = Math.abs(offset)
 
+  useEffect(() => {
+    if (!isActive) {
+      setHovered(false)
+      rotateX.set(0)
+      rotateY.set(0)
+    }
+  }, [isActive, rotateX, rotateY])
+
   const onMove = (e: ReactMouseEvent<HTMLElement>) => {
     if (!isActive || hovered) return
     const rect = e.currentTarget.getBoundingClientRect()
@@ -130,7 +144,7 @@ function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps
         scale,
         opacity,
       }}
-      transition={{ type: 'spring', stiffness: 260, damping: 28 }}
+      transition={SLIDE_TRANSITION}
       style={{
         left: '50%',
         top: '50%',
@@ -222,8 +236,11 @@ function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps
 export default function OurProductsCarousel() {
   const [activeIndex, setActiveIndex] = useState(0)
   const [paused, setPaused] = useState(false)
+  const [inView, setInView] = useState(true)
   const [reduceMotion, setReduceMotion] = useState(false)
   const didDragRef = useRef(false)
+  const sectionRef = useRef<HTMLElement>(null)
+  const resumeTimerRef = useRef<number | null>(null)
   const slideGap = useSlideGap()
 
   const goNext = useCallback(() => {
@@ -243,10 +260,48 @@ export default function OurProductsCarousel() {
   }, [])
 
   useEffect(() => {
-    if (paused || reduceMotion) return
+    const node = sectionRef.current
+    if (!node) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setInView(entry?.isIntersecting ?? false),
+      { threshold: 0.25 },
+    )
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (paused || reduceMotion || !inView) return
     const timer = window.setInterval(goNext, AUTO_MS)
     return () => window.clearInterval(timer)
-  }, [paused, reduceMotion, goNext])
+  }, [paused, reduceMotion, inView, goNext])
+
+  const pauseAuto = useCallback(() => {
+    if (resumeTimerRef.current !== null) {
+      window.clearTimeout(resumeTimerRef.current)
+      resumeTimerRef.current = null
+    }
+    setPaused(true)
+  }, [])
+
+  const scheduleResumeAuto = useCallback(() => {
+    if (resumeTimerRef.current !== null) {
+      window.clearTimeout(resumeTimerRef.current)
+    }
+    resumeTimerRef.current = window.setTimeout(() => {
+      setPaused(false)
+      resumeTimerRef.current = null
+    }, 400)
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (resumeTimerRef.current !== null) {
+        window.clearTimeout(resumeTimerRef.current)
+      }
+    }
+  }, [])
 
   const onDragStart = () => {
     didDragRef.current = false
@@ -269,6 +324,7 @@ export default function OurProductsCarousel() {
 
   return (
     <section
+      ref={sectionRef}
       id="products"
       className="relative w-full overflow-hidden px-4 py-7 sm:px-8 sm:py-14 lg:px-10 lg:py-20"
       style={{ backgroundColor: BRAND_CREAM }}
@@ -299,12 +355,12 @@ export default function OurProductsCarousel() {
 
         <div
           className="our-products-carousel-shell relative w-full"
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
-          onFocusCapture={() => setPaused(true)}
+          onMouseEnter={pauseAuto}
+          onMouseLeave={scheduleResumeAuto}
+          onFocusCapture={pauseAuto}
           onBlurCapture={(e) => {
             if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
-              setPaused(false)
+              scheduleResumeAuto()
             }
           }}
         >
