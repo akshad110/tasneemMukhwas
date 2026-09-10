@@ -1,5 +1,8 @@
 import { z } from 'zod'
-import { descriptionsForProduct } from '../lib/productDescriptions.js'
+import {
+  applyDescriptionDefaults,
+  applyDescriptionsToProduct,
+} from '../lib/productDescriptions.js'
 import { ensureDefaultCategories } from '../models/Category.js'
 import { Product, serializeProductAdminList, serializeProductList } from '../models/Product.js'
 import { Category } from '../models/Category.js'
@@ -219,6 +222,7 @@ export const createProduct = asyncHandler(async (req, res) => {
     body.bottleEnabled = false
   }
 
+  applyDescriptionDefaults(body)
   const product = await Product.create(body)
   return sendSuccess(res, {
     status: 201,
@@ -270,14 +274,7 @@ export const backfillProductDescriptions = asyncHandler(async (_req, res) => {
   let updated = 0
 
   for (const product of products) {
-    const copy = descriptionsForProduct(product)
-    const needsShort = !String(product.shortDescription || '').trim()
-    const desc = String(product.description || '').trim()
-    const needsLong = !desc || desc.length < 20
-    if (!needsShort && !needsLong) continue
-
-    if (needsShort) product.shortDescription = copy.shortDescription
-    if (needsLong) product.description = copy.description
+    if (!applyDescriptionsToProduct(product)) continue
     await product.save()
     updated += 1
   }

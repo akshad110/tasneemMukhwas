@@ -51,6 +51,14 @@ Ingredients: Fennel Seeds, Coriander Seeds, Sesame Seeds, Rock Salt, Natural Spi
 
 ${PACKED}`,
   },
+  'til gutli mukhwas': {
+    shortDescription: 'Sesame and gutli blend — nutty crunch with a sweet-spice finish.',
+    description: `Til Gutli Mukhwas brings together roasted sesame (til) and a classic gutli-style seed mix for a crunchy, satisfying after-meal treat.
+
+Ingredients: Sesame Seeds (Til), Fennel Seeds, Coriander Seeds, Sugar Coated Saunf, Rock Salt, Natural Spices.
+
+${PACKED}`,
+  },
   'panchratan mukhwas': {
     shortDescription: 'Five-treasure blend — colourful, crunchy, and celebration-ready.',
     description: `Panchratan — a festive five-ingredient mukhwas mix with colour, crunch, and classic Gujarati character.
@@ -70,6 +78,18 @@ ${PACKED}`,
 }
 
 const CATEGORY_FALLBACK = {
+  'our salted mukhwas': {
+    shortDescription: 'Salted mukhwas blend — roasted seeds, balanced spice, lasting freshness.',
+    description: `A classic salted mukhwas from Tasneem — aromatic seeds, balanced seasoning, and hygienic packing from Chhapi.
+
+${PACKED}`,
+  },
+  'our sweet mukhwas': {
+    shortDescription: 'Sweet mukhwas blend — colourful, fragrant, and perfect after meals.',
+    description: `A sweet mukhwas favourite from Tasneem — bright flavour, festive crunch, and hygienic Chhapi packing.
+
+${PACKED}`,
+  },
   'classic mukhwas': {
     shortDescription: 'Classic Gujarati mukhwas — aromatic, crunchy, and after-meal fresh.',
     description: `A classic Tasneem mukhwas blend — roasted seeds, balanced spice, and hygienic Chhapi packing.
@@ -105,13 +125,74 @@ ${PACKED}`,
 export function normalizeProductName(name) {
   return String(name || '')
     .toLowerCase()
+    .replace(/\s*[—–-]\s*(bottle|packet|standy|standee|pouch|pack)\b.*$/i, '')
     .replace(/[^a-z0-9]+/g, ' ')
     .trim()
 }
 
-export function descriptionsForProduct(product) {
-  const key = normalizeProductName(product.name)
+function lookupProductCopy(name) {
+  const key = normalizeProductName(name)
   if (PRODUCT_DESCRIPTION_COPY[key]) return PRODUCT_DESCRIPTION_COPY[key]
+
+  const sortedKeys = Object.keys(PRODUCT_DESCRIPTION_COPY).sort((a, b) => b.length - a.length)
+  for (const copyKey of sortedKeys) {
+    if (key.includes(copyKey)) return PRODUCT_DESCRIPTION_COPY[copyKey]
+  }
+
+  return null
+}
+
+export function applyDescriptionDefaults(body) {
+  const copy = descriptionsForProduct({ name: body.name, category: body.category })
+  const short = copy.shortDescription
+  const long = copy.description
+
+  if (!String(body.shortDescription || '').trim()) body.shortDescription = short
+  const desc = String(body.description || '').trim()
+  if (!desc || desc.length < 20) body.description = long
+
+  const usesBottle = body.packFormat === 'bottle' || body.bottleEnabled
+  if (usesBottle) {
+    if (!String(body.bottleShortDescription || '').trim()) body.bottleShortDescription = short
+    const bottleDesc = String(body.bottleDescription || '').trim()
+    if (!bottleDesc || bottleDesc.length < 20) body.bottleDescription = long
+  }
+
+  return body
+}
+
+function needsDescription(value) {
+  const text = String(value || '').trim()
+  return !text || text.length < 20
+}
+
+export function applyDescriptionsToProduct(product) {
+  const copy = descriptionsForProduct(product)
+  let changed = false
+
+  if (needsDescription(product.shortDescription)) {
+    product.shortDescription = copy.shortDescription
+    changed = true
+  }
+  if (needsDescription(product.description)) {
+    product.description = copy.description
+    changed = true
+  }
+  if (needsDescription(product.bottleShortDescription)) {
+    product.bottleShortDescription = copy.shortDescription
+    changed = true
+  }
+  if (needsDescription(product.bottleDescription)) {
+    product.bottleDescription = copy.description
+    changed = true
+  }
+
+  return changed
+}
+
+export function descriptionsForProduct(product) {
+  const fromName = lookupProductCopy(product.name)
+  if (fromName) return fromName
 
   const categoryKey = normalizeProductName(product.category)
   const fromCategory = CATEGORY_FALLBACK[categoryKey]

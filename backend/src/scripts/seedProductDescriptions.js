@@ -3,7 +3,7 @@
  * Run: node src/scripts/seedProductDescriptions.js
  */
 import { connectDB } from '../config/db.js'
-import { descriptionsForProduct } from '../lib/productDescriptions.js'
+import { applyDescriptionsToProduct } from '../lib/productDescriptions.js'
 import { Product } from '../models/Product.js'
 
 async function main() {
@@ -12,14 +12,7 @@ async function main() {
   let updated = 0
 
   for (const product of products) {
-    const copy = descriptionsForProduct(product)
-    const needsShort = !String(product.shortDescription || '').trim()
-    const desc = String(product.description || '').trim()
-    const needsLong = !desc || desc.length < 20
-    if (!needsShort && !needsLong) continue
-
-    if (needsShort) product.shortDescription = copy.shortDescription
-    if (needsLong) product.description = copy.description
+    if (!applyDescriptionsToProduct(product)) continue
     await product.save()
     updated += 1
     console.log(`Updated: ${product.name}`)
