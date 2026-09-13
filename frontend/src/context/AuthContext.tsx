@@ -33,9 +33,32 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
+const USER_CACHE_KEY = 'tm-auth-user-v1'
+
+function readCachedUser(): AuthUser | null {
+  try {
+    const raw = sessionStorage.getItem(USER_CACHE_KEY)
+    if (!raw) return null
+    return JSON.parse(raw) as AuthUser
+  } catch {
+    return null
+  }
+}
+
+function writeCachedUser(next: AuthUser | null) {
+  try {
+    if (!next) sessionStorage.removeItem(USER_CACHE_KEY)
+    else sessionStorage.setItem(USER_CACHE_KEY, JSON.stringify(next))
+  } catch {
+    /* quota / private mode */
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null)
-  const [loading, setLoading] = useState(true)
+  const bootToken = getToken()
+  const bootUser = bootToken ? readCachedUser() : null
+  const [user, setUser] = useState<AuthUser | null>(bootUser)
+  const [loading, setLoading] = useState(Boolean(bootToken) && !bootUser)
   /** Bumps when login/logout starts so stale /auth/me calls cannot wipe the session */
   const sessionEpochRef = useRef(0)
   const refreshAbortRef = useRef<AbortController | null>(null)
@@ -49,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const token = getToken()
     if (!token) {
       if (epoch === sessionEpochRef.current && !controller.signal.aborted) {
+        writeCachedUser(null)
         setUser(null)
         setLoading(false)
       }
@@ -57,11 +81,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const me = await authApi.me(controller.signal)
       if (controller.signal.aborted || epoch !== sessionEpochRef.current) return
+      writeCachedUser(me)
       setUser(me)
     } catch (err) {
       if (controller.signal.aborted || epoch !== sessionEpochRef.current) return
       if (err instanceof ApiRequestError && err.status === 401) {
         setToken(null)
+        writeCachedUser(null)
         setUser(null)
       }
     } finally {
@@ -81,6 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sessionEpochRef.current += 1
     const data = await authApi.login(email, password)
     setToken(data.token)
+    writeCachedUser(data.user)
     setUser(data.user)
     setLoading(false)
     return data.user
@@ -92,6 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sessionEpochRef.current += 1
       const data = await authApi.register(payload)
       setToken(data.token)
+      writeCachedUser(data.user)
       setUser(data.user)
       setLoading(false)
       return data.user
@@ -103,12 +131,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshAbortRef.current?.abort()
     sessionEpochRef.current += 1
     setToken(null)
+    writeCachedUser(null)
     setUser(null)
     setLoading(false)
   }, [])
 
   const updateProfile = useCallback(async (payload: Partial<AuthUser>) => {
     const next = await authApi.updateProfile(payload)
+    writeCachedUser(next)
     setUser(next)
     return next
   }, [])

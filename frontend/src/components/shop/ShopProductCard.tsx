@@ -9,7 +9,6 @@ import {
   loadProductImages,
   productNeedsImageFetch,
   subscribeProductImages,
-  whenImagesPrefetchDone,
 } from '../../lib/productImageCache'
 import {
   getComparePrice,
@@ -127,10 +126,8 @@ export default function ShopProductCard({
     })
 
     let cancelled = false
-    void whenImagesPrefetchDone().then(() => {
-      if (cancelled || applyImages()) return
-      if (!productNeedsImageFetch(product)) return
-      return loadProductImages(product.id)
+    if (productNeedsImageFetch(product)) {
+      void loadProductImages(product.id)
         .then((data) => {
           if (cancelled) return
           const next = (data.images?.length ? data.images : data.image ? [data.image] : []).filter(
@@ -139,9 +136,9 @@ export default function ShopProductCard({
           if (next.length) setLazyImages(next)
         })
         .catch(() => {
-          /* prefetch + retry handle transient 503 */
+          /* batch prefetch + retry handle transient 503 */
         })
-    })
+    }
 
     return () => {
       cancelled = true

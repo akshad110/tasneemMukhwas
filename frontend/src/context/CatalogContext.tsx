@@ -52,6 +52,7 @@ const CatalogContext = createContext<CatalogContextValue | null>(null)
 const MAX_LOAD_ATTEMPTS = 2
 const CART_STORAGE_KEY = 'tm-cart-v1'
 const CACHE_KEY = 'tm-catalog-v1'
+const ADMIN_CACHE_KEY = 'tm-catalog-admin-v1'
 const CACHE_TTL_MS = 10 * 60_000
 
 function catalogViewForPath(pathname = window.location.pathname): 'summary' | 'admin' {
@@ -92,9 +93,9 @@ function hasPersistedCartLines() {
   }
 }
 
-function readCache(): { items: ShopProduct[]; categories: string[] } | null {
+function readCacheByKey(key: string): { items: ShopProduct[]; categories: string[] } | null {
   try {
-    const raw = sessionStorage.getItem(CACHE_KEY)
+    const raw = sessionStorage.getItem(key)
     if (!raw) return null
     const parsed = JSON.parse(raw) as {
       items?: ShopProduct[]
@@ -113,15 +114,23 @@ function readCache(): { items: ShopProduct[]; categories: string[] } | null {
   }
 }
 
-function writeCache(items: ShopProduct[], categories: string[]) {
+function writeCacheByKey(key: string, items: ShopProduct[], categories: string[]) {
   try {
     sessionStorage.setItem(
-      CACHE_KEY,
+      key,
       JSON.stringify({ items, categories, ts: Date.now() }),
     )
   } catch {
     /* quota / private mode */
   }
+}
+
+function readCache() {
+  return readCacheByKey(CACHE_KEY)
+}
+
+function writeCache(items: ShopProduct[], categories: string[]) {
+  writeCacheByKey(CACHE_KEY, items, categories)
 }
 
 function isPersistedProductId(id: string) {
@@ -133,6 +142,9 @@ function isLocalProductId(id: string) {
 }
 
 function readCacheForPath(pathname = window.location.pathname): { items: ShopProduct[]; categories: string[] } | null {
+  if (isAdminPath(pathname) && adminNeedsCatalog(pathname)) {
+    return readCacheByKey(ADMIN_CACHE_KEY)
+  }
   if (isAdminPath(pathname)) return null
   return readCache()
 }
@@ -154,7 +166,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   const [categoryItems, setCategoryItems] = useState<CatalogCategory[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const hasLoadedRef = useRef(false)
+  const hasLoadedRef = useRef(Boolean(cached?.items.length))
   const catalogViewRef = useRef<'summary' | 'admin'>(catalogViewForPath())
   const loadGenRef = useRef(0)
   const loadPromiseRef = useRef<Promise<void> | null>(null)
@@ -191,6 +203,8 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
         setCategories(categoryNames)
         if (view === 'summary') {
           writeCache(data.items, categoryNames)
+        } else if (view === 'admin') {
+          writeCacheByKey(ADMIN_CACHE_KEY, data.items, categoryNames)
         }
         catalogViewRef.current = view
         hasLoadedRef.current = true
@@ -244,8 +258,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (loading || !products.length) return
     const view = catalogViewForPath()
-    // Shop only — admin thumbs load on demand; avoids blocking dashboard API with image batches
-    if (view !== 'summary') return
+    if (view !== 'summary' && view !== 'admin') return
     const key = `${view}:${products.map((p) => p.id).join('|')}`
     if (imagePrefetchKeyRef.current === key) return
     imagePrefetchKeyRef.current = key
@@ -267,13 +280,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   }, [ensureLoaded])
 
   useEffect(() => {
-    if (isAdminPath(window.location.pathname)) return
-    const prefetchSoon = () => prefetch()
-    if (typeof window.requestIdleCallback === 'function') {
-      const id = window.requestIdleCallback(prefetchSoon, { timeout: 800 })
-      return () => window.cancelIdleCallback(id)
-    }
-    const t = window.setTimeout(prefetchSoon, 400)
+    const t = window.setTimeout(() => prefetch(), 0)
     return () => window.clearTimeout(t)
   }, [prefetch])
 

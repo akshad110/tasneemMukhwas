@@ -46,15 +46,33 @@ export async function purgeLegacyCategories(Product) {
   }
 }
 
+let categoriesEnsured = false
+let categoriesEnsurePromise = null
+
 export async function ensureDefaultCategories(Product) {
-  for (let index = 0; index < DEFAULT_CATEGORIES.length; index += 1) {
-    const name = DEFAULT_CATEGORIES[index]
-    await Category.findOneAndUpdate(
-      { name },
-      { name, sortOrder: index, isActive: true },
-      { upsert: true, new: true, setDefaultsOnInsert: true },
-    )
+  if (categoriesEnsured) return
+  if (categoriesEnsurePromise) {
+    await categoriesEnsurePromise
+    return
   }
 
-  await purgeLegacyCategories(Product)
+  categoriesEnsurePromise = (async () => {
+    for (let index = 0; index < DEFAULT_CATEGORIES.length; index += 1) {
+      const name = DEFAULT_CATEGORIES[index]
+      await Category.findOneAndUpdate(
+        { name },
+        { name, sortOrder: index, isActive: true },
+        { upsert: true, new: true, setDefaultsOnInsert: true },
+      )
+    }
+
+    await purgeLegacyCategories(Product)
+    categoriesEnsured = true
+  })()
+
+  try {
+    await categoriesEnsurePromise
+  } finally {
+    categoriesEnsurePromise = null
+  }
 }

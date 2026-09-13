@@ -30,10 +30,24 @@ function daysInMonth(year, month1to12) {
   return new Date(year, month1to12, 0).getDate()
 }
 
+const dashboardCache = new Map()
+const DASHBOARD_CACHE_MS = 45_000
+
+function dashboardCacheKey(period, year, month) {
+  return period === 'month' ? `month:${year}:${month}` : 'all'
+}
+
 export const getDashboard = asyncHandler(async (req, res) => {
   const period = req.query.period === 'month' ? 'month' : 'all'
   const year = Math.min(9999, Math.max(2000, Number(req.query.year) || new Date().getFullYear()))
   const month = Number(req.query.month)
+
+  const cacheKey = dashboardCacheKey(period, year, month)
+  const cached = dashboardCache.get(cacheKey)
+  if (cached && Date.now() - cached.ts < DASHBOARD_CACHE_MS) {
+    res.set('Cache-Control', 'private, max-age=30')
+    return sendSuccess(res, { data: cached.data })
+  }
 
   const startOfDay = new Date()
   startOfDay.setHours(0, 0, 0, 0)
@@ -219,33 +233,35 @@ export const getDashboard = asyncHandler(async (req, res) => {
     date: o.createdAt ? new Date(o.createdAt).toISOString().slice(0, 10) : '',
   }))
 
-  return sendSuccess(res, {
-    data: {
-      period: period === 'month' && month >= 1 && month <= 12 ? { mode: 'month', year, month } : { mode: 'all' },
-      periodLabel,
-      metrics: {
-        totalSales: paidSales[0]?.total || 0,
-        ordersToday: ordersInPeriod,
-        totalProducts,
-        customers,
-      },
-      salesByMonth,
-      inventoryStatus,
-      shipmentBreakdown,
-      customerActivity: [
-        { label: 'Direct', value: 40, color: '#2d6a4f' },
-        { label: 'Search', value: 35, color: '#52b788' },
-        { label: 'Social', value: 25, color: '#b8860b' },
-      ],
-      marketingBars: [
-        { label: 'Facebook', a: 72, b: 48 },
-        { label: 'Google', a: 88, b: 62 },
-        { label: 'Email', a: 54, b: 38 },
-        { label: 'Instagram', a: 79, b: 55 },
-        { label: 'Video', a: 41, b: 28 },
-      ],
-      topProducts,
-      recentOrders: recentOrderRows,
+  const payload = {
+    period: period === 'month' && month >= 1 && month <= 12 ? { mode: 'month', year, month } : { mode: 'all' },
+    periodLabel,
+    metrics: {
+      totalSales: paidSales[0]?.total || 0,
+      ordersToday: ordersInPeriod,
+      totalProducts,
+      customers,
     },
-  })
+    salesByMonth,
+    inventoryStatus,
+    shipmentBreakdown,
+    customerActivity: [
+      { label: 'Direct', value: 40, color: '#2d6a4f' },
+      { label: 'Search', value: 35, color: '#52b788' },
+      { label: 'Social', value: 25, color: '#b8860b' },
+    ],
+    marketingBars: [
+      { label: 'Facebook', a: 72, b: 48 },
+      { label: 'Google', a: 88, b: 62 },
+      { label: 'Email', a: 54, b: 38 },
+      { label: 'Instagram', a: 79, b: 55 },
+      { label: 'Video', a: 41, b: 28 },
+    ],
+    topProducts,
+    recentOrders: recentOrderRows,
+  }
+
+  dashboardCache.set(cacheKey, { ts: Date.now(), data: payload })
+  res.set('Cache-Control', 'private, max-age=30')
+  return sendSuccess(res, { data: payload })
 })

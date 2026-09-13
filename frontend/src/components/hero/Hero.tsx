@@ -6,23 +6,27 @@ import {
   BRAND_SANS,
 } from '../../lib/brand'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
-import { HERO_SLIDE_IMAGES, preloadHeroSlideImages } from '../../lib/heroSlides'
+import {
+  HERO_SLIDE_FOCUS,
+  HERO_SLIDE_IMAGES,
+  preloadHeroSlideImages,
+} from '../../lib/heroSlides'
 
 const HERO_SLIDE_ITEMS = [
   {
     image: HERO_SLIDE_IMAGES[0],
-    title: 'A Touch of Bliss',
-    body: 'Premium mukhwas blends crafted for freshness, tradition, and everyday delight.',
+    title: 'A World of Flavors',
+    body: 'Explore our diverse range of premium digestive blends and mouth fresheners.',
   },
   {
     image: HERO_SLIDE_IMAGES[1],
-    title: 'Crafted with Care',
-    body: 'Time-honoured recipes, hygienically packed — from our Chhapi kitchen to your home.',
+    title: 'The Perfect After-Meal Treat',
+    body: 'Handcrafted mukhwas for a fresh finish after every meal.',
   },
   {
     image: HERO_SLIDE_IMAGES[2],
-    title: 'Find Your Favorite',
-    body: 'Explore Shahi, Paan, Mango Slice, and more — pick the blend that suits your mood.',
+    title: 'The Royal Touch of Freshness',
+    body: 'Indulge in sun-dried mango slices and traditional spices for a vibrant after-meal experience.',
   },
 ] as const
 
@@ -107,6 +111,7 @@ function MobileHero({
                   style={{
                     opacity: isActive ? 1 : 0,
                     zIndex: isActive ? 2 : 1,
+                    objectPosition: HERO_SLIDE_FOCUS[index],
                     transition: `opacity ${FADE_MS}ms ${EASE}`,
                   }}
                 />
@@ -162,6 +167,7 @@ function DesktopHero({ activeIndex }: { activeIndex: number }) {
               style={{
                 opacity: isActive ? 1 : 0,
                 zIndex: isActive ? 2 : 1,
+                objectPosition: HERO_SLIDE_FOCUS[index],
                 transition: `opacity ${FADE_MS}ms ${EASE}`,
               }}
             />

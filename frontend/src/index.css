@@ -3130,7 +3130,11 @@ a:focus-visible .footer-link::after {
 
 /* Hero — full viewport width & height below header */
 .hero-desktop {
-  --hero-banner-height: calc(100svh - var(--site-header-height));
+  --hero-banner-height: clamp(
+    16rem,
+    calc(100vw * 768 / 1377),
+    calc(100svh - var(--site-header-height))
+  );
   background: #1a120e;
 }
 
@@ -3138,7 +3142,8 @@ a:focus-visible .footer-link::after {
   position: relative;
   width: 100%;
   height: var(--hero-banner-height);
-  min-height: clamp(22rem, 52vw, 42rem);
+  min-height: clamp(16rem, 42vw, 28rem);
+  max-height: calc(100svh - var(--site-header-height));
   margin: 0 auto;
   overflow: hidden;
   background: #1a120e;
@@ -3173,8 +3178,7 @@ a:focus-visible .footer-link::after {
   position: relative;
   overflow: hidden;
   width: 100%;
-  height: calc(100svh - var(--site-header-height));
-  min-height: clamp(16rem, 62vw, 28rem);
+  height: clamp(11rem, calc(100vw * 768 / 1377), min(46svh, 20rem));
   margin: 0 auto;
   background: #1a120e;
 }
@@ -3241,10 +3245,32 @@ a:focus-visible .footer-link::after {
   }
 }
 
+@media (max-width: 479px) {
+  .hero-mobile-banner {
+    height: clamp(10.5rem, calc(100vw * 768 / 1377), min(42svh, 18rem));
+  }
+
+  .hero-mobile-banner__slide {
+    object-fit: cover;
+  }
+}
+
 @media (max-width: 359px) {
+  .hero-mobile-banner {
+    height: clamp(9.75rem, calc(100vw * 768 / 1377), 16.5rem);
+  }
+
   .hero-mobile-banner__cta {
     left: 0.85rem;
     bottom: 0.85rem;
+    padding: 0.46rem 0.88rem;
+    font-size: 0.62rem;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .hero-desktop {
+    --hero-banner-height: clamp(18rem, calc(100vw * 768 / 1377), 32rem);
   }
 }
 

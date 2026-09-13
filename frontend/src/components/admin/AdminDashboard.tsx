@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties, type Reac
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 import {
   getCachedProductImages,
+  prefetchAdminProductImages,
   queueAdminProductImage,
   resolveProductThumb,
   subscribeProductImages,
@@ -25,6 +26,31 @@ const MONTH_NAMES = [
 ]
 
 const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+const DASHBOARD_CACHE_KEY = 'tm-dashboard-v1'
+const DASHBOARD_CACHE_TTL_MS = 60_000
+
+function readDashboardCache(key: string): DashboardData | null {
+  try {
+    const raw = sessionStorage.getItem(DASHBOARD_CACHE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as { key?: string; ts?: number; data?: DashboardData }
+    if (parsed.key !== key || !parsed.ts || Date.now() - parsed.ts > DASHBOARD_CACHE_TTL_MS) {
+      return null
+    }
+    return parsed.data ?? null
+  } catch {
+    return null
+  }
+}
+
+function writeDashboardCache(key: string, data: DashboardData) {
+  try {
+    sessionStorage.setItem(DASHBOARD_CACHE_KEY, JSON.stringify({ key, ts: Date.now(), data }))
+  } catch {
+    /* quota / private mode */
+  }
+}
 
 function currentMonthPeriod(): Extract<DashboardPeriod, { mode: 'month' }> {
   const now = new Date()
@@ -468,6 +494,10 @@ function ProductSalesPanel({ products }: { products: DashboardData['topProducts'
   const scrollRef = useRef<HTMLDivElement>(null)
   const [scrollHints, setScrollHints] = useState({ up: false, down: false })
 
+  useEffect(() => {
+    void prefetchAdminProductImages(products.map((p) => p.id))
+  }, [products])
+
   const sorted = [...products].sort((a, b) => {
     const unitsA = a.reviews ?? 0
     const unitsB = b.reviews ?? 0
@@ -635,29 +665,40 @@ function ProductSalesPanel({ products }: { products: DashboardData['topProducts'
 /** Dashboard — reference layout with brand light-green / gold accents. */
 export default function AdminDashboard() {
   const [period, setPeriod] = useState<DashboardPeriod>({ mode: 'all' })
-  const [data, setData] = useState<DashboardData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [reloadKey, setReloadKey] = useState(0)
-
   const periodKey =
     period.mode === 'month' ? `month:${period.year}:${period.month}` : 'all'
+  const [data, setData] = useState<DashboardData | null>(() => readDashboardCache(periodKey))
+  const [loading, setLoading] = useState(() => !readDashboardCache(periodKey))
+  const [error, setError] = useState<string | null>(null)
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     let cancelled = false
     const controller = new AbortController()
-    setLoading(true)
+    const cached = readDashboardCache(periodKey)
+
+    if (cached) {
+      setData(cached)
+      setLoading(false)
+    } else {
+      setLoading(true)
+    }
     setError(null)
 
     dashboardApi
       .get(period, controller.signal)
       .then((res) => {
-        if (!cancelled) setData(res)
+        if (cancelled) return
+        setData(res)
+        writeDashboardCache(periodKey, res)
+        void prefetchAdminProductImages(res.topProducts.map((p) => p.id))
       })
       .catch((err) => {
         if (cancelled || controller.signal.aborted) return
         if (err instanceof DOMException && err.name === 'AbortError') return
-        setError(err instanceof Error ? err.message : 'Failed to load dashboard')
+        if (!cached) {
+          setError(err instanceof Error ? err.message : 'Failed to load dashboard')
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -667,7 +708,7 @@ export default function AdminDashboard() {
       cancelled = true
       controller.abort()
     }
-  }, [periodKey, reloadKey])
+  }, [periodKey, reloadKey, period])
 
   const retry = () => setReloadKey((k) => k + 1)
 

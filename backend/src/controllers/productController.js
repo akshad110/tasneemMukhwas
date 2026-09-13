@@ -114,10 +114,12 @@ export const listProducts = asyncHandler(async (req, res) => {
   if (viewMode === 'admin') listQuery.select(adminSelect)
   else if (viewMode === 'summary') listQuery.select(summarySelect)
 
-  await ensureDefaultCategories(Product)
+  void ensureDefaultCategories(Product)
+
+  const needsTotal = viewMode !== 'summary'
   const [items, total, dbCategories] = await Promise.all([
     listQuery.lean(),
-    Product.countDocuments(filter),
+    needsTotal ? Product.countDocuments(filter) : Promise.resolve(0),
     Category.find({ isActive: true }).sort({ sortOrder: 1, name: 1 }).select('name').lean(),
   ])
   const categories = dbCategories.map((c) => c.name)
@@ -132,10 +134,14 @@ export const listProducts = asyncHandler(async (req, res) => {
         ? serializeProductAdminList
         : serializeProductList
 
+  if (viewMode === 'summary') {
+    res.set('Cache-Control', 'public, max-age=30, stale-while-revalidate=120')
+  }
+
   return sendSuccess(res, {
     data: {
       items: items.map(serialize),
-      total,
+      total: needsTotal ? total : items.length,
       page: pageNum,
       limit: limitNum,
       categories,
