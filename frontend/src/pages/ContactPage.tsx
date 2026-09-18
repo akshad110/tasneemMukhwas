@@ -135,11 +135,7 @@ export default function ContactPage() {
   const activeBranch = BRAND_BRANCHES.find((b) => b.id === activeBranchId) ?? BRAND_BRANCHES[0]
 
   useEffect(() => {
-    document.title = 'Contact · Tasneem Mukhwas'
     scrollAppToTop(true)
-    return () => {
-      document.title = 'Tasneem Mukhwas'
-    }
   }, [])
 
   return (

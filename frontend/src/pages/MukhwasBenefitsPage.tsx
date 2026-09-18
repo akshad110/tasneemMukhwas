@@ -27,11 +27,7 @@ export default function MukhwasBenefitsPage() {
   const active = BENEFIT_CATEGORIES.find((c) => c.id === activeId) ?? BENEFIT_CATEGORIES[0]
 
   useEffect(() => {
-    document.title = 'Benefits of Mukhwas · Tasneem Mukhwas'
     scrollAppToTop(true)
-    return () => {
-      document.title = 'Tasneem Mukhwas'
-    }
   }, [])
 
   useEffect(() => {

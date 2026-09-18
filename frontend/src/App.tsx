@@ -33,6 +33,7 @@ import {
 } from './lib/appRoutes'
 import { scrollAppToTop } from './lib/scrollControl'
 import { resetPathToHome } from './lib/sectionNav'
+import SeoHead from './components/seo/SeoHead'
 import Home from './pages/Home'
 
 const AdminPage = lazy(() => import('./pages/AdminPage'))
@@ -274,6 +275,7 @@ function App() {
 
   return (
     <SmoothScroll enabled>
+      <SeoHead path={path} />
       <RouteScrollReset routeKey={path} />
       <AppRoutes path={path} />
     </SmoothScroll>

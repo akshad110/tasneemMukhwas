@@ -8,6 +8,7 @@ import { APP_ROUTES, navigateApp } from '../lib/appRoutes'
 import { BRAND_CREAM_LIGHT, BRAND_INK, BRAND_MUTED, BRAND_SANS } from '../lib/brand'
 import { productsApi, couponsApi } from '../lib/services'
 import { scrollAppToTop } from '../lib/scrollControl'
+import { applySeo, SITE_NAME } from '../lib/seo'
 import type { ShopProduct } from '../lib/shopCatalog'
 
 const PAGE = BRAND_CREAM_LIGHT
@@ -79,11 +80,11 @@ export default function ProductDetailPage({ productId }: ProductDetailPageProps)
   }, [product, promos])
 
   useEffect(() => {
-    document.title = product ? `${product.name} · Shop · Tasneem Mukhwas` : 'Product · Tasneem Mukhwas'
-    scrollAppToTop(true)
-    return () => {
-      document.title = 'Tasneem Mukhwas'
+    applySeo(window.location.pathname)
+    if (product) {
+      document.title = `${product.name} | ${SITE_NAME}`
     }
+    scrollAppToTop(true)
   }, [product])
 
   const busy = (catalogLoading && !product) || fetching

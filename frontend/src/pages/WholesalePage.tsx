@@ -124,11 +124,7 @@ function ArrowItem({ children }: { children: string }) {
 
 export default function WholesalePage() {
   useEffect(() => {
-    document.title = 'Dealership · Tasneem Mukhwas'
     scrollAppToTop(true)
-    return () => {
-      document.title = 'Tasneem Mukhwas'
-    }
   }, [])
 
   return (

@@ -168,11 +168,7 @@ export default function ShopPage() {
   }
 
   useEffect(() => {
-    document.title = 'Shop · Tasneem Mukhwas'
     scrollAppToTop(true)
-    return () => {
-      document.title = 'Tasneem Mukhwas'
-    }
   }, [])
 
   const priceCeiling = useMemo(

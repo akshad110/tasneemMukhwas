@@ -44,11 +44,7 @@ const VISION_POINTS = [
 
 export default function OurCompanyPage() {
   useEffect(() => {
-    document.title = 'Our Company · Tasneem Mukhwas'
     scrollAppToTop(true)
-    return () => {
-      document.title = 'Tasneem Mukhwas'
-    }
   }, [])
 
   return (

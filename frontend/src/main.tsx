@@ -8,6 +8,7 @@ import { CartProvider } from './context/CartContext.tsx'
 import { CatalogProvider } from './context/CatalogContext.tsx'
 import { WishlistProvider } from './context/WishlistContext.tsx'
 import { warmApi } from './lib/api'
+import { applySeo } from './lib/seo'
 import { scrollAppToTop } from './lib/scrollControl'
 import { preloadHeroSlideImages } from './lib/heroSlides'
 
@@ -17,6 +18,7 @@ if ('scrollRestoration' in history) {
 scrollAppToTop(true)
 
 preloadHeroSlideImages()
+applySeo(window.location.pathname)
 void warmApi(3)
 
 createRoot(document.getElementById('root')!).render(
