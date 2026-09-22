@@ -7,6 +7,7 @@ import {
 } from '../../lib/brand'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 import {
+  HERO_SLIDE_FIT,
   HERO_SLIDE_FOCUS,
   HERO_SLIDE_IMAGES,
   preloadHeroSlideImages,
@@ -15,18 +16,18 @@ import {
 const HERO_SLIDE_ITEMS = [
   {
     image: HERO_SLIDE_IMAGES[0],
-    title: 'More Than a Mukhwas',
-    body: 'A blend of tradition, taste and togetherness.',
+    title: 'A Timeless Taste of Tradition',
+    body: 'Bringing authentic Indian flavours to every bite.',
   },
   {
     image: HERO_SLIDE_IMAGES[1],
-    title: 'A Taste Rooted in Tradition',
-    body: 'Authentic Indian flavours for every moment.',
+    title: 'A Celebration of Flavour',
+    body: 'Crafted for a truly refreshing experience.',
   },
   {
     image: HERO_SLIDE_IMAGES[2],
-    title: 'Small Bites Big Traditions',
-    body: 'A flavour for every mood, a tradition for every generation.',
+    title: 'Fresh. Flavourful. Traditional.',
+    body: 'Your perfect after-meal companion.',
   },
 ] as const
 
@@ -111,6 +112,7 @@ function MobileHero({
                   style={{
                     opacity: isActive ? 1 : 0,
                     zIndex: isActive ? 2 : 1,
+                    objectFit: HERO_SLIDE_FIT[index],
                     objectPosition: HERO_SLIDE_FOCUS[index],
                     transition: `opacity ${FADE_MS}ms ${EASE}`,
                   }}
@@ -167,6 +169,7 @@ function DesktopHero({ activeIndex }: { activeIndex: number }) {
               style={{
                 opacity: isActive ? 1 : 0,
                 zIndex: isActive ? 2 : 1,
+                objectFit: HERO_SLIDE_FIT[index],
                 objectPosition: HERO_SLIDE_FOCUS[index],
                 transition: `opacity ${FADE_MS}ms ${EASE}`,
               }}
