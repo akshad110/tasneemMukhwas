@@ -7,7 +7,6 @@ import {
 } from '../../lib/brand'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 import {
-  HERO_SLIDE_FOCUS,
   HERO_SLIDE_IMAGES,
   preloadHeroSlideImages,
 } from '../../lib/heroSlides'
@@ -15,18 +14,18 @@ import {
 const HERO_SLIDE_ITEMS = [
   {
     image: HERO_SLIDE_IMAGES[0],
-    title: 'A World of Flavors',
-    body: 'Explore our diverse range of premium digestive blends and mouth fresheners.',
+    title: 'A Timeless Taste of Tradition',
+    body: 'Bringing authentic Indian flavours to every bite.',
   },
   {
     image: HERO_SLIDE_IMAGES[1],
-    title: 'The Perfect After-Meal Treat',
-    body: 'Handcrafted mukhwas for a fresh finish after every meal.',
+    title: 'A Celebration of Flavour',
+    body: 'Crafted for a truly refreshing experience.',
   },
   {
     image: HERO_SLIDE_IMAGES[2],
-    title: 'The Royal Touch of Freshness',
-    body: 'Indulge in sun-dried mango slices and traditional spices for a vibrant after-meal experience.',
+    title: 'Fresh. Flavourful. Traditional.',
+    body: 'Your perfect after-meal companion.',
   },
 ] as const
 
@@ -102,16 +101,17 @@ function MobileHero({
                 <img
                   key={item.image}
                   src={item.image}
-                  alt=""
+                  alt={item.title}
                   decoding={index === 0 ? 'sync' : 'async'}
                   fetchPriority={index === 0 ? 'high' : 'auto'}
                   loading="eager"
                   draggable={false}
                   className="hero-mobile-banner__slide"
+                  width={2560}
+                  height={1750}
                   style={{
                     opacity: isActive ? 1 : 0,
                     zIndex: isActive ? 2 : 1,
-                    objectPosition: HERO_SLIDE_FOCUS[index],
                     transition: `opacity ${FADE_MS}ms ${EASE}`,
                   }}
                 />
@@ -164,10 +164,11 @@ function DesktopHero({ activeIndex }: { activeIndex: number }) {
               fetchPriority={index === 0 ? 'high' : 'auto'}
               loading="eager"
               className="hero-desktop__slide"
+              width={2560}
+              height={1750}
               style={{
                 opacity: isActive ? 1 : 0,
                 zIndex: isActive ? 2 : 1,
-                objectPosition: HERO_SLIDE_FOCUS[index],
                 transition: `opacity ${FADE_MS}ms ${EASE}`,
               }}
             />
