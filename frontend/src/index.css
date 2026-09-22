@@ -3128,7 +3128,7 @@ a:focus-visible .footer-link::after {
   }
 }
 
-/* Hero — one viewport below the header, edge-to-edge width */
+/* Hero — full viewport under the header, edge-to-edge */
 .hero-desktop {
   width: 100%;
   height: calc(100svh - var(--site-header-height));

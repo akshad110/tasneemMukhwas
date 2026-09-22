@@ -7,6 +7,7 @@ import {
 } from '../../lib/brand'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 import {
+  HERO_SLIDE_FOCUS,
   HERO_SLIDE_IMAGES,
   preloadHeroSlideImages,
 } from '../../lib/heroSlides'
@@ -14,18 +15,18 @@ import {
 const HERO_SLIDE_ITEMS = [
   {
     image: HERO_SLIDE_IMAGES[0],
-    title: 'A Timeless Taste of Tradition',
-    body: 'Bringing authentic Indian flavours to every bite.',
+    title: 'More Than a Mukhwas',
+    body: 'A blend of tradition, taste and togetherness.',
   },
   {
     image: HERO_SLIDE_IMAGES[1],
-    title: 'A Celebration of Flavour',
-    body: 'Crafted for a truly refreshing experience.',
+    title: 'A Taste Rooted in Tradition',
+    body: 'Authentic Indian flavours for every moment.',
   },
   {
     image: HERO_SLIDE_IMAGES[2],
-    title: 'Fresh. Flavourful. Traditional.',
-    body: 'Your perfect after-meal companion.',
+    title: 'Small Bites Big Traditions',
+    body: 'A flavour for every mood, a tradition for every generation.',
   },
 ] as const
 
@@ -107,11 +108,10 @@ function MobileHero({
                   loading="eager"
                   draggable={false}
                   className="hero-mobile-banner__slide"
-                  width={2560}
-                  height={1750}
                   style={{
                     opacity: isActive ? 1 : 0,
                     zIndex: isActive ? 2 : 1,
+                    objectPosition: HERO_SLIDE_FOCUS[index],
                     transition: `opacity ${FADE_MS}ms ${EASE}`,
                   }}
                 />
@@ -164,11 +164,10 @@ function DesktopHero({ activeIndex }: { activeIndex: number }) {
               fetchPriority={index === 0 ? 'high' : 'auto'}
               loading="eager"
               className="hero-desktop__slide"
-              width={2560}
-              height={1750}
               style={{
                 opacity: isActive ? 1 : 0,
                 zIndex: isActive ? 2 : 1,
+                objectPosition: HERO_SLIDE_FOCUS[index],
                 transition: `opacity ${FADE_MS}ms ${EASE}`,
               }}
             />
