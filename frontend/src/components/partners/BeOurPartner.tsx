@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion'
 import {
   BRAND_CREAM,
-  BRAND_CREAM_LIGHT,
   BRAND_INK,
   BRAND_GOLD,
   BRAND_MUTED,

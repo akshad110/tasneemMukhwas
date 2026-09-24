@@ -9,7 +9,6 @@ import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 import {
   HERO_SLIDE_FIT,
   HERO_SLIDE_FOCUS,
-  HERO_SLIDE_FOCUS_MOBILE,
   HERO_SLIDE_FOCUS_TABLET,
   HERO_SLIDE_IMAGES,
   preloadHeroSlideImages,
