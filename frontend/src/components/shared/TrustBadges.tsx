@@ -1,7 +1,6 @@
-import { BRAND_CREAM, BRAND_GOLD, BRAND_INK, BRAND_SANS } from '../../lib/brand'
+import { BRAND_GOLD, BRAND_INK, BRAND_SANS, HOME_SECTION_A } from '../../lib/brand'
 
 const INK = BRAND_INK
-const CREAM = BRAND_CREAM
 const GOLD = BRAND_GOLD
 
 const BADGES = [
@@ -48,10 +47,10 @@ export default function TrustBadges() {
   return (
     <div
       className="relative z-40 w-full border-b border-[#0a2e22]/10"
-      style={{ backgroundColor: CREAM }}
+      style={{ backgroundColor: HOME_SECTION_A }}
       aria-label="Trust badges"
     >
-      <ul className="mx-auto flex max-w-[1320px] flex-wrap items-center justify-center gap-x-4 gap-y-2 px-5 py-2.5 sm:gap-x-8 sm:px-8 md:py-3 lg:px-10">
+      <ul className="mx-auto flex max-w-[1760px] flex-wrap items-center justify-center gap-x-4 gap-y-2 px-4 py-2.5 sm:gap-x-8 sm:px-6 md:py-3 lg:px-8">
         {BADGES.map((badge) => (
           <li
             key={badge.label}

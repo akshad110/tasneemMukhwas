@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion'
 import {
-  BRAND_CREAM,
   BRAND_CREAM_DEEP,
   BRAND_CREAM_LIGHT,
   BRAND_GOLD,
@@ -8,6 +7,7 @@ import {
   BRAND_MUTED,
   BRAND_SANS,
   BRAND_SERIF,
+  HOME_SECTION_B,
 } from '../../lib/brand'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 import { WHAT_TASNEEM_DO_HOME } from '../../lib/tasneemDoContent'
@@ -21,7 +21,7 @@ export default function WhatTasneemDoSection() {
     <section
       id="what-tasneem-do"
       className="relative w-full overflow-hidden py-14 sm:py-16 lg:py-20"
-      style={{ backgroundColor: BRAND_CREAM }}
+      style={{ backgroundColor: HOME_SECTION_B }}
       aria-labelledby="what-tasneem-do-title"
     >
       <div
@@ -33,7 +33,7 @@ export default function WhatTasneemDoSection() {
         }}
       />
 
-      <div className="relative mx-auto grid max-w-[1240px] items-center gap-10 px-5 sm:px-8 lg:grid-cols-[0.42fr_0.58fr] lg:gap-14 lg:px-10">
+      <div className="relative mx-auto grid max-w-[1760px] items-center gap-10 px-4 sm:px-6 lg:grid-cols-[0.42fr_0.58fr] lg:gap-14 lg:px-8">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           whileInView={{ opacity: 1, x: 0 }}

@@ -8,6 +8,7 @@ import {
   BRAND_SANS,
   BRAND_SERIF,
   BRAND_DISPLAY,
+  HOME_SECTION_A,
 } from '../../lib/brand'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 import { CONTACT_EMAIL, CONTACT_PHONE_DISPLAY, CONTACT_PHONE_TEL, WHATSAPP_URL } from '../../lib/contact'
@@ -67,7 +68,7 @@ export default function BeOurPartner() {
     <section
       id="be-our-partner"
       className="be-partner relative w-full overflow-hidden py-14 sm:py-16 lg:py-20"
-      style={{ backgroundColor: BRAND_CREAM_LIGHT }}
+      style={{ backgroundColor: HOME_SECTION_A }}
       aria-labelledby="be-partner-title"
     >
       <div
@@ -79,7 +80,7 @@ export default function BeOurPartner() {
         }}
       />
 
-      <div className="relative mx-auto max-w-[1240px] px-5 sm:px-8 lg:px-10">
+      <div className="relative mx-auto max-w-[1760px] px-4 sm:px-6 lg:px-8">
         <motion.header
           className="mx-auto max-w-2xl text-center"
           initial={{ opacity: 0, y: 18 }}

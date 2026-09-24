@@ -12,6 +12,10 @@ export const BRAND_CREAM_DEEP = '#E6D8C3'
 /** Footer surface — flat warm cream */
 export const BRAND_CREAM_DARK = '#D1BB9E'
 export const BRAND_CREAM_DARKER = '#D1BB9E'
+
+/** Homepage alternating section surfaces (hero + footer excluded) */
+export const HOME_SECTION_A = '#DED4C4'
+export const HOME_SECTION_B = '#FFFBF4'
 /** Footer copy on #D1BB9E — warm dark browns for legibility */
 export const BRAND_FOOTER_HEADING = '#0a2e22'
 export const BRAND_FOOTER_TEXT = '#3D3428'

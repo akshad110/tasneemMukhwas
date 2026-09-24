@@ -199,6 +199,7 @@ function NavLinks({
   links,
   activeId,
   stacked,
+  compact,
   onNavigate,
   onPrefetchShop,
   shopDropdownItems = [],
@@ -206,6 +207,7 @@ function NavLinks({
   links: readonly NavLinkItem[]
   activeId: SectionId | null
   stacked?: boolean
+  compact?: boolean
   onNavigate?: (id: SectionId) => void
   onPrefetchShop?: () => void
   shopDropdownItems?: NavDropdownItem[]
@@ -311,7 +313,13 @@ function NavLinks({
               onTouchStart={() => {
                 if (link.id === 'products') onPrefetchShop?.()
               }}
-              className={`nav-link group/link inline-flex cursor-pointer items-center gap-1 text-[0.72rem] font-semibold tracking-[0.08em] uppercase no-underline transition-[color,font-weight] duration-200 xl:text-[0.78rem]${isDropdownOpen ? ' nav-link--menu-open' : ''}`}
+              className={`nav-link group/link inline-flex cursor-pointer items-center gap-1 font-semibold uppercase no-underline transition-[color,font-weight,font-size,letter-spacing] duration-[450ms] ${
+                stacked
+                  ? 'text-[0.9rem] tracking-[0.08em]'
+                  : compact
+                    ? 'text-[0.68rem] tracking-[0.08em] xl:text-[0.72rem]'
+                    : 'text-[0.88rem] tracking-[0.06em] xl:text-[0.95rem]'
+              }${isDropdownOpen ? ' nav-link--menu-open' : ''}`}
               style={{
                 color: isActive ? INK : NAV_LINK,
                 fontFamily: 'Inter, sans-serif',
@@ -729,6 +737,8 @@ export default function Navbar() {
         className="sticky top-0 z-50 w-full overflow-visible border-b border-[rgba(10,46,34,0.08)] bg-white"
         style={{
           paddingTop: 'env(safe-area-inset-top, 0px)',
+          borderTop: `4px solid ${GOLD}`,
+          borderLeft: `4px solid ${GOLD}`,
           boxShadow: scrolled ? '0 4px 18px rgba(10,46,34,0.07)' : 'none',
           transition: `box-shadow 450ms ${EASE}`,
         }}
@@ -737,7 +747,7 @@ export default function Navbar() {
         <nav
           className="relative mx-auto hidden w-full max-w-[1440px] items-stretch overflow-visible px-4 lg:grid lg:grid-cols-[1fr_auto_1fr] xl:px-10"
           style={{
-            minHeight: scrolled ? 72 : 84,
+            minHeight: scrolled ? 80 : 102,
             transition: `min-height 450ms ${EASE}`,
           }}
           aria-label="Primary"
@@ -746,6 +756,7 @@ export default function Navbar() {
             <NavLinks
               links={LEFT_NAV_LINKS}
               activeId={activeId}
+              compact={scrolled}
               onNavigate={goTo}
               onPrefetchShop={prefetchCatalog}
             />
@@ -773,6 +784,7 @@ export default function Navbar() {
             <NavLinks
               links={RIGHT_NAV_LINKS}
               activeId={activeId}
+              compact={scrolled}
               onNavigate={goTo}
               onPrefetchShop={prefetchCatalog}
               shopDropdownItems={shopDropdownItems}

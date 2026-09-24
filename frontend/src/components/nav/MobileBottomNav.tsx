@@ -74,7 +74,7 @@ type MobileBottomNavProps = {
 export default function MobileBottomNav({ activeId, onNavigate }: MobileBottomNavProps) {
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-[55] border-t md:hidden"
+      className="fixed inset-x-0 bottom-0 z-[55] m-0 border-t md:hidden"
       style={{
         borderColor: 'rgba(10,46,34,0.08)',
         backgroundColor: '#ffffff',
@@ -83,7 +83,7 @@ export default function MobileBottomNav({ activeId, onNavigate }: MobileBottomNa
       }}
       aria-label="Mobile primary navigation"
     >
-      <ul className="m-0 grid list-none grid-cols-5 px-1 py-1.5">
+      <ul className="m-0 grid list-none grid-cols-5 px-1 py-1">
         {TABS.map((tab) => {
           const isActive = activeId === tab.id
           const { Icon } = tab

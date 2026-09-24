@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { useLenis } from 'lenis/react'
 import Hero from '../components/hero/Hero'
+import HeroPromoStrip from '../components/home/HeroPromoStrip'
 import HomeIntroSection from '../components/home/HomeIntroSection'
 import Navbar from '../components/nav/Navbar'
 import OurProductsCarousel from '../components/products/OurProductsCarousel'
@@ -44,6 +45,7 @@ export default function Home({ ready = true }: HomeProps) {
     <main className="page-shell overflow-x-clip" style={{ backgroundColor: '#F8F3E7' }}>
       <Navbar />
       <Hero />
+      <HeroPromoStrip />
       <HomeIntroSection />
       <TrustBadges />
       <WellnessBenefitsSection />
@@ -51,28 +53,28 @@ export default function Home({ ready = true }: HomeProps) {
       <OurPartnersMarquee />
       <GlobalReachSection />
 
-      <DeferredMount fallback={<SectionPlaceholder minHeight="40vh" className="bg-[#FFFEF2]" />}>
-        <Suspense fallback={<SectionPlaceholder minHeight="40vh" className="bg-[#FFFEF2]" />}>
+      <DeferredMount fallback={<SectionPlaceholder minHeight="40vh" className="bg-[#FFFBF4]" />}>
+        <Suspense fallback={<SectionPlaceholder minHeight="40vh" className="bg-[#FFFBF4]" />}>
           <AboutZoom />
         </Suspense>
       </DeferredMount>
 
-      <DeferredMount fallback={<SectionPlaceholder minHeight="50vh" className="bg-[#F8F3E7]" />}>
-        <Suspense fallback={<SectionPlaceholder minHeight="50vh" className="bg-[#F8F3E7]" />}>
+      <DeferredMount fallback={<SectionPlaceholder minHeight="50vh" className="bg-[#DED4C4]" />}>
+        <Suspense fallback={<SectionPlaceholder minHeight="50vh" className="bg-[#DED4C4]" />}>
           <CategoriesSliderSection />
         </Suspense>
       </DeferredMount>
 
-      <DeferredMount fallback={<SectionPlaceholder minHeight="32vh" className="bg-[#F8F3E7]" />}>
-        <Suspense fallback={<SectionPlaceholder minHeight="32vh" className="bg-[#F8F3E7]" />}>
+      <DeferredMount fallback={<SectionPlaceholder minHeight="32vh" className="bg-[#FFFBF4]" />}>
+        <Suspense fallback={<SectionPlaceholder minHeight="32vh" className="bg-[#FFFBF4]" />}>
           <WhatTasneemDoSection />
         </Suspense>
       </DeferredMount>
 
       <QualityPromiseSection />
 
-      <DeferredMount fallback={<SectionPlaceholder minHeight="32vh" className="bg-[#FFFEF2]" />}>
-        <Suspense fallback={<SectionPlaceholder minHeight="32vh" className="bg-[#FFFEF2]" />}>
+      <DeferredMount fallback={<SectionPlaceholder minHeight="32vh" className="bg-[#FFFBF4]" />}>
+        <Suspense fallback={<SectionPlaceholder minHeight="32vh" className="bg-[#FFFBF4]" />}>
           <MukhwasBenefitsSection />
         </Suspense>
       </DeferredMount>

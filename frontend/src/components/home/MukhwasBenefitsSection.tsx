@@ -7,6 +7,7 @@ import {
   BRAND_MUTED,
   BRAND_SANS,
   BRAND_SERIF,
+  HOME_SECTION_B,
 } from '../../lib/brand'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 import { MUKHWAS_BENEFITS_HOME } from '../../lib/mukhwasBenefitsContent'
@@ -20,7 +21,7 @@ export default function MukhwasBenefitsSection() {
     <section
       id="mukhwas-benefits"
       className="relative w-full overflow-hidden py-14 sm:py-16 lg:py-20"
-      style={{ backgroundColor: BRAND_CREAM_LIGHT }}
+      style={{ backgroundColor: HOME_SECTION_B }}
       aria-labelledby="mukhwas-benefits-title"
     >
       <div
@@ -32,7 +33,7 @@ export default function MukhwasBenefitsSection() {
         }}
       />
 
-      <div className="relative mx-auto max-w-[1240px] px-5 sm:px-8 lg:px-10">
+      <div className="relative mx-auto max-w-[1760px] px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center lg:mx-0 lg:text-left">
           <p
             className="m-0 text-[0.68rem] font-semibold tracking-[0.2em] uppercase"

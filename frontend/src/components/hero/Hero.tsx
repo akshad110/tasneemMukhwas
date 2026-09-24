@@ -9,6 +9,8 @@ import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 import {
   HERO_SLIDE_FIT,
   HERO_SLIDE_FOCUS,
+  HERO_SLIDE_FOCUS_MOBILE,
+  HERO_SLIDE_FOCUS_TABLET,
   HERO_SLIDE_IMAGES,
   preloadHeroSlideImages,
 } from '../../lib/heroSlides'
@@ -52,7 +54,7 @@ function MobileHeroDots({
 }) {
   return (
     <div
-      className="flex items-center justify-center gap-2 border-t border-[#0a2e22]/8 px-4 py-3"
+      className="hero-mobile-dots flex items-center justify-center gap-2.5 px-4 py-3.5"
       style={{ backgroundColor: BRAND_CREAM }}
       role="tablist"
       aria-label="Hero slides"
@@ -67,10 +69,10 @@ function MobileHeroDots({
           onClick={() => onSelect(index)}
           className="cursor-pointer border-0 p-0 transition-transform hover:scale-110"
           style={{
-            width: index === activeIndex ? '1.35rem' : '0.55rem',
+            width: '0.55rem',
             height: '0.55rem',
             borderRadius: 999,
-            backgroundColor: index === activeIndex ? BRAND_GOLD : 'rgba(10,46,34,0.22)',
+            backgroundColor: index === activeIndex ? BRAND_GOLD : 'rgba(10,46,34,0.18)',
           }}
         />
       ))}
@@ -112,8 +114,9 @@ function MobileHero({
                   style={{
                     opacity: isActive ? 1 : 0,
                     zIndex: isActive ? 2 : 1,
-                    objectFit: HERO_SLIDE_FIT[index],
-                    objectPosition: HERO_SLIDE_FOCUS[index],
+                    ['--hero-fit' as string]: 'contain',
+                    ['--hero-pos-mobile' as string]: 'center center',
+                    ['--hero-pos-tablet' as string]: HERO_SLIDE_FOCUS_TABLET[index],
                     transition: `opacity ${FADE_MS}ms ${EASE}`,
                   }}
                 />
@@ -169,8 +172,9 @@ function DesktopHero({ activeIndex }: { activeIndex: number }) {
               style={{
                 opacity: isActive ? 1 : 0,
                 zIndex: isActive ? 2 : 1,
-                objectFit: HERO_SLIDE_FIT[index],
-                objectPosition: HERO_SLIDE_FOCUS[index],
+                ['--hero-fit' as string]: HERO_SLIDE_FIT[index],
+                ['--hero-pos' as string]: HERO_SLIDE_FOCUS[index],
+                ['--hero-pos-tablet' as string]: HERO_SLIDE_FOCUS_TABLET[index],
                 transition: `opacity ${FADE_MS}ms ${EASE}`,
               }}
             />

@@ -39,7 +39,7 @@ const GOLD = BRAND_GOLD
 const MUTED = BRAND_MUTED
 const EASE = [0.22, 1, 0.36, 1] as const
 
-const HERO_IMG = '/Mukhwas_pouches_on_wooden_table_202608251659.jpeg'
+const HERO_IMG = encodeURI('/products/Arrange_product_pouches_on_table_2K_20260910081512.jpeg')
 const GROW_IMG = encodeURI('/Tasneem_Mukhwas_pouches_on_shelf_202609010137.jpeg')
 const COLLAB_IMG = encodeURI('/Corporate_gift_hamper_on_desk_202609010134.jpeg')
 
@@ -132,20 +132,12 @@ export default function WholesalePage() {
       <Navbar />
 
       {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="relative min-h-[22rem] sm:min-h-[26rem] lg:min-h-[30rem]">
+      <section className="relative overflow-hidden" style={{ backgroundColor: '#d8c9b0' }}>
+        <div className="relative h-[13.5rem] w-full overflow-hidden sm:h-[17rem] lg:h-[20rem]">
           <img
             src={HERO_IMG}
-            alt="Tasneem Mukhwas wholesale and dealership"
-            className="absolute inset-0 h-full w-full object-cover object-center"
-          />
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                'linear-gradient(180deg, rgba(10,46,34,0.28) 0%, rgba(10,46,34,0.18) 45%, rgba(10,46,34,0.32) 100%)',
-            }}
-            aria-hidden
+            alt="The perfect after-meal treat — Tasneem Mukhwas pouches on a wooden table"
+            className="absolute inset-0 h-full w-full object-cover object-[center_42%]"
           />
         </div>
       </section>

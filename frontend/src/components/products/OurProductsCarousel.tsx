@@ -14,11 +14,11 @@ import {
 import { CAROUSEL_PRODUCTS } from '../../lib/carouselProducts'
 import { APP_ROUTES, navigateApp, shopProductPath } from '../../lib/appRoutes'
 import {
-  BRAND_CREAM,
   BRAND_DISPLAY,
   BRAND_INK,
   BRAND_MUTED,
   BRAND_SANS,
+  HOME_SECTION_A,
 } from '../../lib/brand'
 
 const TOTAL = CAROUSEL_PRODUCTS.length
@@ -326,11 +326,11 @@ export default function OurProductsCarousel() {
     <section
       ref={sectionRef}
       id="products"
-      className="relative w-full overflow-hidden px-4 py-7 sm:px-8 sm:py-14 lg:px-10 lg:py-20"
-      style={{ backgroundColor: BRAND_CREAM }}
+      className="relative w-full overflow-x-clip pt-7 sm:pt-14 lg:pt-20"
+      style={{ backgroundColor: HOME_SECTION_A }}
       aria-label="Our products"
     >
-      <div className="mx-auto max-w-[1320px]">
+      <div className="mx-auto max-w-[1760px] px-4 pb-7 sm:px-6 sm:pb-14 lg:px-8 lg:pb-16">
         <header className="mb-4 text-center sm:mb-8 md:mb-10">
           <h2
             className="m-0 uppercase"
@@ -432,6 +432,7 @@ export default function OurProductsCarousel() {
           </a>
         </div>
       </div>
+      <div className="products-scallop" aria-hidden />
     </section>
   )
 }

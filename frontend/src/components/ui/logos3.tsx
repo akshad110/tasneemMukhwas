@@ -1,7 +1,7 @@
 import AutoScroll from 'embla-carousel-auto-scroll'
 
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel'
-import { BRAND_CREAM_LIGHT, BRAND_INK, BRAND_MUTED, BRAND_SANS, BRAND_DISPLAY } from '@/lib/brand'
+import { BRAND_INK, BRAND_MUTED, BRAND_SANS, BRAND_DISPLAY, HOME_SECTION_B } from '@/lib/brand'
 import { cn } from '@/lib/utils'
 
 export interface PartnerLogo {
@@ -25,11 +25,12 @@ export function Logos3({
   logos = [],
   className,
 }: Logos3Props) {
-  const track = logos.length > 1 ? [...logos, ...logos] : logos
+  const copies = Math.max(4, Math.ceil(18 / Math.max(logos.length, 1)))
+  const track = logos.length > 1 ? Array.from({ length: copies }, () => logos).flat() : logos
 
   return (
-    <section className={cn('relative w-full overflow-hidden', className)} aria-label={heading} style={{ backgroundColor: BRAND_CREAM_LIGHT }}>
-      <div className="mx-auto max-w-[1320px] px-5 sm:px-8 lg:px-10">
+    <section className={cn('relative w-full overflow-hidden', className)} aria-label={heading} style={{ backgroundColor: HOME_SECTION_B }}>
+      <div className="mx-auto max-w-[1760px] px-4 sm:px-6 lg:px-8">
         <header className="mb-8 text-center md:mb-10">
           <h2
             className="m-0 uppercase"
@@ -54,13 +55,13 @@ export function Logos3({
           ) : null}
         </header>
 
-        <div className="partners-carousel-shell relative mx-auto w-full max-w-6xl">
+        <div className="partners-carousel-shell relative mx-auto w-full">
           <Carousel
             opts={{
               loop: true,
               align: 'start',
-              dragFree: false,
-              containScroll: 'trimSnaps',
+              dragFree: true,
+              containScroll: false,
             }}
             plugins={[
               AutoScroll({
@@ -72,11 +73,11 @@ export function Logos3({
             ]}
             className="w-full"
           >
-            <CarouselContent className="partners-carousel-track ml-0 items-center">
+            <CarouselContent className="partners-carousel-track items-center">
               {track.map((logo, index) => (
                 <CarouselItem
                   key={`${logo.id}-${index}`}
-                  className="partners-carousel-slide flex shrink-0 basis-auto grow-0 justify-center pl-0"
+                  className="partners-carousel-slide flex shrink-0 basis-auto grow-0 justify-center pl-4"
                 >
                   <div className="partner-logo-card">
                     <div className="partner-logo-slot">

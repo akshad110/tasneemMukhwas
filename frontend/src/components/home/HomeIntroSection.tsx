@@ -1,26 +1,28 @@
 import { motion } from 'framer-motion'
 import {
-  BRAND_CREAM,
   BRAND_CREAM_LIGHT,
   BRAND_GOLD,
   BRAND_INK,
   BRAND_MUTED,
   BRAND_SANS,
   BRAND_SERIF,
+  HOME_SECTION_A,
+  HOME_SECTION_B,
 } from '../../lib/brand'
 import { BROCHURE_DOWNLOAD_NAME, BROCHURE_PDF_URL } from '../../lib/brochure'
 import SectionImageFrame from '../shared/SectionImageFrame'
 
 const EASE = [0.22, 1, 0.36, 1] as const
 
-const INTRO_IMAGE = encodeURI('/WhatsApp Image 2026-09-10 at 12.15.39 AM.jpeg')
+const INTRO_IMAGE = encodeURI('/products/IMG_6886.JPG (1).jpeg')
 
 export default function HomeIntroSection() {
   return (
+    <>
     <section
       id="intro"
       className="relative w-full overflow-hidden py-12 sm:py-16 lg:py-20"
-      style={{ backgroundColor: BRAND_CREAM }}
+      style={{ backgroundColor: HOME_SECTION_A }}
       aria-labelledby="home-intro-title"
     >
       <div
@@ -32,7 +34,7 @@ export default function HomeIntroSection() {
         }}
       />
 
-      <div className="relative mx-auto max-w-[1240px] px-5 sm:px-8 lg:px-10">
+      <div className="relative mx-auto max-w-[1760px] px-4 sm:px-6 lg:px-8">
         <div className="grid items-center gap-10 lg:grid-cols-[0.44fr_0.56fr] lg:gap-14">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -43,9 +45,9 @@ export default function HomeIntroSection() {
           >
             <SectionImageFrame
               src={INTRO_IMAGE}
-              alt="Tasneem Mukhwas — premium mukhwas pouches and Jet Imli bottle on wooden blocks with fresh mint"
+              alt="Traditional flavours for a healthier you — Tasneem Mukhwas pouches"
               objectFit="contain"
-              aspectClass="aspect-[1291/816]"
+              aspectClass="aspect-[1024/650]"
             />
           </motion.div>
 
@@ -100,65 +102,74 @@ export default function HomeIntroSection() {
           </motion.div>
         </div>
 
-        <motion.div
-          id="brochure"
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-40px' }}
-          transition={{ duration: 0.5, ease: EASE, delay: 0.08 }}
-          className="home-intro-brochure mx-auto mt-12 max-w-xl text-center sm:mt-14"
-        >
-          <p
-            className="m-0 text-[0.68rem] font-semibold tracking-[0.2em] uppercase"
-            style={{ color: BRAND_GOLD, fontFamily: BRAND_SANS }}
-          >
-            Discover our range
-          </p>
-          <h3
-            className="mt-2 m-0 text-[clamp(1.35rem,3vw,1.85rem)] leading-tight"
-            style={{ fontFamily: BRAND_SERIF, color: BRAND_INK }}
-          >
-            Our Brochure
-          </h3>
-          <p
-            className="mx-auto mt-3 m-0 max-w-md text-[0.86rem] leading-relaxed sm:text-[0.92rem]"
-            style={{ color: BRAND_MUTED, fontFamily: BRAND_SANS }}
-          >
-            Browse our full product catalogue — flavours, pack formats, and export-ready offerings from
-            Tasneem Mukhwas.
-          </p>
-
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
-            <a
-              href={BROCHURE_PDF_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="home-intro-brochure__btn home-intro-brochure__btn--view inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-full border-2 px-6 py-2.5 text-[0.72rem] font-bold tracking-[0.12em] uppercase no-underline transition hover:brightness-105"
-              style={{
-                borderColor: BRAND_GOLD,
-                color: BRAND_INK,
-                fontFamily: BRAND_SANS,
-                backgroundColor: 'transparent',
-              }}
-            >
-              View Brochure
-            </a>
-            <a
-              href={BROCHURE_PDF_URL}
-              download={BROCHURE_DOWNLOAD_NAME}
-              className="home-intro-brochure__btn home-intro-brochure__btn--download inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-full border-0 px-6 py-2.5 text-[0.72rem] font-bold tracking-[0.12em] uppercase no-underline transition hover:brightness-105"
-              style={{
-                backgroundColor: BRAND_INK,
-                color: BRAND_CREAM_LIGHT,
-                fontFamily: BRAND_SANS,
-                boxShadow: '0 14px 28px -16px rgba(10,46,34,0.55)',
-              }}
-            >
-              Download Brochure
-            </a>
-          </div>
-        </motion.div>
       </div>
     </section>
+
+    <section
+      id="brochure"
+      className="relative w-full overflow-hidden py-12 sm:py-14 lg:py-16"
+      style={{ backgroundColor: HOME_SECTION_B }}
+      aria-labelledby="home-brochure-title"
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-40px' }}
+        transition={{ duration: 0.5, ease: EASE }}
+        className="home-intro-brochure mx-auto max-w-xl px-4 text-center sm:px-6"
+      >
+        <p
+          className="m-0 text-[0.68rem] font-semibold tracking-[0.2em] uppercase"
+          style={{ color: BRAND_GOLD, fontFamily: BRAND_SANS }}
+        >
+          Discover our range
+        </p>
+        <h3
+          id="home-brochure-title"
+          className="mt-2 m-0 text-[clamp(1.35rem,3vw,1.85rem)] leading-tight"
+          style={{ fontFamily: BRAND_SERIF, color: BRAND_INK }}
+        >
+          Our Brochure
+        </h3>
+        <p
+          className="mx-auto mt-3 m-0 max-w-md text-[0.86rem] leading-relaxed sm:text-[0.92rem]"
+          style={{ color: BRAND_MUTED, fontFamily: BRAND_SANS }}
+        >
+          Browse our full product catalogue — flavours, pack formats, and export-ready offerings from
+          Tasneem Mukhwas.
+        </p>
+
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+          <a
+            href={BROCHURE_PDF_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="home-intro-brochure__btn home-intro-brochure__btn--view inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-full border-2 px-6 py-2.5 text-[0.72rem] font-bold tracking-[0.12em] uppercase no-underline transition hover:brightness-105"
+            style={{
+              borderColor: BRAND_GOLD,
+              color: BRAND_INK,
+              fontFamily: BRAND_SANS,
+              backgroundColor: 'transparent',
+            }}
+          >
+            View Brochure
+          </a>
+          <a
+            href={BROCHURE_PDF_URL}
+            download={BROCHURE_DOWNLOAD_NAME}
+            className="home-intro-brochure__btn home-intro-brochure__btn--download inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-full border-0 px-6 py-2.5 text-[0.72rem] font-bold tracking-[0.12em] uppercase no-underline transition hover:brightness-105"
+            style={{
+              backgroundColor: BRAND_INK,
+              color: BRAND_CREAM_LIGHT,
+              fontFamily: BRAND_SANS,
+              boxShadow: '0 14px 28px -16px rgba(10,46,34,0.55)',
+            }}
+          >
+            Download Brochure
+          </a>
+        </div>
+      </motion.div>
+    </section>
+    </>
   )
 }

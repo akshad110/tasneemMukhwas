@@ -3,12 +3,12 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useLenis } from 'lenis/react'
 import {
-  BRAND_CREAM,
   BRAND_GOLD,
   BRAND_INK,
   BRAND_MUTED,
   BRAND_SANS,
   BRAND_SERIF,
+  HOME_SECTION_A,
 } from '../../lib/brand'
 import { APP_ROUTES, navigateApp } from '../../lib/appRoutes'
 import { useCatalog } from '../../context/CatalogContext'
@@ -123,7 +123,7 @@ export default function CategoriesSliderSection() {
       id="categories"
       className="categories-slider"
       style={{
-        backgroundColor: BRAND_CREAM,
+        backgroundColor: HOME_SECTION_A,
         ['--category-count' as string]: items.length,
       }}
       aria-labelledby="categories-slider-title"
