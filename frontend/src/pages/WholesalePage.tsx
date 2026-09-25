@@ -39,7 +39,7 @@ const GOLD = BRAND_GOLD
 const MUTED = BRAND_MUTED
 const EASE = [0.22, 1, 0.36, 1] as const
 
-const HERO_IMG = encodeURI('/products/Arrange_product_pouches_on_table_2K_20260910081512.jpeg')
+const HERO_IMG = encodeURI('/ChatGPT Image Sep 25, 2026, 11_13_27 PM.png')
 const GROW_IMG = encodeURI('/Tasneem_Mukhwas_pouches_on_shelf_202609010137.jpeg')
 const COLLAB_IMG = encodeURI('/Corporate_gift_hamper_on_desk_202609010134.jpeg')
 
@@ -133,11 +133,11 @@ export default function WholesalePage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden" style={{ backgroundColor: '#d8c9b0' }}>
-        <div className="relative h-[13.5rem] w-full overflow-hidden sm:h-[17rem] lg:h-[20rem]">
+        <div className="relative h-[16rem] w-full overflow-hidden sm:h-[20rem] lg:h-[24rem]">
           <img
             src={HERO_IMG}
             alt="The perfect after-meal treat — Tasneem Mukhwas pouches on a wooden table"
-            className="absolute inset-0 h-full w-full object-cover object-[center_42%]"
+            className="absolute inset-0 h-full w-full object-cover object-[center_62%]"
           />
         </div>
       </section>

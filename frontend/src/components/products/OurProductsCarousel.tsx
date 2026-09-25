@@ -22,12 +22,13 @@ import {
 } from '../../lib/brand'
 
 const TOTAL = CAROUSEL_PRODUCTS.length
-const AUTO_MS = 4500
+const AUTO_MS = 2800
+const RESUME_MS = 5200
 
 const SLIDE_TRANSITION = {
   type: 'tween' as const,
-  duration: 0.72,
-  ease: [0.22, 1, 0.36, 1] as const,
+  duration: 0.95,
+  ease: [0.25, 0.1, 0.25, 1] as const,
 }
 
 function wrapIndex(index: number) {
@@ -66,6 +67,7 @@ type CarouselCardProps = {
   offset: number
   isActive: boolean
   slideGap: number
+  onHoverChange?: (hovered: boolean) => void
 }
 
 const HOVER_EASE = [0.16, 1, 0.3, 1] as const
@@ -88,17 +90,20 @@ function hoverContentTransition(active: boolean) {
   }
 }
 
-function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps) {
+function CarouselCard({ product, offset, isActive, slideGap, onHoverChange }: CarouselCardProps) {
   const [hovered, setHovered] = useState(false)
   const rotateX = useSpring(0, { stiffness: 180, damping: 26 })
   const rotateY = useSpring(0, { stiffness: 180, damping: 26 })
   const abs = Math.abs(offset)
+  const hoverCbRef = useRef(onHoverChange)
+  hoverCbRef.current = onHoverChange
 
   useEffect(() => {
     if (!isActive) {
       setHovered(false)
       rotateX.set(0)
       rotateY.set(0)
+      hoverCbRef.current?.(false)
     }
   }, [isActive, rotateX, rotateY])
 
@@ -161,8 +166,15 @@ function CarouselCard({ product, offset, isActive, slideGap }: CarouselCardProps
           transformStyle: 'preserve-3d',
         }}
         onMouseMove={onMove}
-        onMouseEnter={() => isActive && setHovered(true)}
-        onMouseLeave={onLeave}
+        onMouseEnter={() => {
+          if (!isActive) return
+          setHovered(true)
+          onHoverChange?.(true)
+        }}
+        onMouseLeave={() => {
+          onLeave()
+          onHoverChange?.(false)
+        }}
       >
         {isActive ? <span className="our-products-card__ring" aria-hidden /> : null}
         <div className="our-products-card__content">
@@ -237,6 +249,7 @@ export default function OurProductsCarousel() {
   const [activeIndex, setActiveIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const [inView, setInView] = useState(true)
+  const [pageVisible, setPageVisible] = useState(true)
   const [reduceMotion, setReduceMotion] = useState(false)
   const didDragRef = useRef(false)
   const sectionRef = useRef<HTMLElement>(null)
@@ -265,17 +278,24 @@ export default function OurProductsCarousel() {
 
     const observer = new IntersectionObserver(
       ([entry]) => setInView(entry?.isIntersecting ?? false),
-      { threshold: 0.25 },
+      { threshold: 0.08 },
     )
     observer.observe(node)
     return () => observer.disconnect()
   }, [])
 
   useEffect(() => {
-    if (paused || reduceMotion || !inView) return
-    const timer = window.setInterval(goNext, AUTO_MS)
-    return () => window.clearInterval(timer)
-  }, [paused, reduceMotion, inView, goNext])
+    const onVis = () => setPageVisible(document.visibilityState === 'visible')
+    onVis()
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [])
+
+  useEffect(() => {
+    if (paused || reduceMotion || !inView || !pageVisible) return
+    const timer = window.setTimeout(goNext, AUTO_MS)
+    return () => window.clearTimeout(timer)
+  }, [paused, reduceMotion, inView, pageVisible, goNext, activeIndex])
 
   const pauseAuto = useCallback(() => {
     if (resumeTimerRef.current !== null) {
@@ -292,7 +312,7 @@ export default function OurProductsCarousel() {
     resumeTimerRef.current = window.setTimeout(() => {
       setPaused(false)
       resumeTimerRef.current = null
-    }, 400)
+    }, RESUME_MS)
   }, [])
 
   useEffect(() => {
@@ -353,22 +373,14 @@ export default function OurProductsCarousel() {
           </p>
         </header>
 
-        <div
-          className="our-products-carousel-shell relative w-full"
-          onMouseEnter={pauseAuto}
-          onMouseLeave={scheduleResumeAuto}
-          onFocusCapture={pauseAuto}
-          onBlurCapture={(e) => {
-            if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
-              scheduleResumeAuto()
-            }
-          }}
-        >
+        <div className="our-products-carousel-shell relative w-full">
           <button
             type="button"
             onClick={(e) => {
               e.stopPropagation()
+              pauseAuto()
               goPrev()
+              scheduleResumeAuto()
             }}
             className="our-products-arrow our-products-arrow--left"
             aria-label="Previous product"
@@ -380,7 +392,9 @@ export default function OurProductsCarousel() {
             type="button"
             onClick={(e) => {
               e.stopPropagation()
+              pauseAuto()
               goNext()
+              scheduleResumeAuto()
             }}
             className="our-products-arrow our-products-arrow--right"
             aria-label="Next product"
@@ -397,7 +411,11 @@ export default function OurProductsCarousel() {
               dragElastic={0.08}
               onDragStart={onDragStart}
               onDrag={onDrag}
-              onDragEnd={onDragEnd}
+              onDragEnd={(e, info) => {
+                pauseAuto()
+                onDragEnd(e, info)
+                scheduleResumeAuto()
+              }}
               aria-label="Browse products in shop"
             >
               {CAROUSEL_PRODUCTS.map((product, index) => (
@@ -407,6 +425,10 @@ export default function OurProductsCarousel() {
                   offset={shortestOffset(index, activeIndex)}
                   isActive={index === activeIndex}
                   slideGap={slideGap}
+                  onHoverChange={(hovered) => {
+                    if (hovered) pauseAuto()
+                    else scheduleResumeAuto()
+                  }}
                 />
               ))}
             </motion.div>

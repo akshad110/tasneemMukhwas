@@ -2,21 +2,21 @@
 const HERO_SLIDE_PATHS = [
   '/products/Untitled-2_page-0001.jpg.jpeg',
   '/products/ChatGPT Image Sep 22, 2026, 01_21_12 PM.png',
-  '/products/IMG_6897.JPG.jpeg',
+  '/ChatGPT Image Sep 22, 2026, 01_25_43 PM.png',
 ] as const
 
 /** Keeps headlines in frame when the banner fills the viewport. */
 export const HERO_SLIDE_FOCUS = [
   '16% center',
   '16% center',
-  'center 70%',
+  'center 62%',
 ] as const
 
 /** Portrait phones — keep left headline and right pack in view. */
 export const HERO_SLIDE_FOCUS_MOBILE = [
   'left 46%',
   'left 48%',
-  'center 52%',
+  'center 58%',
 ] as const
 
 /** Tablets — slightly left of desktop so type is not clipped. */
