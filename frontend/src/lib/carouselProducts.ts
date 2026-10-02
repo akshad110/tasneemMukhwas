@@ -18,7 +18,7 @@ export const CAROUSEL_PRODUCTS: CarouselProduct[] = [
   {
     id: 'ajwain',
     name: 'Ajwain Mukhwas',
-    image: '/WhatsApp_Image_2026-09-01_at_1.49.36_AM-removebg-preview.png',
+    image: '/WhatsApp_Image_2026-09-01_at_1.49.53_AM-removebg-preview.png',
     ingredients:
       'Carom Seeds (Ajwain), Fennel Seeds, Coriander Seeds, Rock Salt, Turmeric, Natural Spices.',
     glowColors: { light: '#c8e6c8', mid: '#2d6b3a', dark: '#1a4a28' },
@@ -26,7 +26,7 @@ export const CAROUSEL_PRODUCTS: CarouselProduct[] = [
   {
     id: 'mango-slice',
     name: 'Mango Slice Mukhwas',
-    image: '/WhatsApp_Image_2026-09-01_at_1.49.53_AM-removebg-preview.png',
+    image: '/WhatsApp_Image_2026-09-01_at_1.49.48_AM__2_-removebg-preview.png',
     ingredients:
       'Dried Mango Pulp, Sugar, Dry Mango Powder, Salt, Black Pepper, Cumin, Black Salt.',
     glowColors: { light: '#fff2b8', mid: '#f0c840', dark: '#c99200' },
@@ -65,7 +65,7 @@ export const CAROUSEL_PRODUCTS: CarouselProduct[] = [
   {
     id: 'jamun-shots',
     name: 'Jamun Shots Mukhwas',
-    image: '/WhatsApp_Image_2026-09-01_at_1.49.48_AM__2_-removebg-preview.png',
+    image: '/WhatsApp_Image_2026-09-01_at_1.49.36_AM-removebg-preview.png',
     ingredients:
       'Jamun Pulp, Fennel Seeds, Sugar, Citric Acid, Rock Salt, Permitted Food Colours.',
     glowColors: { light: '#dcc8f5', mid: '#9b59d0', dark: '#6b2fa0' },

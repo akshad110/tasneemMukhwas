@@ -22,12 +22,12 @@ import {
 } from '../../lib/brand'
 
 const TOTAL = CAROUSEL_PRODUCTS.length
-const AUTO_MS = 2800
+const AUTO_MS = 1600
 const RESUME_MS = 5200
 
 const SLIDE_TRANSITION = {
   type: 'tween' as const,
-  duration: 0.95,
+  duration: 0.7,
   ease: [0.25, 0.1, 0.25, 1] as const,
 }
 
